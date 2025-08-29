@@ -3,9 +3,9 @@ import React from 'react'
 const Navbar = () => {
   return (
     <div className="w-full flex justify-between items-center px-10 py-5 ">
-      <p className="text-2xl font-lora">Priorix</p>
+      <p className="text-2xl font-lora italic">Priorix</p>
       <div className="flex gap-8 border-2 rounded-4xl px-10 py-2 bg-course-khaki ">
-        <a href="">Features</a>
+        <a href="#features">Features</a>
         <a href="">Pricing</a>
         <a href="">Docs</a>
         <a href="">Contact</a> 

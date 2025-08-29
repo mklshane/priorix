@@ -1,15 +1,16 @@
+import Features from "@/components/Features";
 import Hero from "@/components/Hero";
 import Navbar from "@/components/Navbar";
 
 export default function Home() {
   return (
     <div className="min-h-screen w-full">
-      <div className="h-screen bg-course-blue noise">
+      <div className="h-screen bg-course-bg noise">
         {" "}
         <Navbar />
         <Hero />
-
       </div>
+      <Features />
     </div>
   );
 }
