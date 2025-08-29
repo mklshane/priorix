@@ -1,26 +1,197 @@
 @import "tailwindcss";
 
 :root {
+  /* Base colors */
   --background: #ffffff;
   --foreground: #171717;
+  
+  /* App-specific colors extracted from the interface */
+  --primary: #87ceeb;           /* Sky Blue - main brand color */
+  --primary-foreground: #ffffff;
+  --secondary: #f5f5f5;         /* Light Gray - secondary backgrounds */
+  --secondary-foreground: #333333;
+  --accent: #ffd700;            /* Gold Yellow - highlights and accents */
+  --accent-foreground: #333333;
+  --muted: #f0f0f0;
+  --muted-foreground: #666666;
+  
+  /* Course/Folder colors */
+  --course-blue: #87ceeb;       /* CMSC 110, 142 */
+  --course-yellow: #ffd700;     /* CMSC 124, selected state */
+  --course-pink: #ffb6c1;       /* CMSC 128 LAB */
+  --course-green: #90ee90;      /* Course folders */
+  --course-purple: #dda0dd;     /* Course folders */
+  --course-khaki: #f0e68c;      /* Schedule blocks */
+  --course-salmon: #ffa07a;     /* CMSC 194.1 LAB */
+  
+  /* ID Card colors */
+  --card-gold: #ffd700;
+  --card-gold-end: #ffa500;
+  --card-pink: #ff69b4;
+  
+  /* UI states */
+  --border: #e5e5e5;
+  --input: #f5f5f5;
+  --ring: #87ceeb;
+  --destructive: #ff6b6b;
+  --destructive-foreground: #ffffff;
+  --warning: #ffa500;
+  --warning-foreground: #333333;
+  --success: #90ee90;
+  --success-foreground: #333333;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-lora: var(--font-lora), ui-sans-serif, system-ui, sans-serif;
+  --font-sora: var(--font-sora);
+  
+  /* Register course colors as Tailwind colors */
+  --color-course-blue: var(--course-blue);
+  --color-course-yellow: var(--course-yellow);
+  --color-course-pink: var(--course-pink);
+  --color-course-green: var(--course-green);
+  --color-course-purple: var(--course-purple);
+  --color-course-khaki: var(--course-khaki);
+  --color-course-salmon: var(--course-salmon);
+  --color-card-gold: var(--card-gold);
+  --color-card-pink: var(--card-pink);
 }
 
-@media (prefers-color-scheme: dark) {
+@utility noise {
+  background-image: url(/noise.png)
+}
+
+/* @media (prefers-color-scheme: dark) {
   :root {
+
     --background: #0a0a0a;
     --foreground: #ededed;
+    
+    
+    --primary: #4a90a4;          
+    --primary-foreground: #ffffff;
+    --secondary: #1a1a1a;        
+    --secondary-foreground: #e5e5e5;
+    --accent: #b8860b;          
+    --accent-foreground: #ffffff;
+    --muted: #262626;
+    --muted-foreground: #a1a1a1;
+    
+    
+    --course-blue: #4a90a4;      
+    --course-yellow: #b8860b;    
+    --course-pink: #c67882;      
+    --course-green: #5a8a5a;    
+    --course-purple: #9370a3;   
+    --course-khaki: #a0945a;  
+    --course-salmon: #c5704a;     
+    
+   
+    --card-gold: #b8860b;
+    --card-gold-end: #8b6914;
+    --card-pink: #c67882;
+    
+   
+    --border: #404040;
+    --input: #1a1a1a;
+    --ring: #4a90a4;
+    --destructive: #dc2626;
+    --destructive-foreground: #ffffff;
+    --warning: #ea580c;
+    --warning-foreground: #ffffff;
+    --success: #16a34a;
+    --success-foreground: #ffffff;
   }
-}
+} */
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Custom gradient utility classes that work with Tailwind */
+.bg-gradient-main {
+  background: linear-gradient(135deg, var(--primary) 0%, #e6e6fa 50%, var(--course-pink) 100%);
+}
+
+.bg-gradient-surface {
+  background: linear-gradient(135deg, var(--course-green) 0%, var(--course-pink) 50%, var(--primary) 100%);
+}
+
+.bg-gradient-card {
+  background: linear-gradient(135deg, var(--card-gold) 0%, var(--card-gold-end) 100%);
+}
+
+/* Course folder hover effects */
+.course-folder {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.course-folder:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+  .course-folder:hover {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  }
+  
+  .bg-gradient-main {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 50%, #3a2a3a 100%);
+  }
+  
+  .bg-gradient-surface {
+    background: linear-gradient(135deg, #2a3a2a 0%, #3a2a3a 50%, #2a3a4a 100%);
+  }
+  
+  .bg-gradient-card {
+    background: linear-gradient(135deg, var(--card-gold) 0%, var(--card-gold-end) 100%);
+  }
+}
+
+/* ID Card styling */
+.id-card {
+  background: var(--gradient-card);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Schedule time block styling */
+.schedule-block {
+  border-radius: 8px;
+  padding: 12px;
+  margin: 2px 0;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+/* Responsive design adjustments */
+@media (max-width: 768px) {
+  .course-folder {
+    min-width: 150px;
+  }
+  
+  .schedule-block {
+    padding: 8px;
+    font-size: 0.8rem;
+  }
 }
