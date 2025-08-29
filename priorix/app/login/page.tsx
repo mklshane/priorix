@@ -1,4 +1,5 @@
-"use client"
+"use client";
+import Link from "next/link";
 import React, { useState } from "react";
 
 const LoginBox = () => {
@@ -8,7 +9,7 @@ const LoginBox = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     console.log({ email, password, rememberMe });
   };
 
@@ -103,12 +104,11 @@ const LoginBox = () => {
         <div className="mt-6 text-center">
           <p className="text-foreground">
             Don't have an account?{" "}
-            <a
-              href="#"
-              className="font-bold text-course-blue hover:text-course-pink transition "
-            >
-              Sign up
-            </a>
+            <Link href={"/signup"}>
+              <button className="font-bold text-course-blue hover:text-course-pink transition ">
+                Sign up
+              </button>
+            </Link>
           </p>
         </div>
       </div>
