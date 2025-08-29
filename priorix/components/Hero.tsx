@@ -11,7 +11,7 @@ const Hero = () => {
         focused and on track so you can accomplish more with less stress.
       </p>
       <div className="w-[60%] bg-course-blue noise mt-12 rounded-4xl border-2 h-50 text-center py-5 px-10">
-        <p>Demo</p>
+        <p>demo</p>
       </div>
     </div>
   );
