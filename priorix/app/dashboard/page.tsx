@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import AppNav from "@/components/AppNav";
-import Sidebar from "@/components/dashboard/Sidebar";
+import Sidebar from "@/components/Sidebar";
 import RecentDecks from "@/components/dashboard/RecentDeck";
 import RecentActivity from "@/components/dashboard/RecentActivity";
 import QuickActions from "@/components/dashboard/QuickActions";

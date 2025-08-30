@@ -35,7 +35,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     >
       {/* Header with logo and close button */}
       <div className="flex h-16 items-center justify-between px-6">
-        <h1 className="text-xl font-bold text-sidebar-foreground">Priorix</h1>
+        <h1 className="text-xl text-sidebar-foreground font-lora">Menu</h1>
         {/* Close button - visible on all screen sizes */}
         <button
           onClick={onClose}
