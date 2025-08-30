@@ -12,9 +12,25 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Menu, User, Settings, LogOut } from "lucide-react";
 
-export default function AppNav() {
+interface AppNavProps {
+  onToggleSidebar: () => void;
+}
+
+
+export default function AppNav({ onToggleSidebar}: AppNavProps) {
   const { data: session } = useSession();
   const user = session?.user;
+  const handleToggle = () => {
+    console.log("[v0] Burger menu clicked");
+    onToggleSidebar();
+  };
+
+  const getFirstName = (name?: string | null) => {
+    if (!name) return "User";
+    return name.split(" ")[0];
+  };
+
+  const firstName = getFirstName(user?.name);
 
   const getInitials = (name?: string | null) => {
     if (!name) return "U";
@@ -27,7 +43,12 @@ export default function AppNav() {
     <nav className="w-full px-6 py-4">
       <div className="flex items-center justify-between">
         {/* Left - Hamburger Menu */}
-        <Button variant="ghost" size="sm" className="p-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="p-2"
+          onClick={handleToggle}
+        >
           <Menu className="h-5 w-5" />
         </Button>
 
@@ -40,7 +61,7 @@ export default function AppNav() {
             <DropdownMenuTrigger asChild>
               <button className="flex items-center space-x-3 bg-gray-100 border-2 rounded-full hover:bg-slate-200 py-1 px-3 transition-colors">
                 <span className="font-sora text-sm text-gray-700 hidden sm:block">
-                  {user.name}
+                  {firstName}
                 </span>
                 <Avatar className="h-8 w-8">
                   <AvatarImage

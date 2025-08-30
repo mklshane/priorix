@@ -26,10 +26,11 @@ html {
   --course-yellow: #ffd700;     /* CMSC 124, selected state */
   --course-pink: #ffb6c1;       /* CMSC 128 LAB */
   --course-green: #90ee90;      /* Course folders */
-  --course-purple: #dda0dd;     /* Course folders */
+  --purple: #dda0dd;     /* Course folders */
   --course-khaki: #f0e68c;      /* Schedule blocks */
   --course-salmon: #ffa07a;     /* CMSC 194.1 LAB */
   --course-bg: #fdfbe4;
+  --violet: #5e5fbf;
 
   /* ID Card colors */
   --card-gold: #ffd700;
@@ -94,7 +95,8 @@ html {
   --color-course-yellow: var(--course-yellow);
   --color-course-pink: var(--course-pink);
   --color-course-green: var(--course-green);
-  --color-course-purple: var(--course-purple);
+  --color-purple: var(--purple);
+  --color-violet: var(--violet);
   --color-course-khaki: var(--course-khaki);
    --color-course-bg: var(--course-bg);
   --color-course-salmon: var(--course-salmon);
