@@ -14,27 +14,25 @@ const LoginBox = () => {
   const { data } = useSession();
   const session = data;
 
-  console.log("Session: ", session)
+  //console.log("Session: ", session)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const response = await signIn("credentials", {email, password, redirect: false});
-    console.log(response);
+    const res = await signIn("credentials", {
+      email,
+      password,
+      redirect: false, // so we can handle errors manually
+    });
 
-    if(response?.error){
-      return;
+    if (res?.error) {
+      alert(res.error);
+    } else {
+      router.push("/dashboard");
     }
-    
-    router.push('/');
-
-    
   };
 
-  const handleGoogleLogin = () => {
-    console.log("Google login clicked");
-    // Add Google OAuth logic here
-  };
+ 
 
   const handleFacebookLogin = () => {
     console.log("Facebook login clicked");
@@ -55,7 +53,7 @@ const LoginBox = () => {
         </div>
 
         {/* Login Box */}
-        <div className="w-full bg-course-blue noise rounded-[10px] border-2 p-8 shadow-lg">
+        <div className="w-full bg-course-blue noise rounded-[10px] border-2 border-primary p-8 shadow-lg">
           <form onSubmit={handleSubmit} className="flex flex-col space-y-5">
             {/* Email Input */}
             <div className="flex flex-col">
@@ -112,7 +110,7 @@ const LoginBox = () => {
 
               <a
                 href="#"
-                className="text-sm text-course-blue hover:text-course-pink transition"
+                className="text-sm text-foreground hover:text-course-yellow transition"
               >
                 Forgot password?
               </a>
@@ -141,7 +139,7 @@ const LoginBox = () => {
             {/* Google Login Button */}
             <button
               type="button"
-              onClick={() => signIn("google", {redirectTo: "/"})}
+              onClick={() => signIn("google", {callbackUrl: "/dashboard"})}
               className="flex-1 flex items-center justify-center px-4 py-3 border-2 border-black rounded-2xl bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-input transition shadow-sm hover:shadow-md"
             >
               <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
@@ -165,17 +163,7 @@ const LoginBox = () => {
               <span className="text-gray-700 font-medium">Google</span>
             </button>
 
-            {/* Facebook Login Button */}
-            <button
-              type="button"
-              onClick={handleFacebookLogin}
-              className="flex-1 flex items-center justify-center px-4 py-3 border-2 border-black rounded-2xl bg-[#1877F2] hover:bg-[#166FE5] focus:outline-none focus:ring-2 focus:ring-input transition shadow-sm hover:shadow-md"
-            >
-              <svg className="w-5 h-5 mr-2" fill="white" viewBox="0 0 24 24">
-                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-              </svg>
-              <span className="text-white font-medium">Facebook</span>
-            </button>
+           
           </div>
         </div>
 

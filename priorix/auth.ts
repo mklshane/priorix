@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
-import bcrypt from "bcryptjs"; 
+import bcrypt from "bcryptjs";
 import { ConnectDB } from "./lib/config/db";
 import User from "./lib/models/User";
 import type mongoose from "mongoose";
@@ -19,19 +19,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           await ConnectDB();
 
           const user = await User.findOne({ email: credentials?.email });
-
-          if (!user) {
-            throw new Error("Invalid credentials.");
-          }
+          if (!user) throw new Error("Invalid credentials.");
 
           const isValidPassword = await bcrypt.compare(
             credentials?.password as string ?? "",
             user.password ?? ""
           );
-
-          if (!isValidPassword) {
-            throw new Error("Invalid credentials.");
-          }
+          if (!isValidPassword) throw new Error("Invalid credentials.");
 
           return {
             id: (user._id as mongoose.Types.ObjectId).toString(),
@@ -51,16 +45,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         try {
           await ConnectDB();
 
-          const existingUser = await User.findOne({
-            email: profile?.email,
-          });
-
+          const existingUser = await User.findOne({ email: profile?.email });
           if (!existingUser) {
             const newUser = await User.create({
               name: profile?.name,
               email: profile?.email,
             });
-
             user.id = (newUser._id as mongoose.Types.ObjectId).toString();
           } else {
             user.id = (existingUser._id as mongoose.Types.ObjectId).toString();
@@ -79,9 +69,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return session;
     },
     async jwt({ token, user }) {
-      if (user) {
-        token.sub = user.id;
-      }
+      if (user) token.sub = user.id;
       return token;
     },
   },

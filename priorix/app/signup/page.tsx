@@ -1,32 +1,55 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 const SignUp = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [agreeToTerms, setAgreeToTerms] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const router = useRouter();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log({ name, email, password, confirmPassword, agreeToTerms });
-  };
 
-  const handleGoogleLogin = () => {
-    console.log("Google signup clicked");
-    // Add Google OAuth logic here
-  };
+    if (password !== confirmPassword) {
+      alert("Passwords do not match");
+      return;
+    }
 
-  const handleFacebookLogin = () => {
-    console.log("Facebook signup clicked");
-    // Add Facebook OAuth logic here
+    const res = await fetch("/api/auth/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name,
+        email,
+        password,
+      }),
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      alert(data.message);
+      // Auto-login after signup
+      await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+      router.push("/dashboard");
+    } else {
+      alert(data.message || "Something went wrong");
+    }
   };
+  
 
   return (
     <div className="min-h-screen bg-primary-foreground flex items-center justify-center p-4">
       <div className="w-full max-w-md mx-auto flex flex-col items-center">
+        {/* --- Title Section --- */}
         <div className="text-center mb-8">
           <p className="font-lora italic text-4xl tracking-wide mb-3">
             Create Account
@@ -37,8 +60,8 @@ const SignUp = () => {
           </p>
         </div>
 
-        {/* Sign Up Box - Yellow Container */}
-        <div className="w-full bg-course-khaki noise rounded-[10px] border-2 p-8 shadow-lg">
+        {/* --- Signup Form --- */}
+        <div className="w-full bg-course-khaki noise rounded-[10px] border-2 border-primary p-8 shadow-lg">
           <form onSubmit={handleSubmit} className="flex flex-col space-y-5">
             {/* Name Input */}
             <div className="flex flex-col">
@@ -110,23 +133,6 @@ const SignUp = () => {
               />
             </div>
 
-            {/* Terms Agreement */}
-            <div className="flex items-center">
-              <input
-                id="agree-to-terms"
-                type="checkbox"
-                checked={agreeToTerms}
-                onChange={(e) => setAgreeToTerms(e.target.checked)}
-                className="h-4 w-4 text-yellow-600 focus:ring-yellow-500 border-gray-300 rounded"
-              />
-              <label
-                htmlFor="agree-to-terms"
-                className="ml-2 block text-sm text-foreground"
-              >
-                I agree to the Terms and Conditions
-              </label>
-            </div>
-
             {/* Submit Button */}
             <button
               type="submit"
@@ -135,22 +141,20 @@ const SignUp = () => {
               Create Account
             </button>
           </form>
-
           {/* Divider */}
           <div className="flex items-center my-6">
             <div className="flex-1 border-t border-gray-300"></div>
             <span className="px-4 text-sm text-foreground">
-              Or sign up with
+              Or continue with
             </span>
             <div className="flex-1 border-t border-gray-300"></div>
           </div>
-
           {/* Social Login Buttons */}
           <div className="flex gap-3">
             {/* Google Login Button */}
             <button
               type="button"
-              onClick={handleGoogleLogin}
+              onClick={() => signIn("google", { redirectTo: "/dashboard" })}
               className="flex-1 flex items-center justify-center px-4 py-3 border-2 border-black rounded-2xl bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-input transition shadow-sm hover:shadow-md"
             >
               <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
@@ -174,31 +178,23 @@ const SignUp = () => {
               <span className="text-gray-700 font-medium">Google</span>
             </button>
 
-            {/* Facebook Login Button */}
-            <button
-              type="button"
-              onClick={handleFacebookLogin}
-              className="flex-1 flex items-center justify-center px-4 py-3 border-2 border-black rounded-2xl bg-[#1877F2] hover:bg-[#166FE5] focus:outline-none focus:ring-2 focus:ring-input transition shadow-sm hover:shadow-md"
-            >
-              <svg className="w-5 h-5 mr-2" fill="white" viewBox="0 0 24 24">
-                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-              </svg>
-              <span className="text-white font-medium">Facebook</span>
-            </button>
+            
           </div>
-        </div>
-
-        {/* Login Prompt */}
-        <div className="mt-6 text-center">
-          <p className="text-foreground">
-            Already have an account?{" "}
-            <Link
-              href="/login"
-              className="font-bold text-course-blue hover:text-course-pink transition"
-            >
-              Log in
-            </Link>
-          </p>
+          {/* Login Prompt */}{" "}
+          <div className="mt-6 text-center">
+            {" "}
+            <p className="text-foreground">
+              {" "}
+              Already have an account?{" "}
+              <Link
+                href="/login"
+                className="font-bold text-course-blue hover:text-course-pink transition"
+              >
+                {" "}
+                Log in{" "}
+              </Link>{" "}
+            </p>{" "}
+          </div>
         </div>
       </div>
     </div>
