@@ -11,15 +11,17 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Menu, User, Settings, LogOut } from "lucide-react";
+import { usePathname } from "next/navigation"; 
 
 interface AppNavProps {
   onToggleSidebar: () => void;
 }
 
-
-export default function AppNav({ onToggleSidebar}: AppNavProps) {
+export default function AppNav({ onToggleSidebar }: AppNavProps) {
   const { data: session } = useSession();
   const user = session?.user;
+  const pathname = usePathname();
+
   const handleToggle = () => {
     console.log("[v0] Burger menu clicked");
     onToggleSidebar();
@@ -39,6 +41,25 @@ export default function AppNav({ onToggleSidebar}: AppNavProps) {
     return (parts[0][0] + parts[1][0]).toUpperCase();
   };
 
+  // ap paths to page names
+  const pageNames: Record<string, string> = {
+    "/dashboard": "Home",
+    "/decks": "Decks",
+    "/todo": "Todo",
+    "/notes": "Notes",
+  };
+
+  // ✅ Fallback: capitalize last part of URL
+  const currentPage =
+    pageNames[pathname] ||
+    pathname
+      .split("/")
+      .filter(Boolean)
+      .pop()
+      ?.replace(/-/g, " ")
+      .replace(/\b\w/g, (c) => c.toUpperCase()) ||
+    "Page";
+
   return (
     <nav className="w-full px-6 py-4">
       <div className="flex items-center justify-between">
@@ -52,8 +73,10 @@ export default function AppNav({ onToggleSidebar}: AppNavProps) {
           <Menu className="h-5 w-5" />
         </Button>
 
-        {/* Center - App Name */}
-        <h1 className="font-lora text-2xl italic text-gray-900">Priorix</h1>
+        {/* Center - Page Name */}
+        <h1 className="font-lora text-2xl italic text-gray-900">
+          {currentPage}
+        </h1>
 
         {/* Right - User */}
         {user && (

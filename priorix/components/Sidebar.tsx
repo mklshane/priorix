@@ -9,13 +9,13 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
 
 const navigation = [
-  { name: "Home", href: "/", icon: Home, current: true },
-  { name: "Flashcards", href: "/flashcards", icon: BookOpen, current: false },
-  { name: "Todo", href: "/todo", icon: CheckSquare, current: false },
-  { name: "Notes", href: "/notes", icon: FileText, current: false },
+  { name: "Home", href: "/dashboard", icon: Home },
+  { name: "Decks", href: "/decks", icon: BookOpen },
+  { name: "Todo", href: "/todo", icon: CheckSquare },
+  { name: "Notes", href: "/notes", icon: FileText },
 ];
 
 interface SidebarProps {
@@ -24,7 +24,8 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
-  const [currentPage, setCurrentPage] = useState("Home");
+  const router = useRouter();
+  const pathname = usePathname();
 
   return (
     <div
@@ -33,10 +34,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         isOpen ? "translate-x-0" : "-translate-x-full"
       )}
     >
-      {/* Header with logo and close button */}
+      {/* Header */}
       <div className="flex h-16 items-center justify-between px-6">
         <h1 className="text-xl text-sidebar-foreground font-lora">Menu</h1>
-        {/* Close button - visible on all screen sizes */}
         <button
           onClick={onClose}
           className="p-2 rounded-md hover:bg-sidebar-accent transition-colors"
@@ -49,13 +49,12 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Navigation */}
       <nav className="flex-1 space-y-1 px-4 py-4">
         {navigation.map((item) => {
-          const isActive = item.name === currentPage;
+          const isActive = pathname === item.href; 
           return (
             <button
               key={item.name}
               onClick={() => {
-                setCurrentPage(item.name);
-                // Close sidebar when item is clicked
+                router.push(item.href);
                 onClose?.();
               }}
               className={cn(
