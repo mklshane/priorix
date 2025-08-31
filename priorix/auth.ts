@@ -22,7 +22,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           if (!user) throw new Error("Invalid credentials.");
 
           const isValidPassword = await bcrypt.compare(
-            credentials?.password as string ?? "",
+            (credentials?.password as string) ?? "",
             user.password ?? ""
           );
           if (!isValidPassword) throw new Error("Invalid credentials.");
@@ -64,13 +64,23 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
     async session({ session, token }) {
       if (session.user && token.sub) {
+        // Add the MongoDB ID to the session user object
         session.user.id = token.sub;
       }
       return session;
     },
     async jwt({ token, user }) {
-      if (user) token.sub = user.id;
+      if (user) {
+        // Store the user ID (MongoDB ID) in the token
+        token.sub = user.id;
+      }
       return token;
     },
   },
+  pages: {
+    signIn: "/auth/signin",
+  },
 });
+
+// Export the handlers for the API route
+export const { GET, POST } = handlers;

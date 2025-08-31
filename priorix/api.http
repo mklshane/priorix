@@ -1,8 +1,4 @@
-### Login Request
-POST http://localhost:3000/api/auth/login
-Content-Type: application/json
+### Fetch Deck
+GET http://localhost:3000/api/deck?id=68b433e625154d6dc3dce159&userId=68b1c6c64dfb6a7d35d44594
 
-{
-  "email": "dailyoojimin@gmail.com",
-  "password": "shane"
-}
+

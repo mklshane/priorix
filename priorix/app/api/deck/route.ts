@@ -1,18 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import * as flashcardController from "./controller";
+import * as deckController from "./controller";
+
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const deckId = searchParams.get("deckId");
-    if (!deckId)
-      return NextResponse.json(
-        { error: "deckId is required" },
-        { status: 400 }
-      );
+    const deckId = searchParams.get("id") || undefined;
+    const userId = searchParams.get("userId") || undefined;
 
-    const flashcards = await flashcardController.getFlashcards(deckId);
-    return NextResponse.json(flashcards);
+    const result = await deckController.getDecks({ deckId, userId });
+    return NextResponse.json(result);
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
@@ -21,8 +18,8 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const flashcard = await flashcardController.createFlashcard(body);
-    return NextResponse.json(flashcard, { status: 201 });
+    const result = await deckController.createDeck(body);
+    return NextResponse.json(result, { status: 201 });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
@@ -31,8 +28,8 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
-    const updated = await flashcardController.updateFlashcard(body);
-    return NextResponse.json(updated);
+    const result = await deckController.updateDeck(body);
+    return NextResponse.json(result);
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
@@ -41,14 +38,14 @@ export async function PUT(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const id = searchParams.get("id");
-    if (!id)
-      return NextResponse.json({ error: "id is required" }, { status: 400 });
+    const deckId = searchParams.get("id");
+    if (!deckId)
+      return NextResponse.json({ error: "Deck ID required" }, { status: 400 });
 
-    const deleted = await flashcardController.deleteFlashcard(id);
+    const result = await deckController.deleteDeck(deckId);
     return NextResponse.json({
-      message: "Flashcard deleted",
-      flashcard: deleted,
+      message: "Deck deleted successfully",
+      deck: result,
     });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
