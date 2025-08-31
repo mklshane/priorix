@@ -48,20 +48,20 @@ const SignUp = () => {
 
   return (
     <div className="min-h-screen bg-primary-foreground flex items-center justify-center p-4">
-      <div className="w-full max-w-md mx-auto flex flex-col items-center">
+      <div className="w-full max-w-md mx-auto flex flex-col items-center py-5">
         {/* --- Title Section --- */}
         <div className="text-center mb-8">
           <p className="font-lora italic text-4xl tracking-wide mb-3">
             Create Account
           </p>
-          <div className="w-24 h-1 bg-gradient-to-r from-course-pink via-course-blue to-course-yellow rounded-full mx-auto"></div>
+          <div className="w-24 h-1 bg-green rounded-full mx-auto"></div>
           <p className="text-gray-600 mt-4 max-w-md text-lg">
             Join us to start your productivity journey
           </p>
         </div>
 
         {/* --- Signup Form --- */}
-        <div className="w-full bg-course-khaki noise rounded-[10px] border-2 border-primary p-8 shadow-lg">
+        <div className="w-full bg-green/80 noise rounded-[10px] border-2 border-primary p-8 shadow-lg">
           <form onSubmit={handleSubmit} className="flex flex-col space-y-5">
             {/* Name Input */}
             <div className="flex flex-col">
@@ -136,18 +136,18 @@ const SignUp = () => {
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full bg-gradient-to-r bg-course-blue text-foreground py-3 px-4 rounded-2xl hover:bg-course-pink focus:outline-none focus:ring-2 focus:ring-course-blue transition shadow-md hover:shadow-lg"
+              className="w-full bg-purple text-foreground py-3 px-4 rounded-2xl hover:bg-purple/70 focus:outline-none focus:ring-2 focus:ring-course-blue transition shadow-md hover:shadow-lg border-2 border-black"
             >
               Create Account
             </button>
           </form>
           {/* Divider */}
           <div className="flex items-center my-6">
-            <div className="flex-1 border-t border-gray-300"></div>
+            <div className="flex-1 border-t border-primary"></div>
             <span className="px-4 text-sm text-foreground">
               Or continue with
             </span>
-            <div className="flex-1 border-t border-gray-300"></div>
+            <div className="flex-1 border-t border-primary"></div>
           </div>
           {/* Social Login Buttons */}
           <div className="flex gap-3">

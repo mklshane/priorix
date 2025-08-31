@@ -4,38 +4,31 @@
 @custom-variant dark (&:is(.dark *));
 
 html {
-
+  font-family: "Sora";
   scroll-behavior: smooth;
 }
 
 :root {
-  /* Base colors */
 
   /* App-specific colors extracted from the interface */
-  --primary: oklch(0.205 0 0);           /* Sky Blue - main brand color */
+  --primary: oklch(0.205 0 0); 
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);         /* Light Gray - secondary backgrounds */
+  --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
-  --accent: oklch(0.97 0 0);            /* Gold Yellow - highlights and accents */
+  --accent: oklch(0.97 0 0); 
   --accent-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
   --muted-foreground: oklch(0.556 0 0);
 
-  /* Course/Folder colors */
-  --course-blue: #87ceeb;       /* CMSC 110, 142 */
-  --course-yellow: #ffd700;     /* CMSC 124, selected state */
-  --course-pink: #ffb6c1;       /* CMSC 128 LAB */
-  --course-green: #90ee90;      /* Course folders */
-  --purple: #dda0dd;     /* Course folders */
-  --course-khaki: #f0e68c;      /* Schedule blocks */
-  --course-salmon: #ffa07a;     /* CMSC 194.1 LAB */
-  --course-bg: #fdfbe4;
-  --violet: #5e5fbf;
-
-  /* ID Card colors */
-  --card-gold: #ffd700;
-  --card-gold-end: #ffa500;
-  --card-pink: #ff69b4;
+  /* Actual palette */
+  --green: #cae044;
+  --violet: #8e47b9;
+  --purple: #c4a0ff;
+  --perry: #39cbb7;
+  --skin: #f9eee5;
+  --pink: #ffb6fb;
+  --yellow: #ffd700;
+   --blue: #87ceeb;
 
   /* UI states */
   --border: oklch(0.922 0 0);
@@ -54,11 +47,6 @@ html {
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);
@@ -91,17 +79,15 @@ html {
   --font-sora: var(--font-sora);
 
   /* Register course colors as Tailwind colors */
-  --color-course-blue: var(--course-blue);
-  --color-course-yellow: var(--course-yellow);
-  --color-course-pink: var(--course-pink);
-  --color-course-green: var(--course-green);
-  --color-purple: var(--purple);
+  --color-blue: var(--blue);
+  --color-green: var(--green);
   --color-violet: var(--violet);
-  --color-course-khaki: var(--course-khaki);
-   --color-course-bg: var(--course-bg);
-  --color-course-salmon: var(--course-salmon);
-  --color-card-gold: var(--card-gold);
-  --color-card-pink: var(--card-pink);
+  --color-purple: var(--purple);
+  --color-perry: var(--perry);
+  --color-skin: var(--skin);
+  --color-pink: var(--pink);
+  --color-yellow: var(--yellow);
+
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -110,11 +96,6 @@ html {
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
@@ -126,47 +107,8 @@ html {
 }
 
 @utility noise {
-  background-image: url(/noise.png)
+  background-image: url(/noise.png);
 }
-
-/* @media (prefers-color-scheme: dark) {
-  :root {
-
-    --background: #0a0a0a;
-    --foreground: #ededed;
-
-    --primary: #4a90a4;          
-    --primary-foreground: #ffffff;
-    --secondary: #1a1a1a;        
-    --secondary-foreground: #e5e5e5;
-    --accent: #b8860b;          
-    --accent-foreground: #ffffff;
-    --muted: #262626;
-    --muted-foreground: #a1a1a1;
-
-    --course-blue: #4a90a4;      
-    --course-yellow: #b8860b;    
-    --course-pink: #c67882;      
-    --course-green: #5a8a5a;    
-    --course-purple: #9370a3;   
-    --course-khaki: #a0945a;  
-    --course-salmon: #c5704a;     
-
-    --card-gold: #b8860b;
-    --card-gold-end: #8b6914;
-    --card-pink: #c67882;
-
-    --border: #404040;
-    --input: #1a1a1a;
-    --ring: #4a90a4;
-    --destructive: #dc2626;
-    --destructive-foreground: #ffffff;
-    --warning: #ea580c;
-    --warning-foreground: #ffffff;
-    --success: #16a34a;
-    --success-foreground: #ffffff;
-  }
-} */
 
 body {
   scroll-behavior: smooth;
@@ -174,15 +116,29 @@ body {
 
 /* Custom gradient utility classes that work with Tailwind */
 .bg-gradient-main {
-  background: linear-gradient(135deg, var(--primary) 0%, #e6e6fa 50%, var(--course-pink) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--primary) 0%,
+    #e6e6fa 50%,
+    var(--course-pink) 100%
+  );
 }
 
 .bg-gradient-surface {
-  background: linear-gradient(135deg, var(--course-green) 0%, var(--course-pink) 50%, var(--primary) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--course-green) 0%,
+    var(--course-pink) 50%,
+    var(--primary) 100%
+  );
 }
 
 .bg-gradient-card {
-  background: linear-gradient(135deg, var(--card-gold) 0%, var(--card-gold-end) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--card-gold) 0%,
+    var(--card-gold-end) 100%
+  );
 }
 
 /* Course folder hover effects */
@@ -209,7 +165,11 @@ body {
   }
 
   .bg-gradient-card {
-    background: linear-gradient(135deg, var(--card-gold) 0%, var(--card-gold-end) 100%);
+    background: linear-gradient(
+      135deg,
+      var(--card-gold) 0%,
+      var(--card-gold-end) 100%
+    );
   }
 }
 
@@ -242,68 +202,41 @@ body {
 }
 
 .dark {
-
   --background: oklch(0.145 0 0);
-
   --foreground: oklch(0.985 0 0);
-
   --card: oklch(0.205 0 0);
-
   --card-foreground: oklch(0.985 0 0);
-
   --popover: oklch(0.205 0 0);
-
   --popover-foreground: oklch(0.985 0 0);
-
   --primary: oklch(0.922 0 0);
-
   --primary-foreground: oklch(0.205 0 0);
-
   --secondary: oklch(0.269 0 0);
-
   --secondary-foreground: oklch(0.985 0 0);
-
   --muted: oklch(0.269 0 0);
-
   --muted-foreground: oklch(0.708 0 0);
-
   --accent: oklch(0.269 0 0);
-
   --accent-foreground: oklch(0.985 0 0);
-
   --destructive: oklch(0.704 0.191 22.216);
-
   --border: oklch(1 0 0 / 10%);
-
   --input: oklch(1 0 0 / 15%);
-
   --ring: oklch(0.556 0 0);
-
-  --chart-1: oklch(0.488 0.243 264.376);
-
-  --chart-2: oklch(0.696 0.17 162.48);
-
-  --chart-3: oklch(0.769 0.188 70.08);
-
-  --chart-4: oklch(0.627 0.265 303.9);
-
-  --chart-5: oklch(0.645 0.246 16.439);
-
   --sidebar: oklch(0.205 0 0);
-
   --sidebar-foreground: oklch(0.985 0 0);
-
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-
+  --sidebar-primary: var(--violet);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-
   --sidebar-accent: oklch(0.269 0 0);
-
   --sidebar-accent-foreground: oklch(0.985 0 0);
-
   --sidebar-border: oklch(1 0 0 / 10%);
-
   --sidebar-ring: oklch(0.556 0 0);
+
+   --green: #a8c030; /* Slightly darker and less saturated */
+  --violet: #7a3da3; /* Darker but still vibrant */
+  --purple: #8356be; /* Less bright for dark mode */
+  --perry: #2ab3a2; /* Slightly darker teal */
+  --skin: #d9c8b8; /* Warmer, less bright skin tone */
+  --pink: #b256ae; /* Less intense pink */
+  --yellow: #b19a18; /* Mustard-like yellow */
+  --blue: #6ba8d6; /* Deeper blue */
 }
 
 @layer base {
@@ -314,4 +247,3 @@ body {
     @apply bg-background text-foreground;
   }
 }
-

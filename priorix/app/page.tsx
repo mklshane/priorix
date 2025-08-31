@@ -10,6 +10,8 @@ export default function Home() {
         <Navbar />
         <Hero />
       </div>
+      <div className="w-[30%] h-0.5 bg-black mx-auto rounded-4xl">
+      </div>
       <Features />
     </div>
   );

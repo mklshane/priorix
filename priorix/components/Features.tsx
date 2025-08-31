@@ -15,7 +15,7 @@ const Features: React.FC = () => {
   const features: Feature[] = [
     {
       name: "Flashcard",
-      color: "bg-course-pink",
+      color: "bg-pink",
       description:
         "Create interactive flashcards for effective spaced repetition learning",
       details:
@@ -24,7 +24,7 @@ const Features: React.FC = () => {
     },
     {
       name: "Notes",
-      color: "bg-course-blue",
+      color: "bg-green",
       description:
         "Rich text editor with markdown support and organization tools",
       details:
@@ -33,7 +33,7 @@ const Features: React.FC = () => {
     },
     {
       name: "To Do",
-      color: "bg-course-yellow ",
+      color: "bg-yellow ",
       description: "Smart task management with deadlines and priority levels",
       details: "Set reminders, track progress, and stay on top of your goals",
       benefits: [
@@ -152,7 +152,7 @@ const Features: React.FC = () => {
               key={index}
               className={`w-2 h-2 rounded-full transition-all duration-300 ${
                 hoveredFeature === index
-                  ? "bg-gradient-to-r from-course-pink to-course-blue scale-125"
+                  ? "bg-gradient-to-r from-pink to-blue scale-125"
                   : "bg-gray-300"
               }`}
             ></div>

@@ -32,28 +32,22 @@ const LoginBox = () => {
     }
   };
 
- 
-
-  const handleFacebookLogin = () => {
-    console.log("Facebook login clicked");
-    // Add Facebook OAuth logic here
-  };
 
   return (
     <div className="min-h-screen bg-primary-foreground flex items-center justify-center p-4">
-      <div className="w-full max-w-md mx-auto flex flex-col items-center">
+      <div className="w-full max-w-md mx-auto flex flex-col items-center py-5">
         <div className="text-center mb-8">
           <p className="font-lora italic text-4xl tracking-wide mb-3">
             Welcome Back
           </p>
-          <div className="w-24 h-1 bg-gradient-to-r from-course-pink via-course-blue to-course-yellow rounded-full mx-auto"></div>
+          <div className="w-24 h-1 bg-green rounded-full mx-auto"></div>
           <p className="text-gray-600 mt-4 max-w-md text-lg">
             Sign in to continue your productivity journey
           </p>
         </div>
 
         {/* Login Box */}
-        <div className="w-full bg-course-blue noise rounded-[10px] border-2 border-primary p-8 shadow-lg">
+        <div className="w-full bg-green/80 noise rounded-[10px] border-2 border-primary p-8 shadow-lg">
           <form onSubmit={handleSubmit} className="flex flex-col space-y-5">
             {/* Email Input */}
             <div className="flex flex-col">
@@ -119,7 +113,7 @@ const LoginBox = () => {
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full bg-gradient-to-r bg-course-yellow text-foreground py-3 px-4 rounded-2xl hover:bg-course-khaki focus:outline-none focus:ring-2 focus:ring-course-blue transition shadow-md hover:shadow-lg"
+              className="w-full bg-gradient-to-r bg-purple text-foreground py-3 px-4 rounded-2xl hover:bg-purple/80 focus:outline-none focus:ring-2 focus:ring-course-blue transition shadow-md hover:shadow-lg border-2 border-black"
             >
               Sign in
             </button>
@@ -127,11 +121,11 @@ const LoginBox = () => {
 
           {/* Divider */}
           <div className="flex items-center my-6">
-            <div className="flex-1 border-t border-gray-300"></div>
+            <div className="flex-1 border-t border-primary"></div>
             <span className="px-4 text-sm text-foreground">
               Or continue with
             </span>
-            <div className="flex-1 border-t border-gray-300"></div>
+            <div className="flex-1 border-t border-primary"></div>
           </div>
 
           {/* Social Login Buttons */}
@@ -172,7 +166,7 @@ const LoginBox = () => {
           <p className="text-foreground">
             Don't have an account?{" "}
             <Link href={"/signup"}>
-              <button className="font-bold text-course-blue hover:text-course-pink transition ">
+              <button className="font-bold transition ">
                 Sign up
               </button>
             </Link>

@@ -8,39 +8,39 @@ const quickActions = [
     description: "Create a new set of flashcards",
     icon: BookOpen,
     color:
-      "bg-gradient-to-br from-pink-100 to-pink-50 dark:from-pink-950/30 dark:to-pink-900/20",
-    iconColor: "text-pink-500 dark:text-pink-400",
-    borderColor: "border-pink-200 dark:border-pink-800",
+      "bg-pink ",
+    iconColor: "text-pink-500 dark:text-pink",
+    borderColor: "border-black dark:border-pink",
     hover:
-      "hover:shadow-lg hover:-translate-y-0.5 hover:border-pink-300 dark:hover:border-pink-700",
+      "hover:shadow-lg hover:-translate-y-0.5 hover:border-pink-300 dark:hover:border-pink",
   },
   {
     title: "Add Todo",
     description: "Add a new task to your list",
     icon: CheckSquare,
     color:
-      "bg-gradient-to-br from-blue-100 to-blue-50 dark:from-blue-950/30 dark:to-blue-900/20",
-    iconColor: "text-blue-500 dark:text-blue-400",
-    borderColor: "border-blue-200 dark:border-blue-800",
+      "bg-green ",
+    iconColor: "text-perry dark:text-blue",
+    borderColor: "border-black dark:border-blue",
     hover:
-      "hover:shadow-lg hover:-translate-y-0.5 hover:border-blue-300 dark:hover:border-blue-700",
+      "hover:shadow-lg hover:-translate-y-0.5 hover:border-blue-300 dark:hover:border-blue",
   },
   {
     title: "Create Note",
     description: "Start writing a new note",
     icon: FileText,
     color:
-      "bg-gradient-to-br from-amber-100 to-amber-50 dark:from-amber-950/30 dark:to-amber-900/20",
-    iconColor: "text-amber-500 dark:text-amber-400",
-    borderColor: "border-amber-200 dark:border-amber-800",
+      "bg-yellow ",
+    iconColor: "text-amber-500 dark:text-yellow",
+    borderColor: "border-black dark:border-yellow",
     hover:
-      "hover:shadow-lg hover:-translate-y-0.5 hover:border-amber-300 dark:hover:border-amber-700",
+      "hover:shadow-lg hover:-translate-y-0.5 hover:border-amber-300 dark:hover:border-yellow",
   },
 ];
 
 export default function QuickActions() {
   return (
-    <Card className="bg-card border-border shadow-sm overflow-hidden gap-0">
+    <Card className="bg-card border-2 border-black shadow-sm overflow-hidden gap-0">
       <CardHeader className="pb-3">
         <CardTitle className="text-card-foreground flex items-center gap-2 text-lg">
           Quick Actions
@@ -51,7 +51,7 @@ export default function QuickActions() {
           <Button
             key={action.title}
             variant="outline"
-            className={`w-full justify-between h-auto p-4 rounded-lg transition-all duration-200 ${action.color} ${action.borderColor} ${action.hover} group`}
+            className={`w-full justify-between h-auto p-4 rounded-lg transition-all duration-200 border-2 ${action.color} ${action.borderColor} ${action.hover} group`}
           >
             <div className="flex items-center gap-3">
               <div
