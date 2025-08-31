@@ -50,6 +50,31 @@ const DecksPage: React.FC = () => {
     }
   };
 
+  const handleDeleteDeck = async (deckId: string) => {
+    if (
+      !confirm(
+        "Are you sure you want to delete this deck? This action cannot be undone."
+      )
+    ) {
+      return; 
+    }
+
+    try {
+      const res = await fetch(`/api/deck/${deckId}`, {
+        method: "DELETE",
+      });
+
+
+      if (!res.ok) throw new Error("Failed to delete deck");
+
+      // Remove the deck from state
+      setDecks((prev) => prev.filter((deck) => deck._id !== deckId));
+    } catch (err) {
+      console.error("Error deleting deck:", err);
+      alert("Failed to delete deck. Please try again.");
+    }
+  };
+
   const handleDeckClick = (deckId: string) => {
     console.log(`Opening deck ${deckId}`);
     // Add your deck opening logic here
@@ -64,13 +89,19 @@ const DecksPage: React.FC = () => {
   }
 
   return (
-    <div className="w-[90%] mx-auto min-h-screen py-8">
+    <div className="w-[80%] mx-auto py-4">
       
 
       {decks.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {decks.map((deck) => (
-            <DeckCard key={deck._id} deck={deck} onClick={handleDeckClick} />
+          {decks.map((deck, i) => (
+            <DeckCard
+              key={deck._id}
+              deck={deck}
+              index={i}
+              onClick={handleDeckClick}
+              onDeleteClick={handleDeleteDeck}
+            />
           ))}
         </div>
       ) : (

@@ -1,10 +1,16 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Clock } from "lucide-react";
+import { Clock, MoreVertical, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Deck } from "@/types/deck";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 // Props for RecentDecks usage (existing format)
 interface RecentDeckProps {
@@ -16,6 +22,7 @@ interface RecentDeckProps {
   textColor?: string;
   className?: string;
   onStudyClick?: (id: number) => void;
+  onDeleteClick?: (id: number) => void;
   onClick?: never; // Prevent onClick when using RecentDecks format
 }
 
@@ -27,6 +34,7 @@ interface DeckPageProps {
   };
   className?: string;
   onClick?: (deckId: string) => void;
+  onDeleteClick?: (deckId: string) => void;
   onStudyClick?: never; // Prevent onStudyClick when using Deck format
   id?: never;
   totalCards?: never;
@@ -43,7 +51,6 @@ const isRecentDeckProps = (props: DeckCardProps): props is RecentDeckProps => {
   return "id" in props && typeof props.id === "number";
 };
 
-// Available colors for cycling in DecksPage
 const colors = ["bg-pink", "bg-green", "bg-yellow", "bg-purple"];
 
 const DeckCard = (props: DeckCardProps) => {
@@ -58,11 +65,19 @@ const DeckCard = (props: DeckCardProps) => {
       textColor = "text-foreground",
       className,
       onStudyClick,
+      onDeleteClick,
     } = props;
 
     const handleStudyClick = () => {
       if (onStudyClick) {
         onStudyClick(id);
+      }
+    };
+
+    const handleDeleteClick = (e: React.MouseEvent) => {
+      e.stopPropagation(); // Prevent triggering card click
+      if (onDeleteClick) {
+        onDeleteClick(id);
       }
     };
 
@@ -74,8 +89,8 @@ const DeckCard = (props: DeckCardProps) => {
         )}
       >
         <CardContent className="py-3 px-7 flex flex-col h-full">
-          {/* Icon and title */}
-          <div className="mb-10 flex-grow">
+          {/* Header with menu */}
+          <div className="flex justify-between items-start mb-2">
             <div className="flex items-center mb-2">
               <h3
                 className={cn(
@@ -86,7 +101,30 @@ const DeckCard = (props: DeckCardProps) => {
                 {title}
               </h3>
             </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 -mt-1 -mr-2"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={handleDeleteClick}
+                  className="text-red-600"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
+
+          <div className="mb-10 flex-grow">{/* Content area */}</div>
 
           {/* Stats and action */}
           <div className="mt-auto">
@@ -115,9 +153,8 @@ const DeckCard = (props: DeckCardProps) => {
     );
   } else {
     // DecksPage format - updated to match RecentDecks styling with frontend-assigned colors
-    const { deck, className, onClick, index = 0 } = props;
+    const { deck, className, onClick, onDeleteClick, index = 0 } = props;
 
-    // Skip rendering if deck is undefined
     if (!deck) {
       console.warn("Deck is undefined, skipping render");
       return null;
@@ -126,6 +163,13 @@ const DeckCard = (props: DeckCardProps) => {
     const handleCardClick = () => {
       if (onClick && deck._id) {
         onClick(deck._id);
+      }
+    };
+
+    const handleDeleteClick = (e: React.MouseEvent) => {
+      e.stopPropagation(); // Prevent triggering card click
+      if (onDeleteClick && deck._id) {
+        onDeleteClick(deck._id);
       }
     };
 
@@ -145,7 +189,6 @@ const DeckCard = (props: DeckCardProps) => {
     // Use index for color cycling to ensure variety
     const colorIndex = index % colors.length;
     const deckColor = colors[colorIndex];
-    console.log(`Deck: ${deck.title}, Index: ${index}, Color: ${deckColor}`); // Debug log
 
     return (
       <Card
@@ -156,8 +199,8 @@ const DeckCard = (props: DeckCardProps) => {
         onClick={handleCardClick}
       >
         <CardContent className="py-3 px-7 flex flex-col h-full">
-          {/* Icon and title */}
-          <div className="mb-10 flex-grow">
+          {/* Header with menu */}
+          <div className="flex justify-between items-start mb-2">
             <div className="flex items-center mb-2">
               <h3
                 className={cn(
@@ -168,8 +211,32 @@ const DeckCard = (props: DeckCardProps) => {
                 {deck.title}
               </h3>
             </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 -mt-1 -mr-2"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={handleDeleteClick}
+                  className="text-red-600"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          <div className="mb-10 flex-grow">
             {deck.description && (
-              <p className="text-sm text-muted-foreground line-clamp-2">
+              <p className="text-sm text-foreground line-clamp-2">
                 {deck.description}
               </p>
             )}

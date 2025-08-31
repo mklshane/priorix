@@ -1,4 +1,4 @@
-### Fetch Deck
-GET http://localhost:3000/api/deck?id=68b433e625154d6dc3dce159&userId=68b1c6c64dfb6a7d35d44594
+### Delete Deck
+DELETE http://localhost:3000/api/deck?id=68b4554225154d6dc3dce189
 
 
