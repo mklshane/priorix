@@ -22,7 +22,6 @@ const AddFlashcardForm = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const termInputRef = useRef<HTMLInputElement>(null);
 
-
   useEffect(() => {
     if (isAdding && termInputRef.current) {
       termInputRef.current.focus();
@@ -35,10 +34,16 @@ const AddFlashcardForm = ({
       return;
     }
 
+    // Log the raw and escaped definition to verify newlines
+    console.log("Raw definition input:", newDefinition);
+    console.log("Escaped definition:", JSON.stringify(newDefinition));
+
     try {
       setIsSubmitting(true);
       setError(null);
-      await onAddFlashcard(newTerm, newDefinition);
+      // Normalize line endings to ensure consistency (handles \r\n to \n)
+      const formattedDefinition = newDefinition.replace(/\r\n/g, "\n");
+      await onAddFlashcard(newTerm, formattedDefinition);
       setNewTerm("");
       setNewDefinition("");
       setIsAdding(false);
@@ -69,7 +74,6 @@ const AddFlashcardForm = ({
     [isAdding, newTerm, newDefinition]
   );
 
- 
   useEffect(() => {
     document.addEventListener("keydown", handleKeyDown);
     return () => {
@@ -80,7 +84,6 @@ const AddFlashcardForm = ({
   const handleTermKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-   
       document.getElementById("definition")?.focus();
     }
   };
@@ -90,6 +93,7 @@ const AddFlashcardForm = ({
       e.preventDefault();
       handleAddFlashcard();
     }
+    // Allow Enter key to create newlines in Textarea without submitting
   };
 
   const handleInputFocus = () => {
@@ -129,7 +133,7 @@ const AddFlashcardForm = ({
                 value={newDefinition}
                 onChange={(e) => setNewDefinition(e.target.value)}
                 placeholder="Enter the definition (Ctrl+Enter to save)"
-                rows={3}
+                rows={5} // Increased rows for better visibility of multi-line input
                 onFocus={handleInputFocus}
                 onKeyDown={handleDefinitionKeyDown}
               />

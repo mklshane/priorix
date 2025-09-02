@@ -10,6 +10,16 @@ interface FlashcardItemProps {
 }
 
 const FlashcardItem = ({ flashcard, onEdit, onDelete }: FlashcardItemProps) => {
+  const renderText = (text: string) => {
+    return text.split("\n").map((line, index) => (
+      <p key={index} className="text-sm break-words my-1">
+        {line}
+      </p>
+    ));
+  };
+
+
+
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardContent className="py-2 md:py-0">
@@ -19,7 +29,7 @@ const FlashcardItem = ({ flashcard, onEdit, onDelete }: FlashcardItemProps) => {
             <h4 className="text-xs md:text-sm font-medium text-muted-foreground mb-1 md:mb-2">
               Term
             </h4>
-            <p className="text-sm break-words">{flashcard.term}</p>
+            {renderText(flashcard.term)}
           </div>
 
           {/* Definition Section */}
@@ -27,7 +37,7 @@ const FlashcardItem = ({ flashcard, onEdit, onDelete }: FlashcardItemProps) => {
             <h4 className="text-xs md:text-sm font-medium text-muted-foreground mb-1 md:mb-2">
               Definition
             </h4>
-            <p className="text-sm break-words">{flashcard.definition}</p>
+            {renderText(flashcard.definition)}
           </div>
 
           {/* Action Buttons */}
