@@ -27,7 +27,12 @@ export default function AppNav({ onToggleSidebar }: AppNavProps) {
   const [deckName, setDeckName] = useState<string>("");
 
   const handleBack = () => {
-    router.push("/decks");
+
+    if (isOnStudyPage) {
+      router.push(`/decks/${getDeckId()}`);
+    } else if (isOnDeckPage) {
+      router.push("/decks");
+    }
   };
 
   const handleToggle = () => {
@@ -49,17 +54,19 @@ export default function AppNav({ onToggleSidebar }: AppNavProps) {
     return (parts[0][0] + parts[1][0]).toUpperCase();
   };
 
-  // Extract deck ID from pathname if it's a deck route
   const getDeckId = () => {
     const deckMatch = pathname.match(/^\/decks\/([^\/]+)$/);
-    return deckMatch ? deckMatch[1] : null;
+    if (deckMatch) return deckMatch[1];
+
+    const studyMatch = pathname.match(/^\/decks\/([^\/]+)\/study$/);
+    if (studyMatch) return studyMatch[1];
+
+    return null;
   };
 
-  // Fetch deck name when on a deck page
   useEffect(() => {
     const deckId = getDeckId();
     if (deckId && deckId !== "new") {
-      // Don't fetch for "new" deck creation route
       const fetchDeckName = async () => {
         try {
           const res = await fetch(`/api/deck?id=${deckId}`);
@@ -78,7 +85,10 @@ export default function AppNav({ onToggleSidebar }: AppNavProps) {
     }
   }, [pathname]);
 
-  // App paths to page names
+  const isOnDeckPage = pathname.match(/^\/decks\/([^\/]+)$/) !== null;
+
+  const isOnStudyPage = pathname.match(/^\/decks\/([^\/]+)\/study$/) !== null;
+
   const pageNames: Record<string, string> = {
     "/dashboard": "Priorix",
     "/decks": "Decks",
@@ -87,7 +97,11 @@ export default function AppNav({ onToggleSidebar }: AppNavProps) {
   };
 
   const getCurrentPage = () => {
-    // Check if we're on a deck detail page
+
+    if (isOnStudyPage) {
+      return deckName || "Study";
+    }
+
     const deckId = getDeckId();
     if (deckId) {
       if (deckId === "new") {
@@ -96,12 +110,10 @@ export default function AppNav({ onToggleSidebar }: AppNavProps) {
       return deckName || "Loading...";
     }
 
-    // Check static routes
     if (pageNames[pathname]) {
       return pageNames[pathname];
     }
-
-    // Fallback to formatted pathname
+    
     return (
       pathname
         .split("/")
@@ -113,15 +125,14 @@ export default function AppNav({ onToggleSidebar }: AppNavProps) {
   };
 
   const currentPage = getCurrentPage();
-  const deckId = getDeckId();
-  const isOnDeckPage = deckId && deckId !== "new";
+  const shouldShowBackButton = isOnDeckPage || isOnStudyPage;
 
   return (
     <nav className="w-full px-6 py-4 bg-primary-foreground border-b border-gray-200  dark:border-gray-700">
       <div className="flex items-center justify-between relative">
         {/* Left - Hamburger Menu or Back Button */}
         <div className="flex-shrink-0">
-          {isOnDeckPage ? (
+          {shouldShowBackButton ? (
             <Button
               variant="ghost"
               size="sm"
@@ -142,7 +153,7 @@ export default function AppNav({ onToggleSidebar }: AppNavProps) {
           )}
         </div>
 
-        {/* Center - Page Name (truly centered) */}
+        {/* Center - Page Name */}
         <div className="absolute left-1/2 transform -translate-x-1/2">
           <h1 className="font-lora text-2xl text-gray-900 dark:text-white whitespace-nowrap">
             {currentPage}
