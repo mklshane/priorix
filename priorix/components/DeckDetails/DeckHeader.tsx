@@ -13,7 +13,7 @@ interface DeckHeaderProps {
 const DeckHeader = ({ deck, flashcards, onStudyDeck }: DeckHeaderProps) => {
   return (
     <div className="mb-6 md:mb-8">
-      <Card>
+      <Card className="border-2 border-primary bg-yellow noise">
         <CardContent className="py-2 md:py-0 ">
           <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
             <div className="flex-1">

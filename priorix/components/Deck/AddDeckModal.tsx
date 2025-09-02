@@ -37,19 +37,19 @@ const AddDeckModal: React.FC<AddDeckModalProps> = ({ onAddDeck }) => {
     setError("");
 
     try {
-      // Get the MongoDB user ID from the session
+      
       const userId = session?.user?.id;
 
       if (!userId) {
         throw new Error("User not authenticated");
       }
 
-      // Use the MongoDB ID from the session
+      
       onAddDeck({
         title: title.trim(),
         description: description.trim(),
         isPublic: isPublic,
-        userId: userId, // MongoDB ID from session
+     /*    userId: userId, // MongoDB ID from session */
       });
 
       // Reset form and close modal

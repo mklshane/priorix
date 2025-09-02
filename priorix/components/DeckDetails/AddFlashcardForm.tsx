@@ -34,14 +34,9 @@ const AddFlashcardForm = ({
       return;
     }
 
-    // Log the raw and escaped definition to verify newlines
-    console.log("Raw definition input:", newDefinition);
-    console.log("Escaped definition:", JSON.stringify(newDefinition));
-
     try {
       setIsSubmitting(true);
       setError(null);
-      // Normalize line endings to ensure consistency (handles \r\n to \n)
       const formattedDefinition = newDefinition.replace(/\r\n/g, "\n");
       await onAddFlashcard(newTerm, formattedDefinition);
       setNewTerm("");
@@ -93,7 +88,6 @@ const AddFlashcardForm = ({
       e.preventDefault();
       handleAddFlashcard();
     }
-    // Allow Enter key to create newlines in Textarea without submitting
   };
 
   const handleInputFocus = () => {
@@ -104,7 +98,7 @@ const AddFlashcardForm = ({
 
   return (
     <div className="mb-8">
-      <Card>
+      <Card className="border-2 border-primary bg-green">
         <CardHeader>
           <CardTitle className="text-xl">Add New Flashcard</CardTitle>
         </CardHeader>
@@ -122,6 +116,7 @@ const AddFlashcardForm = ({
                 placeholder="Enter the term"
                 onFocus={handleInputFocus}
                 onKeyDown={handleTermKeyDown}
+                className="border-2 border-primary bg-white"
               />
             </div>
             <div className="grid gap-2">
@@ -133,9 +128,10 @@ const AddFlashcardForm = ({
                 value={newDefinition}
                 onChange={(e) => setNewDefinition(e.target.value)}
                 placeholder="Enter the definition (Ctrl+Enter to save)"
-                rows={5} // Increased rows for better visibility of multi-line input
+                rows={5}
                 onFocus={handleInputFocus}
                 onKeyDown={handleDefinitionKeyDown}
+                className="border-2 border-primary bg-white"
               />
             </div>
             {error && <div className="text-sm text-red-500">{error}</div>}

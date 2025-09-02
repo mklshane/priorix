@@ -30,7 +30,7 @@ interface RecentDeckProps {
 // Props for DecksPage usage (new Deck format)
 interface DeckPageProps {
   deck: Deck & {
-    totalCards?: number; // Optional additional field for card count
+    length?: number; // Make length optional since we can compute it
     lastStudied?: string; // Optional additional field for last studied
   };
   className?: string;
@@ -81,8 +81,8 @@ const DeckCard = (props: DeckCardProps) => {
     };
 
     const handleDeckClick = (deckId: string) => {
-      console.log(`Opening deck ${deckId}`)
-    }
+      console.log(`Opening deck ${deckId}`);
+    };
 
     return (
       <Card
@@ -91,7 +91,6 @@ const DeckCard = (props: DeckCardProps) => {
           className
         )}
         onClick={() => handleDeckClick(id)}
-      
       >
         <CardContent className="py-3 px-7 flex flex-col h-full">
           {/* Header with menu */}
@@ -166,9 +165,19 @@ const DeckCard = (props: DeckCardProps) => {
       return null;
     }
 
+    // Compute deck length from flashcards if length is undefined or 0
+    const deckLength =
+      deck.length ?? (deck.flashcards ? deck.flashcards.length : 0);
+
+    if (deckLength === 0 && deck.flashcards?.length) {
+      console.warn(
+        `Deck ${deck._id} has length ${deck.length}, but ${deck.flashcards.length} flashcards`
+      );
+    }
+
     const handleDeckClick = (deckId: string) => {
       console.log(`Opening deck ${deckId}`);
-      router.push(`/decks/${deckId}`)
+      router.push(`/decks/${deckId}`);
     };
 
     const handleDeleteClick = (e: React.MouseEvent) => {
@@ -201,7 +210,7 @@ const DeckCard = (props: DeckCardProps) => {
           `border-0 overflow-hidden ${deckColor} shadow-md border-2 border-primary cursor-pointer transition-colors hover:shadow-lg`,
           className
         )}
-        onClick={() => {handleDeckClick(deck._id)}}
+        onClick={() => handleDeckClick(deck._id)}
       >
         <CardContent className="py-3 px-7 flex flex-col h-full">
           {/* Header with menu */}
@@ -253,7 +262,7 @@ const DeckCard = (props: DeckCardProps) => {
               <span
                 className={cn("font-semibold font-sora", "text-foreground")}
               >
-                {deck.totalCards || 0} cards
+                {deckLength} cards
               </span>
               <div className={cn("flex items-center", "text-foreground")}>
                 <Clock className="h-3 w-3 mr-1" />

@@ -21,7 +21,7 @@ const FlashcardItem = ({ flashcard, onEdit, onDelete }: FlashcardItemProps) => {
 
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card className="hover:shadow-md transition-shadow bg-purple/15 border-2 border-primary">
       <CardContent className="py-2 md:py-0">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 items-center">
           {/* Term Section */}
@@ -55,7 +55,7 @@ const FlashcardItem = ({ flashcard, onEdit, onDelete }: FlashcardItemProps) => {
               variant="destructive"
               size="sm"
               onClick={() => onDelete(flashcard._id)}
-              className="h-8 px-2 md:px-3 text-xs md:text-sm"
+              className="h-8 px-2 md:px-3 text-xs md:text-sm bg-red-700"
             >
               <Trash2 className="h-3 w-3 md:h-4 md:w-4 md:mr-1" />
               <span className="hidden md:inline">Delete</span>

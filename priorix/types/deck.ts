@@ -4,18 +4,19 @@ import { IFlashcard } from "./flashcard";
 export interface Deck {
   _id: string;
   title: string;
-  description?: string; // Made optional to match model
+  length: number;
+  description?: string; 
   isPublic: boolean;
   user: string; // Changed from userId to user to match model
-  flashcards: string[] | IFlashcard[]; // Can be populated or just IDs
+  flashcards: string[] | IFlashcard[]; 
   sharedWith?: string[];
-  createdAt: string; // Changed to string since JSON doesn't preserve Date objects
+  createdAt: string; 
   updatedAt: string;
 }
 
 export interface CreateDeckRequest {
   title: string;
-  description?: string; // Made optional
+  description?: string;
   isPublic: boolean;
-  // userId will be added server-side from session, not from client
+  
 }
