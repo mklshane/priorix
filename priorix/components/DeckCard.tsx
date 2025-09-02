@@ -14,15 +14,15 @@ import {
 
 // Props for RecentDecks usage (existing format)
 interface RecentDeckProps {
-  id: number;
+  id: string;
   title: string;
   totalCards: number;
   lastStudied: string;
   color: string;
   textColor?: string;
   className?: string;
-  onStudyClick?: (id: number) => void;
-  onDeleteClick?: (id: number) => void;
+  onStudyClick?: (id: string) => void;
+  onDeleteClick?: (id: string) => void;
   onClick?: never; // Prevent onClick when using RecentDecks format
 }
 
@@ -40,15 +40,13 @@ interface DeckPageProps {
   totalCards?: never;
   lastStudied?: never;
   color?: never;
-  textColor?: never;
-  index?: number; // Index for color cycling
+  index?: number;
 }
 
 type DeckCardProps = RecentDeckProps | DeckPageProps;
 
-// Type guard to check if props are for RecentDecks
 const isRecentDeckProps = (props: DeckCardProps): props is RecentDeckProps => {
-  return "id" in props && typeof props.id === "number";
+  return "id" in props && typeof props.id === "string";
 };
 
 const colors = ["bg-pink", "bg-green", "bg-yellow", "bg-purple"];
@@ -81,12 +79,18 @@ const DeckCard = (props: DeckCardProps) => {
       }
     };
 
+    const handleDeckClick = (deckId: string) => {
+      console.log(`Opening deck ${deckId}`)
+    }
+
     return (
       <Card
         className={cn(
           `border-0 overflow-hidden ${color} shadow-md border-2 border-primary`,
           className
         )}
+        onClick={() => handleDeckClick(id)}
+      
       >
         <CardContent className="py-3 px-7 flex flex-col h-full">
           {/* Header with menu */}
@@ -160,10 +164,8 @@ const DeckCard = (props: DeckCardProps) => {
       return null;
     }
 
-    const handleCardClick = () => {
-      if (onClick && deck._id) {
-        onClick(deck._id);
-      }
+    const handleDeckClick = (deckId: string) => {
+      console.log(`Opening deck ${deckId}`);
     };
 
     const handleDeleteClick = (e: React.MouseEvent) => {
@@ -196,7 +198,7 @@ const DeckCard = (props: DeckCardProps) => {
           `border-0 overflow-hidden ${deckColor} shadow-md border-2 border-primary cursor-pointer transition-colors hover:shadow-lg`,
           className
         )}
-        onClick={handleCardClick}
+        onClick={() => {handleDeckClick(deck._id)}}
       >
         <CardContent className="py-3 px-7 flex flex-col h-full">
           {/* Header with menu */}

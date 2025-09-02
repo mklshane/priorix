@@ -5,7 +5,7 @@ import DeckCard from "@/components/DeckCard";
 // Mock data for recent decks
 const recentDecks = [
   {
-    id: 1,
+    id: "1",
     title: "Algorithms",
     totalCards: 50,
     lastStudied: "2h ago",
@@ -13,7 +13,7 @@ const recentDecks = [
     textColor: "text-foreground",
   },
   {
-    id: 2,
+    id: "2",
     title: "Data Structures",
     totalCards: 42,
     lastStudied: "1d ago",
@@ -21,7 +21,7 @@ const recentDecks = [
     textColor: "text-foreground",
   },
   {
-    id: 3,
+    id: "3",
     title: "Programming",
     totalCards: 30,
     lastStudied: "3d ago",
@@ -29,7 +29,7 @@ const recentDecks = [
     textColor: "text-foreground",
   },
   {
-    id: 4,
+    id: "4",
     title: "Calculus",
     totalCards: 60,
     lastStudied: "5h ago",
@@ -39,7 +39,7 @@ const recentDecks = [
 ];
 
 export default function RecentDecks() {
-  const handleStudyClick = (deckId: number) => {
+  const handleStudyClick = (deckId: string) => {
     console.log(`Studying deck ${deckId}`);
     // Add your study logic here
   };

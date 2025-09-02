@@ -1,15 +1,20 @@
-import { ConnectDB } from "@/lib/config/db";
+import mongoose from "mongoose";
 import Deck from "@/lib/models/Deck";
+import Flashcard from "@/lib/models/Flashcard"; // 👈 Import Flashcard model
 import UserDeckActivity from "@/lib/models/UserDeckActivity";
-import Flashcard from "@/lib/models/Flashcard";
+import { ConnectDB } from "@/lib/config/db";
 
-// Fetch decks: single, user, or public
 export const getDecks = async (params: {
   deckId?: string;
   userId?: string;
 }) => {
   const { deckId, userId } = params;
   await ConnectDB();
+
+  // Ensure models are registered
+  if (!mongoose.models.Flashcard) {
+    require("@/lib/models/Flashcard"); // Force registration if not already registered
+  }
 
   if (deckId) {
     const deck = await Deck.findById(deckId).populate("flashcards");
@@ -42,7 +47,7 @@ export const createDeck = async (data: {
   isPublic?: boolean;
   userId: string;
 }) => {
-    await ConnectDB();
+  await ConnectDB();
   const { title, description, isPublic, userId } = data;
   return Deck.create({ title, description, isPublic, user: userId });
 };
@@ -55,7 +60,7 @@ export const updateDeck = async (data: {
   isPublic?: boolean;
   sharedWith?: string[];
 }) => {
-    await ConnectDB();
+  await ConnectDB();
   const { deckId, title, description, isPublic, sharedWith } = data;
   const deck = await Deck.findByIdAndUpdate(
     deckId,
@@ -68,7 +73,7 @@ export const updateDeck = async (data: {
 
 // Delete deck
 export const deleteDeck = async (deckId: string) => {
-    await ConnectDB();
+  await ConnectDB();
   const deleted = await Deck.findByIdAndDelete(deckId);
   if (!deleted) throw new Error("Deck not found");
   return deleted;

@@ -11,27 +11,28 @@ const DecksPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { data: session } = useSession();
 
-  useEffect(() => {
-    const fetchDecks = async () => {
-      if (!session?.user?.id) {
-        setIsLoading(false);
-        return;
-      }
+ useEffect(() => {
+   const fetchDecks = async () => {
+     if (!session?.user?.id) {
+       setIsLoading(false);
+       return;
+     }
 
-      try {
-        const res = await fetch(`/api/deck?userId=${session.user.id}`);
-        if (!res.ok) throw new Error("Failed to fetch decks");
-        const data = await res.json();
-        setDecks(data);
-      } catch (err) {
-        console.error("Error loading decks:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+     try {
+       const res = await fetch(`/api/deck?userId=${session.user.id}`);
+       if (!res.ok) throw new Error("Failed to fetch decks");
+       const data = await res.json();
+       setDecks(data);
+     } catch (err) {
+       console.error("Error loading decks:", err);
+     } finally {
+       setIsLoading(false);
+     }
+   };
 
-    fetchDecks();
-  }, [session?.user?.id]);
+   fetchDecks();
+ }, [session?.user?.id]);
+
 
   const handleAddDeck = async (newDeckData: CreateDeckRequest) => {
     try {

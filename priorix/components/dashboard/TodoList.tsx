@@ -60,7 +60,7 @@ export default function TodoList() {
   };
 
   return (
-    <Card className="bg-card border-2 border-black py-7 h-100 md:h-[317.636px] flex flex-col">
+    <Card className="bg-card border-2 border-black py-7 h-100 md:max-h-[317.636px] flex flex-col gap-1">
       <CardHeader className="pb-3">
         <CardTitle className="text-card-foreground text-lg flex items-center gap-2">
           <CheckSquare className="h-5 w-5" />

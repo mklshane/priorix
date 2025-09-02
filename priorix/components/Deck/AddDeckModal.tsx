@@ -69,7 +69,7 @@ const AddDeckModal: React.FC<AddDeckModalProps> = ({ onAddDeck }) => {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <div className="fixed right-8 bottom-8 bg-primary flex items-center justify-center w-12 h-12 rounded-full hover:border-2 hover:border-primary hover:bg-primary/80 cursor-pointer shadow-lg">
-          <button className="text-center text-3xl text-white">+</button>
+          <button className="text-center text-3xl text-primary-foreground">+</button>
         </div>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
