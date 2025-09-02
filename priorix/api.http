@@ -1,4 +1,4 @@
 ### GET Decks
-GET http://localhost:3000/api/deck?userId=68b34a67ab6c3e586c3e49eb 
+GET http://localhost:3000/api/flashcard?deckId=68b4521225154d6dc3dce182 
 
 

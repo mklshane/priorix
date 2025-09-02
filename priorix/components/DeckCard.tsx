@@ -11,6 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useRouter } from "next/navigation";
 
 // Props for RecentDecks usage (existing format)
 interface RecentDeckProps {
@@ -158,6 +159,7 @@ const DeckCard = (props: DeckCardProps) => {
   } else {
     // DecksPage format - updated to match RecentDecks styling with frontend-assigned colors
     const { deck, className, onClick, onDeleteClick, index = 0 } = props;
+    const router = useRouter();
 
     if (!deck) {
       console.warn("Deck is undefined, skipping render");
@@ -166,6 +168,7 @@ const DeckCard = (props: DeckCardProps) => {
 
     const handleDeckClick = (deckId: string) => {
       console.log(`Opening deck ${deckId}`);
+      router.push(`/decks/${deckId}`)
     };
 
     const handleDeleteClick = (e: React.MouseEvent) => {

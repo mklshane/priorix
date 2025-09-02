@@ -1,6 +1,7 @@
 "use client";
 
 import { useSession, signOut } from "next-auth/react";
+import { useState, useEffect } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,8 +11,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Menu, User, Settings, LogOut } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { Menu, User, Settings, LogOut, ArrowLeft } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
 import ThemeToggle from "./button/ThemeToggle";
 
 interface AppNavProps {
@@ -22,6 +23,12 @@ export default function AppNav({ onToggleSidebar }: AppNavProps) {
   const { data: session } = useSession();
   const user = session?.user;
   const pathname = usePathname();
+  const router = useRouter();
+  const [deckName, setDeckName] = useState<string>("");
+
+  const handleBack = () => {
+    router.push("/decks");
+  };
 
   const handleToggle = () => {
     console.log("[v0] Burger menu clicked");
@@ -42,7 +49,36 @@ export default function AppNav({ onToggleSidebar }: AppNavProps) {
     return (parts[0][0] + parts[1][0]).toUpperCase();
   };
 
-  // app paths to page names
+  // Extract deck ID from pathname if it's a deck route
+  const getDeckId = () => {
+    const deckMatch = pathname.match(/^\/decks\/([^\/]+)$/);
+    return deckMatch ? deckMatch[1] : null;
+  };
+
+  // Fetch deck name when on a deck page
+  useEffect(() => {
+    const deckId = getDeckId();
+    if (deckId && deckId !== "new") {
+      // Don't fetch for "new" deck creation route
+      const fetchDeckName = async () => {
+        try {
+          const res = await fetch(`/api/deck?id=${deckId}`);
+          if (res.ok) {
+            const deck = await res.json();
+            setDeckName(deck.title || "Deck");
+          }
+        } catch (error) {
+          console.error("Error fetching deck name:", error);
+          setDeckName("Deck");
+        }
+      };
+      fetchDeckName();
+    } else {
+      setDeckName("");
+    }
+  }, [pathname]);
+
+  // App paths to page names
   const pageNames: Record<string, string> = {
     "/dashboard": "Priorix",
     "/decks": "Decks",
@@ -50,29 +86,60 @@ export default function AppNav({ onToggleSidebar }: AppNavProps) {
     "/notes": "Notes",
   };
 
-  const currentPage =
-    pageNames[pathname] ||
-    pathname
-      .split("/")
-      .filter(Boolean)
-      .pop()
-      ?.replace(/-/g, " ")
-      .replace(/\b\w/g, (c) => c.toUpperCase()) ||
-    "Page";
+  const getCurrentPage = () => {
+    // Check if we're on a deck detail page
+    const deckId = getDeckId();
+    if (deckId) {
+      if (deckId === "new") {
+        return "New Deck";
+      }
+      return deckName || "Loading...";
+    }
+
+    // Check static routes
+    if (pageNames[pathname]) {
+      return pageNames[pathname];
+    }
+
+    // Fallback to formatted pathname
+    return (
+      pathname
+        .split("/")
+        .filter(Boolean)
+        .pop()
+        ?.replace(/-/g, " ")
+        .replace(/\b\w/g, (c) => c.toUpperCase()) || "Page"
+    );
+  };
+
+  const currentPage = getCurrentPage();
+  const deckId = getDeckId();
+  const isOnDeckPage = deckId && deckId !== "new";
 
   return (
     <nav className="w-full px-6 py-4 bg-primary-foreground border-b border-gray-200  dark:border-gray-700">
       <div className="flex items-center justify-between relative">
-        {/* Left - Hamburger Menu */}
+        {/* Left - Hamburger Menu or Back Button */}
         <div className="flex-shrink-0">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="sidebar-toggle"
-            onClick={handleToggle}
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
+          {isOnDeckPage ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="back-button"
+              onClick={handleBack}
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          ) : (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="sidebar-toggle"
+              onClick={handleToggle}
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+          )}
         </div>
 
         {/* Center - Page Name (truly centered) */}
