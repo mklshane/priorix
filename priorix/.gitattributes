@@ -1,0 +1,16 @@
+# Ignore build output
+dist/* linguist-vendored
+build/* linguist-vendored
+out/* linguist-vendored
+
+# Ignore dependencies
+node_modules/* linguist-vendored
+**/pdfjs-dist/* linguist-vendored
+
+# Ignore any plain JavaScript files if you want to highlight TypeScript
+*.js linguist-vendored
+*.jsx linguist-vendored
+
+# Count only TypeScript
+*.ts linguist-language=TypeScript
+*.tsx linguist-language=TypeScript
