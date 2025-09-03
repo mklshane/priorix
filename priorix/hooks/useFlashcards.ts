@@ -115,9 +115,37 @@ export const useFlashcards = (deckId: string) => {
 
  
   const addMultipleFlashcards = async (
-    flashcards: Omit<IFlashcard, "id" | "createdAt" | "updatedAt">[]
+    flashcards: Omit<IFlashcard, "_id" | "createdAt" | "updatedAt">[]
   ) => {
-  
+    try {
+      const newFlashcards: IFlashcard[] = [];
+      for (const flashcard of flashcards) {
+        const response = await fetch("/api/flashcard", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            term: flashcard.term.trim(),
+            definition: flashcard.definition.trim(),
+            deck: deckId,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to add flashcard: ${flashcard.term}`);
+        }
+
+        const newFlashcard = await response.json();
+        newFlashcards.push(newFlashcard);
+      }
+
+      setFlashcards((prevFlashcards) => [...prevFlashcards, ...newFlashcards]);
+      return newFlashcards;
+    } catch (err) {
+      console.error("Error adding multiple flashcards:", err);
+      throw err;
+    }
   };
 
   return {

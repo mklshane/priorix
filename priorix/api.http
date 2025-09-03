@@ -1,4 +1,10 @@
-### GET Decks
-GET http://localhost:3000/api/flashcard?deckId=68b4521225154d6dc3dce182 
+### Extract text from PDF
+POST http://localhost:3000/api/utils/extract-pdf
+Content-Type: multipart/form-data; boundary=MyBoundary
 
+--MyBoundary
+Content-Disposition: form-data; name="file"; filename="sample.pdf"
+Content-Type: application/pdf
 
+< ./test/data/sample.pdf
+--MyBoundary--

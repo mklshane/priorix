@@ -3,10 +3,36 @@
 import { ReactNode, useState, useEffect } from "react";
 import AppNav from "@/components/AppNav";
 import Sidebar from "@/components/Sidebar";
+import { Toaster } from "react-hot-toast";
 
 interface DeckLayoutProps {
   children: ReactNode;
 }
+
+<Toaster
+  position="top-right"
+  toastOptions={{
+    duration: 4000,
+    style: {
+      background: "#363636",
+      color: "#fff",
+    },
+    success: {
+      duration: 3000,
+      iconTheme: {
+        primary: "#4ade80",
+        secondary: "#fff",
+      },
+    },
+    error: {
+      duration: 4000,
+      iconTheme: {
+        primary: "#ef4444",
+        secondary: "#fff",
+      },
+    },
+  }}
+/>;
 
 export default function DeckLayout({ children }: DeckLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);

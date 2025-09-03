@@ -1,38 +1,61 @@
+// utils/pdfImporter.ts
 import { IFlashcard } from "@/types/flashcard";
+import { getDocument, GlobalWorkerOptions } from "pdfjs-dist";
 
-// Mock function for PDF import - you'll need to implement actual PDF parsing
-export async function importPDF(file: File): Promise<IFlashcard[]> {
-  // In a real implementation, you would use a library like pdf.js or pdf-parse
-  // to extract text from the PDF, then process it into flashcards
+// Tell pdfjs where the worker is (served from /public)
+GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
 
-  // This is a mock implementation that returns sample flashcards
-  return new Promise((resolve) => {
-    // Simulate processing time
-    setTimeout(() => {
-      const mockFlashcards: IFlashcard[] = [
-        {
-          _id: "mock-1",
-          term: "Sample term from PDF",
-          definition: "Sample definition from PDF",
-          deck: "temp",
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-        {
-          _id: "mock-2",
-          term: "Another term from PDF",
-          definition: "Another definition from PDF",
-          deck: "temp",
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-      ];
-      resolve(mockFlashcards);
-    }, 2000);
+/**
+ * Extracts plain text from a PDF file in the browser.
+ */
+export async function extractTextFromPDF(file: File): Promise<string> {
+  const arrayBuffer = await file.arrayBuffer();
+
+  // Load the PDF
+  const pdf = await getDocument({ data: arrayBuffer }).promise;
+
+  let fullText = "";
+
+  // Loop through pages
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+
+    // Get text content
+    const textContent = await page.getTextContent();
+
+    // Extract strings
+    const pageText = textContent.items
+      .map((item: any) => ("str" in item ? item.str : ""))
+      .join(" ");
+
+    fullText += pageText + "\n\n";
+  }
+
+  if (!fullText.trim()) {
+    throw new Error("No text could be extracted from the PDF");
+  }
+
+  return fullText;
+}
+
+/**
+ * Import PDF -> extract text -> send to backend for Gemini flashcards
+ */
+export async function importPDF(file: File, deckId: string) {
+  // Step 1: Extract text client-side
+  const text = await extractTextFromPDF(file);
+
+  // Step 2: Send to backend (keeps API key secure)
+  const response = await fetch("/api/ai/generate-and-save", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text, deckId }),
   });
 
-  // For a real implementation, you might use:
-  // 1. pdf.js to extract text from PDF
-  // 2. NLP techniques to identify question/answer pairs
-  // 3. Or ask the user to select text regions for terms and definitions
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Failed to generate flashcards");
+  }
+
+  return response.json();
 }

@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { toast } from "react-hot-toast"; // Import toast library
 import { IFlashcard } from "@/types/flashcard";
 import EditFlashcardDialog from "@/components/EditFlashcardDialog";
 import { useDeck } from "@/hooks/useDeck";
@@ -13,6 +14,7 @@ import FlashcardsList from "@/components/DeckDetails/FlashcardsList";
 import LoadingState from "@/components/DeckDetails/LoadingState";
 import ErrorState from "@/components/DeckDetails/ErrorState";
 import NotFoundState from "@/components/DeckDetails/NotFoundState";
+import ImportModal from "@/components/DeckDetails/ImportModal";
 import { importPDF } from "@/utils/pdfImporter";
 
 const DeckDetailPage = () => {
@@ -20,7 +22,7 @@ const DeckDetailPage = () => {
   const { data: session } = useSession();
   const deckId = params.deckId as string;
   const router = useRouter();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showImportModal, setShowImportModal] = useState(false);
 
   const { deck, isLoading: isDeckLoading, error: deckError } = useDeck(deckId);
   const {
@@ -30,7 +32,7 @@ const DeckDetailPage = () => {
     addFlashcard,
     updateFlashcard,
     deleteFlashcard,
-    addMultipleFlashcards, 
+    addMultipleFlashcards,
   } = useFlashcards(deckId);
 
   const [editingFlashcard, setEditingFlashcard] = useState<IFlashcard | null>(
@@ -43,37 +45,34 @@ const DeckDetailPage = () => {
     router.push(`/decks/${deckId}/study`);
   };
 
-  const handleImportPDF = () => {
-  
-    fileInputRef.current?.click();
+  const handleOpenImportModal = () => {
+    setShowImportModal(true);
   };
 
-  const handleFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleCloseImportModal = () => {
+    setShowImportModal(false);
+  };
 
-    if (file.type !== "application/pdf") {
-      setError("Please select a PDF file");
-      return;
-    }
-
+  const handleImportPDF = async (file: File, importDeckId: string) => {
     setIsImporting(true);
+    setError(null);
+
     try {
-      // Extract text from PDF and process it into flashcards
-      const extractedFlashcards = await importPDF(file);
+      const extractedFlashcards = await importPDF(file, importDeckId);
 
-      // Add the extracted flashcards to the deck
-      await addMultipleFlashcards(extractedFlashcards);
+      // Show success toast for PDF import
+      toast.success("Flashcards imported successfully!");
 
-      setError(null);
+      window.location.reload();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to import PDF");
+      console.error("PDF import error:", err);
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to import PDF";
+      setError(errorMessage);
+      toast.error(errorMessage); // Show error toast
+      throw err;
     } finally {
       setIsImporting(false);
-      // Reset the file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
     }
   };
 
@@ -81,7 +80,11 @@ const DeckDetailPage = () => {
     try {
       await addFlashcard(term, definition);
       setError(null);
+      toast.success("Flashcard created successfully!"); // Success toast for adding
     } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to create flashcard";
+      toast.error(errorMessage); // Error toast for adding
       throw err;
     }
   };
@@ -95,10 +98,12 @@ const DeckDetailPage = () => {
       await updateFlashcard(id, term, definition);
       setEditingFlashcard(null);
       setError(null);
+      toast.success("Flashcard updated successfully!"); // Success toast for updating
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to update flashcard"
-      );
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to update flashcard";
+      setError(errorMessage);
+      toast.error(errorMessage); // Error toast for updating
     }
   };
 
@@ -106,10 +111,12 @@ const DeckDetailPage = () => {
     try {
       await deleteFlashcard(id);
       setError(null);
+      toast.success("Flashcard deleted successfully!"); // Success toast for deleting
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to delete flashcard"
-      );
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to delete flashcard";
+      setError(errorMessage);
+      toast.error(errorMessage); // Error toast for deleting
     }
   };
 
@@ -129,25 +136,29 @@ const DeckDetailPage = () => {
 
   return (
     <div className="w-[90%] mx-auto py-2">
-      {/* Hidden file input for PDF import */}
-      <input
-        type="file"
-        ref={fileInputRef}
-        onChange={handleFileSelected}
-        accept=".pdf"
-        className="hidden"
+      <ImportModal
+        isOpen={showImportModal}
+        onClose={handleCloseImportModal}
+        onImport={handleImportPDF}
+        deckId={deckId}
       />
 
       <DeckHeader
         deck={deck}
         flashcards={flashcards}
         onStudyDeck={handleStudyDeck}
-        onImportPDF={handleImportPDF} // Pass the handler
+        onImportPDF={handleOpenImportModal}
       />
 
       {isImporting && (
         <div className="mb-4 p-3 bg-blue-100 text-blue-800 rounded-md">
           Importing PDF... This may take a moment.
+        </div>
+      )}
+
+      {error && (
+        <div className="mb-4 p-3 bg-red-100 text-red-800 rounded-md">
+          {error}
         </div>
       )}
 

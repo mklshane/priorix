@@ -41,7 +41,7 @@ const DecksPage: React.FC = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...newDeckData,
-          userId: session?.user?.id, // <-- Make sure this is passed
+          userId: session?.user?.id, 
         }),
       });
 
@@ -72,7 +72,6 @@ const DecksPage: React.FC = () => {
 
       if (!res.ok) throw new Error("Failed to delete deck");
 
-      // Remove the deck from state
       setDecks((prev) => prev.filter((deck) => deck._id !== deckId));
     } catch (err) {
       console.error("Error deleting deck:", err);
@@ -80,10 +79,7 @@ const DecksPage: React.FC = () => {
     }
   };
 
-  const handleDeckClick = (deckId: string) => {
-    console.log(`Opening deck ${deckId}`);
-    // Add your deck opening logic here
-  };
+ 
 
   const handleEditDeck = async (
     deckId: string,
@@ -129,7 +125,6 @@ const DecksPage: React.FC = () => {
               key={deck._id}
               deck={deck}
               index={i}
-              onClick={handleDeckClick}
               onDeleteClick={handleDeleteDeck}
               onEditClick={handleEditDeck}
             />

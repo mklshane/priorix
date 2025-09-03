@@ -8,7 +8,7 @@ interface DeckHeaderProps {
   deck: Deck;
   flashcards: IFlashcard[];
   onStudyDeck: () => void;
-  onImportPDF: () => void; 
+  onImportPDF: () => void;
 }
 
 const DeckHeader = ({
@@ -42,9 +42,23 @@ const DeckHeader = ({
             <div className="flex flex-row gap-2 md:ml-4">
               <Button
                 size="sm"
-                onClick={onImportPDF} // Add onClick handler
+                onClick={onImportPDF}
                 className="flex items-center gap-1 md:gap-2 bg-green text-primary border-2 border-primary hover:bg-green/70 text-xs md:text-sm"
               >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                  ></path>
+                </svg>
                 <span className="hidden sm:inline">Magic</span> Import
               </Button>
 
