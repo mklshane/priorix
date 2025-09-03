@@ -139,6 +139,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
             onClick={onClose}
             variant="outline"
             className="border-gray-300 dark:border-gray-600"
+            disabled={isImporting} 
           >
             Cancel
           </Button>

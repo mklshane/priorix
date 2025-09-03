@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
     const result = await deckController.getDecks({ deckId, userId });
     return NextResponse.json(result);
   } catch (err: any) {
-    console.error("Error in GET /api/deck:", err); // 👈 log the real error
+    console.error("Error in GET /api/deck:", err); 
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
@@ -37,19 +37,3 @@ export async function PUT(req: NextRequest) {
   }
 }
 
-export async function DELETE(req: NextRequest) {
-  try {
-    const { searchParams } = new URL(req.url);
-    const deckId = searchParams.get("id");
-    if (!deckId)
-      return NextResponse.json({ error: "Deck ID required" }, { status: 400 });
-
-    const result = await deckController.deleteDeck(deckId);
-    return NextResponse.json({
-      message: "Deck deleted successfully",
-      deck: result,
-    });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
-  }
-}

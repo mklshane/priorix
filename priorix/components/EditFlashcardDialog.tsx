@@ -62,7 +62,7 @@ const EditFlashcardDialog = ({
 
   const handleFormKeyPress = useCallback(
     (e: React.KeyboardEvent) => {
-      if (e.key === "Enter" ) {
+      if (e.key === "Enter"  && !e.shiftKey) {
         e.preventDefault();
         handleSave();
       }

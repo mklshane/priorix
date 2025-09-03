@@ -2,12 +2,9 @@
 import { IFlashcard } from "@/types/flashcard";
 import { getDocument, GlobalWorkerOptions } from "pdfjs-dist";
 
-// Tell pdfjs where the worker is (served from /public)
 GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
 
-/**
- * Extracts plain text from a PDF file in the browser.
- */
+
 export async function extractTextFromPDF(file: File): Promise<string> {
   const arrayBuffer = await file.arrayBuffer();
 
@@ -38,9 +35,7 @@ export async function extractTextFromPDF(file: File): Promise<string> {
   return fullText;
 }
 
-/**
- * Import PDF -> extract text -> send to backend for Gemini flashcards
- */
+
 export async function importPDF(file: File, deckId: string) {
   // Step 1: Extract text client-side
   const text = await extractTextFromPDF(file);

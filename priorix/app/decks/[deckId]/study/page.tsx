@@ -1,13 +1,20 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useParams } from "next/navigation";
 import { useCardPersistence } from "@/hooks/useCardPersistence";
 import { IFlashcard } from "@/types/flashcard";
 import { useDeck } from "@/hooks/useDeck";
 import { useFlashcards } from "@/hooks/useFlashcards";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChevronLeft, ChevronRight, MoreVertical, Shuffle } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  MoreVertical,
+  Shuffle,
+  Edit,
+  Trash2,
+} from "lucide-react";
 import LoadingState from "@/components/DeckDetails/LoadingState";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +23,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import {
   Tooltip,
@@ -23,21 +31,35 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useToast } from "@/hooks/useToast";
+import EditFlashcardDialog from "@/components/EditFlashcardDialog";
 
 const StudyPage = () => {
   const params = useParams();
   const deckId = params.deckId as string;
+  const { showToast, dismissToast } = useToast();
 
   const { currentCardIndex, saveCardIndex } = useCardPersistence(deckId);
   const { deck, isLoading: isDeckLoading } = useDeck(deckId);
-  const { flashcards: originalFlashcards, isLoading: isFlashcardsLoading } =
-    useFlashcards(deckId);
+  const {
+    flashcards: originalFlashcards,
+    isLoading: isFlashcardsLoading,
+    updateFlashcard,
+    deleteFlashcard,
+  } = useFlashcards(deckId);
   const [flashcards, setFlashcards] = useState<IFlashcard[]>([]);
   const [isFlipped, setIsFlipped] = useState(false);
   const [isShuffled, setIsShuffled] = useState(false);
   const [frontContent, setFrontContent] = useState<"term" | "definition">(
     "term"
   );
+  const [editingFlashcard, setEditingFlashcard] = useState<IFlashcard | null>(
+    null
+  );
+
+  // Keep track of the current card ID to maintain position after updates
+  const currentCardIdRef = useRef<string | null>(null);
+  const shuffleOrderRef = useRef<string[]>([]);
 
   const shuffleArray = (array: IFlashcard[]) => {
     const newArray = [...array];
@@ -74,11 +96,56 @@ const StudyPage = () => {
 
   useEffect(() => {
     if (originalFlashcards.length > 0) {
-      setFlashcards(
-        isShuffled ? shuffleArray(originalFlashcards) : originalFlashcards
-      );
+      let newFlashcards: IFlashcard[];
+
+      if (isShuffled) {
+        // If we have a saved shuffle order and the current card ID, try to maintain order
+        if (
+          shuffleOrderRef.current.length === originalFlashcards.length &&
+          currentCardIdRef.current
+        ) {
+          // Reconstruct the shuffled array using the saved order
+          const orderedCards = shuffleOrderRef.current
+            .map((id) => originalFlashcards.find((card) => card._id === id))
+            .filter(Boolean) as IFlashcard[];
+
+          // Add any new cards that weren't in the original shuffle
+          const existingIds = new Set(shuffleOrderRef.current);
+          const newCards = originalFlashcards.filter(
+            (card) => !existingIds.has(card._id)
+          );
+
+          newFlashcards = [...orderedCards, ...newCards];
+        } else {
+          // Create new shuffle and save the order
+          newFlashcards = shuffleArray(originalFlashcards);
+          shuffleOrderRef.current = newFlashcards.map((card) => card._id);
+        }
+      } else {
+        newFlashcards = originalFlashcards;
+        shuffleOrderRef.current = [];
+      }
+
+      setFlashcards(newFlashcards);
+
+      // If we have a current card ID, find its new position
+      if (currentCardIdRef.current) {
+        const newIndex = newFlashcards.findIndex(
+          (card) => card._id === currentCardIdRef.current
+        );
+        if (newIndex !== -1 && newIndex !== currentCardIndex) {
+          saveCardIndex(newIndex);
+        }
+      }
     }
   }, [originalFlashcards, isShuffled]);
+
+  // Update current card ID ref whenever the current card changes
+  useEffect(() => {
+    if (flashcards.length > 0 && flashcards[currentCardIndex]) {
+      currentCardIdRef.current = flashcards[currentCardIndex]._id;
+    }
+  }, [flashcards, currentCardIndex]);
 
   useEffect(() => {
     if (flashcards.length > 0 && currentCardIndex >= flashcards.length) {
@@ -101,6 +168,16 @@ const StudyPage = () => {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const activeElement = document.activeElement;
+      const isInputFocused =
+        activeElement &&
+        (activeElement.tagName === "INPUT" ||
+          activeElement.tagName === "TEXTAREA");
+
+      if (isInputFocused) {
+        return;
+      }
+
       if (e.code === "Space") {
         e.preventDefault();
         setIsFlipped(!isFlipped);
@@ -147,6 +224,62 @@ const StudyPage = () => {
     setIsShuffled(!isShuffled);
     setIsFlipped(false);
     saveCardIndex(0);
+    // Clear the shuffle order when toggling
+    shuffleOrderRef.current = [];
+    currentCardIdRef.current = null;
+  };
+
+  const handleEditFlashcard = async (
+    id: string,
+    term: string,
+    definition: string
+  ) => {
+    showToast("Updating flashcard...", "loading");
+
+    try {
+      await updateFlashcard(id, term, definition);
+      dismissToast();
+      showToast("Flashcard updated successfully!", "success");
+      setEditingFlashcard(null);
+      // The card position will be maintained by the useEffect above
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to update flashcard";
+      dismissToast();
+      showToast(errorMessage, "error");
+    }
+  };
+
+  const handleDeleteFlashcard = async (id: string) => {
+    if (
+      !confirm(
+        "Are you sure you want to delete this flashcard? This action cannot be undone."
+      )
+    ) {
+      return;
+    }
+
+    showToast("Deleting flashcard...", "loading");
+
+    try {
+      await deleteFlashcard(id);
+      dismissToast();
+      showToast("Flashcard deleted successfully!", "success");
+
+      // Refresh the flashcards list after deletion
+      if (flashcards.length === 1) {
+        // If it was the last card, go back to deck details
+        window.location.href = `/decks/${deckId}`;
+      } else {
+        // Otherwise, reload to refresh the list
+        window.location.reload();
+      }
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to delete flashcard";
+      dismissToast();
+      showToast(errorMessage, "error");
+    }
   };
 
   if (isDeckLoading || isFlashcardsLoading) {
@@ -249,6 +382,30 @@ const StudyPage = () => {
                 >
                   Definition
                 </DropdownMenuItem>
+
+                <DropdownMenuSeparator />
+
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setEditingFlashcard(currentCard);
+                  }}
+                  className="flex items-center"
+                >
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteFlashcard(currentCard._id);
+                  }}
+                  className="flex items-center text-red-600 focus:text-red-600"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -304,6 +461,15 @@ const StudyPage = () => {
           Next <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
       </div>
+
+      {editingFlashcard && (
+        <EditFlashcardDialog
+          open={!!editingFlashcard}
+          onOpenChange={(open) => !open && setEditingFlashcard(null)}
+          flashcard={editingFlashcard}
+          onSave={handleEditFlashcard}
+        />
+      )}
     </div>
   );
 };

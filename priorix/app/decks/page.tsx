@@ -5,43 +5,47 @@ import DeckCard from "@/components/DeckCard";
 import AddDeckModal from "@/components/Deck/AddDeckModal";
 import { Deck, CreateDeckRequest } from "@/types/deck";
 import { useSession } from "next-auth/react";
+import { useToast } from "@/hooks/useToast";
 
 const DecksPage: React.FC = () => {
   const [decks, setDecks] = useState<Deck[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { data: session } = useSession();
+  const { showToast, dismissToast } = useToast(); // Use the custom hook
 
- useEffect(() => {
-   const fetchDecks = async () => {
-     if (!session?.user?.id) {
-       setIsLoading(false);
-       return;
-     }
+  useEffect(() => {
+    const fetchDecks = async () => {
+      if (!session?.user?.id) {
+        setIsLoading(false);
+        return;
+      }
 
-     try {
-       const res = await fetch(`/api/deck?userId=${session.user.id}`);
-       if (!res.ok) throw new Error("Failed to fetch decks");
-       const data = await res.json();
-       setDecks(data);
-     } catch (err) {
-       console.error("Error loading decks:", err);
-     } finally {
-       setIsLoading(false);
-     }
-   };
+      try {
+        const res = await fetch(`/api/deck?userId=${session.user.id}`);
+        if (!res.ok) throw new Error("Failed to fetch decks");
+        const data = await res.json();
+        setDecks(data);
+      } catch (err) {
+        console.error("Error loading decks:", err);
+        showToast("Failed to load decks", "error");
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-   fetchDecks();
- }, [session?.user?.id]);
-
+    fetchDecks();
+  }, [session?.user?.id, showToast]);
 
   const handleAddDeck = async (newDeckData: CreateDeckRequest) => {
+    showToast("Creating deck...", "loading");
+
     try {
       const res = await fetch("/api/deck", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...newDeckData,
-          userId: session?.user?.id, 
+          userId: session?.user?.id,
         }),
       });
 
@@ -49,11 +53,14 @@ const DecksPage: React.FC = () => {
 
       const createdDeck: Deck = await res.json();
       setDecks((prev) => [...prev, createdDeck]);
+      dismissToast(); // Dismiss loading toast
+      showToast("Deck created successfully!", "success");
     } catch (err) {
       console.error("Error creating deck:", err);
+      dismissToast(); // Dismiss loading toast
+      showToast("Failed to create deck", "error");
     }
   };
-
 
   const handleDeleteDeck = async (deckId: string) => {
     if (
@@ -61,25 +68,27 @@ const DecksPage: React.FC = () => {
         "Are you sure you want to delete this deck? This action cannot be undone."
       )
     ) {
-      return; 
+      return;
     }
+
+    showToast("Deleting deck...", "loading");
 
     try {
       const res = await fetch(`/api/deck/${deckId}`, {
         method: "DELETE",
       });
 
-
       if (!res.ok) throw new Error("Failed to delete deck");
 
       setDecks((prev) => prev.filter((deck) => deck._id !== deckId));
+      dismissToast(); // Dismiss loading toast
+      showToast("Deck deleted successfully!", "success");
     } catch (err) {
       console.error("Error deleting deck:", err);
-      alert("Failed to delete deck. Please try again.");
+      dismissToast(); // Dismiss loading toast
+      showToast("Failed to delete deck", "error");
     }
   };
-
- 
 
   const handleEditDeck = async (
     deckId: string,
@@ -87,6 +96,8 @@ const DecksPage: React.FC = () => {
     description: string,
     isPublic: boolean
   ) => {
+    showToast("Updating deck...", "loading");
+
     try {
       const res = await fetch(`/api/deck`, {
         method: "PUT",
@@ -100,9 +111,12 @@ const DecksPage: React.FC = () => {
       setDecks((prev) =>
         prev.map((deck) => (deck._id === deckId ? updatedDeck : deck))
       );
+      dismissToast(); // Dismiss loading toast
+      showToast("Deck updated successfully!", "success");
     } catch (err) {
       console.error("Error updating deck:", err);
-      alert("Failed to update deck. Please try again.");
+      dismissToast(); // Dismiss loading toast
+      showToast("Failed to update deck", "error");
     }
   };
 
@@ -116,8 +130,6 @@ const DecksPage: React.FC = () => {
 
   return (
     <div className="w-[80%] mx-auto py-4">
-      
-
       {decks.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {decks.map((deck, i) => (

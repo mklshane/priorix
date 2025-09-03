@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { toast } from "react-hot-toast"; // Import toast library
+import { useToast } from "@/hooks/useToast";
 import { IFlashcard } from "@/types/flashcard";
 import EditFlashcardDialog from "@/components/EditFlashcardDialog";
 import { useDeck } from "@/hooks/useDeck";
@@ -19,10 +19,10 @@ import { importPDF } from "@/utils/pdfImporter";
 
 const DeckDetailPage = () => {
   const params = useParams();
-  const { data: session } = useSession();
   const deckId = params.deckId as string;
   const router = useRouter();
   const [showImportModal, setShowImportModal] = useState(false);
+  const { showToast, dismissToast } = useToast();
 
   const { deck, isLoading: isDeckLoading, error: deckError } = useDeck(deckId);
   const {
@@ -56,20 +56,23 @@ const DeckDetailPage = () => {
   const handleImportPDF = async (file: File, importDeckId: string) => {
     setIsImporting(true);
     setError(null);
+    showToast("Importing PDF...", "loading");
 
     try {
       const extractedFlashcards = await importPDF(file, importDeckId);
+      await addMultipleFlashcards(extractedFlashcards);
 
-      // Show success toast for PDF import
-      toast.success("Flashcards imported successfully!");
-
-      window.location.reload();
+      dismissToast();
+      showToast("Flashcards imported successfully!", "success");
+      setShowImportModal(false);
+    
     } catch (err) {
       console.error("PDF import error:", err);
       const errorMessage =
         err instanceof Error ? err.message : "Failed to import PDF";
       setError(errorMessage);
-      toast.error(errorMessage); // Show error toast
+      dismissToast();
+      showToast(errorMessage, "error");
       throw err;
     } finally {
       setIsImporting(false);
@@ -77,14 +80,19 @@ const DeckDetailPage = () => {
   };
 
   const handleAddFlashcard = async (term: string, definition: string) => {
+    showToast("Creating flashcard...", "loading");
+
     try {
       await addFlashcard(term, definition);
       setError(null);
-      toast.success("Flashcard created successfully!"); // Success toast for adding
+      dismissToast();
+      showToast("Flashcard created successfully!", "success");
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to create flashcard";
-      toast.error(errorMessage); // Error toast for adding
+      setError(errorMessage);
+      dismissToast();
+      showToast(errorMessage, "error");
       throw err;
     }
   };
@@ -94,29 +102,37 @@ const DeckDetailPage = () => {
     term: string,
     definition: string
   ) => {
+    showToast("Updating flashcard...", "loading");
+
     try {
       await updateFlashcard(id, term, definition);
       setEditingFlashcard(null);
       setError(null);
-      toast.success("Flashcard updated successfully!"); // Success toast for updating
+      dismissToast();
+      showToast("Flashcard updated successfully!", "success");
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to update flashcard";
       setError(errorMessage);
-      toast.error(errorMessage); // Error toast for updating
+      dismissToast();
+      showToast(errorMessage, "error");
     }
   };
 
   const handleDeleteFlashcard = async (id: string) => {
+    showToast("Deleting flashcard...", "loading");
+
     try {
       await deleteFlashcard(id);
       setError(null);
-      toast.success("Flashcard deleted successfully!"); // Success toast for deleting
+      dismissToast();
+      showToast("Flashcard deleted successfully!", "success");
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to delete flashcard";
       setError(errorMessage);
-      toast.error(errorMessage); // Error toast for deleting
+      dismissToast();
+      showToast(errorMessage, "error");
     }
   };
 
@@ -174,7 +190,6 @@ const DeckDetailPage = () => {
         onDelete={handleDeleteFlashcard}
       />
 
-      {/* Edit Flashcard Dialog */}
       {editingFlashcard && (
         <EditFlashcardDialog
           open={!!editingFlashcard}
