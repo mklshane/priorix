@@ -1,12 +1,13 @@
-# Ignore build output (auto-generated files)
+# Ignore docs HTML from stats
+prisma/docs/**/* linguist-documentation
+
+# Ignore build output
 dist/* linguist-generated
 build/* linguist-generated
-out/* linguist-generated
 
-# Ignore dependencies (vendored)
+# Ignore dependencies
 node_modules/* linguist-vendored
-**/pdfjs-dist/* linguist-vendored
 
-# Force TypeScript to be recognized
+# Force TypeScript recognition
 *.ts linguist-language=TypeScript
 *.tsx linguist-language=TypeScript
