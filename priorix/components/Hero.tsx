@@ -150,7 +150,7 @@ const Hero = () => {
                     </div>
                   </div>
 
-                  <div className="flex-1 space-y-4">
+                  <div className="flex-1 space-y-8">
                     <div className="flex items-center justify-center">
                       
                     </div>
@@ -171,15 +171,7 @@ const Hero = () => {
                     </div>
                   </div>
 
-                  <div className="flex justify-between mt-4">
-                    <div className="h-8 bg-gradient-to-r from-violet/10 to-purple/10 rounded-lg w-2/5 flex items-center justify-center">
-                      <span className="text-xs text-violet">Flip</span>
-                    </div>
-                    <div className="h-8 bg-gradient-to-r from-green to-green/70 rounded-lg w-2/5 flex items-center justify-center">
-                      <span className="text-xs text-white">Next</span>
-                     
-                    </div>
-                  </div>
+                 
                 </div>
               </div>
             </div>
