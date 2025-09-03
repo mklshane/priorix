@@ -1,7 +1,8 @@
+// components/decks/DeckCard.tsx
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Clock, MoreVertical, Trash2 } from "lucide-react";
+import { Clock, MoreVertical, Trash2, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Deck } from "@/types/deck";
@@ -12,6 +13,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useRouter } from "next/navigation";
+import React, { useState } from "react";
+import EditDeckDialog from "./Deck/EditDeckDialog";
 
 // Props for RecentDecks usage (existing format)
 interface RecentDeckProps {
@@ -24,6 +27,12 @@ interface RecentDeckProps {
   className?: string;
   onStudyClick?: (id: string) => void;
   onDeleteClick?: (id: string) => void;
+  onEditClick?: (
+    id: string,
+    title: string,
+    description: string,
+    isPublic: boolean
+  ) => void;
   onClick?: never; // Prevent onClick when using RecentDecks format
 }
 
@@ -36,6 +45,12 @@ interface DeckPageProps {
   className?: string;
   onClick?: (deckId: string) => void;
   onDeleteClick?: (deckId: string) => void;
+  onEditClick?: (
+    deckId: string,
+    title: string,
+    description: string,
+    isPublic: boolean
+  ) => void;
   onStudyClick?: never; // Prevent onStudyClick when using Deck format
   id?: never;
   totalCards?: never;
@@ -53,6 +68,12 @@ const isRecentDeckProps = (props: DeckCardProps): props is RecentDeckProps => {
 const colors = ["bg-pink", "bg-green", "bg-yellow", "bg-purple"];
 
 const DeckCard = (props: DeckCardProps) => {
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editIsPublic, setEditIsPublic] = useState(true);
+  const router = useRouter();
+
   if (isRecentDeckProps(props)) {
     // RecentDecks format - maintain existing look
     const {
@@ -65,6 +86,7 @@ const DeckCard = (props: DeckCardProps) => {
       className,
       onStudyClick,
       onDeleteClick,
+      onEditClick,
     } = props;
 
     const handleStudyClick = () => {
@@ -80,92 +102,131 @@ const DeckCard = (props: DeckCardProps) => {
       }
     };
 
+    const handleEditClick = (e: React.MouseEvent) => {
+      e.stopPropagation(); // Prevent triggering card click
+      setEditTitle(title);
+      setEditDescription(""); // RecentDecks format doesn't have description
+      setEditIsPublic(true); // Default to true
+      setEditDialogOpen(true);
+    };
+
+    const handleEditSubmit = async (
+      title: string,
+      description: string,
+      isPublic: boolean
+    ) => {
+      if (onEditClick) {
+        await onEditClick(id, title, description, isPublic);
+      }
+    };
+
     const handleDeckClick = (deckId: string) => {
       console.log(`Opening deck ${deckId}`);
     };
 
     return (
-      <Card
-        className={cn(
-          `border-0 overflow-hidden ${color} shadow-md border-2 border-primary`,
-          className
-        )}
-        onClick={() => handleDeckClick(id)}
-      >
-        <CardContent className="py-3 px-7 flex flex-col h-full">
-          {/* Header with menu */}
-          <div className="flex justify-between items-start mb-2">
-            <div className="flex items-center mb-2">
-              <h3
+      <>
+        <Card
+          className={cn(
+            `border-0 overflow-hidden ${color} shadow-md border-2 border-primary`,
+            className
+          )}
+          onClick={() => handleDeckClick(id)}
+        >
+          <CardContent className="py-3 px-7 flex flex-col h-full">
+            {/* Header with menu */}
+            <div className="flex justify-between items-start mb-2">
+              <div className="flex items-center mb-2">
+                <h3
+                  className={cn(
+                    "text-lg font-semibold font-sora line-clamp-2",
+                    textColor
+                  )}
+                >
+                  {title}
+                </h3>
+              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 -mt-1 -mr-2"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={handleEditClick}>
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={handleDeleteClick}
+                    className="text-red-600"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            <div className="mb-10 flex-grow">{/* Content area */}</div>
+
+            {/* Stats and action */}
+            <div className="mt-auto">
+              <div className="flex justify-between items-center text-sm mb-3">
+                <span className={cn("font-semibold font-sora", textColor)}>
+                  {totalCards} cards
+                </span>
+                <div className={cn("flex items-center", textColor)}>
+                  <Clock className="h-3 w-3 mr-1" />
+                  {lastStudied}
+                </div>
+              </div>
+
+              <Button
                 className={cn(
-                  "text-lg font-semibold font-sora line-clamp-2",
+                  "w-full bg-primary-foreground hover:bg-gray-100 text-primary border border-primary",
                   textColor
                 )}
+                onClick={handleStudyClick}
               >
-                {title}
-              </h3>
+                Study Now
+              </Button>
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 -mt-1 -mr-2"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  onClick={handleDeleteClick}
-                  className="text-red-600"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          </CardContent>
+        </Card>
 
-          <div className="mb-10 flex-grow">{/* Content area */}</div>
-
-          {/* Stats and action */}
-          <div className="mt-auto">
-            <div className="flex justify-between items-center text-sm mb-3">
-              <span className={cn("font-semibold font-sora", textColor)}>
-                {totalCards} cards
-              </span>
-              <div className={cn("flex items-center", textColor)}>
-                <Clock className="h-3 w-3 mr-1" />
-                {lastStudied}
-              </div>
-            </div>
-
-            <Button
-              className={cn(
-                "w-full bg-primary-foreground hover:bg-gray-100 text-primary border border-primary",
-                textColor
-              )}
-              onClick={handleStudyClick}
-            >
-              Study Now
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+        {/* Edit Deck Dialog */}
+        <EditDeckDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          onEditSubmit={handleEditSubmit}
+          initialTitle={editTitle}
+          initialDescription={editDescription}
+          initialIsPublic={editIsPublic}
+        />
+      </>
     );
   } else {
     // DecksPage format - updated to match RecentDecks styling with frontend-assigned colors
-    const { deck, className, onClick, onDeleteClick, index = 0 } = props;
-    const router = useRouter();
+    const {
+      deck,
+      className,
+      onClick,
+      onDeleteClick,
+      onEditClick,
+      index = 0,
+    } = props;
 
     if (!deck) {
       console.warn("Deck is undefined, skipping render");
       return null;
     }
 
-    // Compute deck length from flashcards if length is undefined or 0
     const deckLength =
       deck.length ?? (deck.flashcards ? deck.flashcards.length : 0);
 
@@ -181,23 +242,28 @@ const DeckCard = (props: DeckCardProps) => {
     };
 
     const handleDeleteClick = (e: React.MouseEvent) => {
-      e.stopPropagation(); // Prevent triggering card click
+      e.stopPropagation();
       if (onDeleteClick && deck._id) {
         onDeleteClick(deck._id);
       }
     };
 
-    // Calculate days since creation for "recent use"
-    const getRecentUse = () => {
-      if (deck.lastStudied) return deck.lastStudied;
-      if (deck.createdAt) {
-        const now = new Date();
-        const created = new Date(deck.createdAt);
-        const diffTime = Math.abs(now.getTime() - created.getTime());
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        return `${diffDays}d ago`;
+    const handleEditClick = (e: React.MouseEvent) => {
+      e.stopPropagation(); // Prevent triggering card click
+      setEditTitle(deck.title);
+      setEditDescription(deck.description || "");
+      setEditIsPublic(deck.isPublic || true);
+      setEditDialogOpen(true);
+    };
+
+    const handleEditSubmit = async (
+      title: string,
+      description: string,
+      isPublic: boolean
+    ) => {
+      if (onEditClick && deck._id) {
+        await onEditClick(deck._id, title, description, isPublic);
       }
-      return "Never";
     };
 
     // Use index for color cycling to ensure variety
@@ -205,73 +271,92 @@ const DeckCard = (props: DeckCardProps) => {
     const deckColor = colors[colorIndex];
 
     return (
-      <Card
-        className={cn(
-          `border-0 overflow-hidden ${deckColor} shadow-md border-2 border-primary cursor-pointer transition-colors hover:shadow-lg`,
-          className
-        )}
-        onClick={() => handleDeckClick(deck._id)}
-      >
-        <CardContent className="py-3 px-7 flex flex-col h-full">
-          {/* Header with menu */}
-          <div className="flex justify-between items-start mb-2">
-            <div className="flex items-center mb-2">
-              <h3
-                className={cn(
-                  "text-lg font-semibold font-sora line-clamp-2",
-                  "text-foreground"
-                )}
-              >
-                {deck.title}
-              </h3>
+      <>
+        <Card
+          className={cn(
+            `border-0 overflow-hidden ${deckColor} shadow-md border-2 border-primary cursor-pointer transition-colors hover:shadow-lg`,
+            className
+          )}
+          onClick={() => handleDeckClick(deck._id)}
+        >
+          <CardContent className="py-3 px-7 flex flex-col h-full">
+            {/* Header with menu */}
+            <div className="flex justify-between items-start mb-2">
+              <div className="flex items-center mb-2">
+                <h3
+                  className={cn(
+                    "text-lg font-semibold font-sora line-clamp-2",
+                    "text-foreground"
+                  )}
+                >
+                  {deck.title}
+                </h3>
+              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 -mt-1 -mr-2"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={handleEditClick}>
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={handleDeleteClick}
+                    className="text-red-600"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 -mt-1 -mr-2"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  onClick={handleDeleteClick}
-                  className="text-red-600"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
 
-          <div className="mb-10 flex-grow">
-            {deck.description && (
-              <p className="text-sm text-foreground line-clamp-2">
-                {deck.description}
-              </p>
-            )}
-          </div>
+            <div className="mb-10 flex-grow">
+              {deck.description && (
+                <p className="text-sm text-foreground line-clamp-2">
+                  {deck.description}
+                </p>
+              )}
+            </div>
 
-          {/* Stats */}
-          <div className="mt-auto">
-            <div className="flex justify-between items-center text-sm mb-3">
-              <span
-                className={cn("font-semibold font-sora", "text-foreground")}
-              >
-                {deckLength} cards
-              </span>
-              <div className={cn("flex items-center", "text-foreground")}>
-                <Clock className="h-3 w-3 mr-1" />
-                {getRecentUse()}
+            {/* Stats */}
+            <div className="mt-auto">
+              <div className="flex justify-between items-center text-sm mb-3">
+                <span
+                  className={cn("font-semibold font-sora", "text-foreground")}
+                >
+                  {deckLength} cards
+                </span>
+                <div className={cn("flex items-center", "text-foreground")}>
+                  <div className={cn("flex items-center", "text-foreground")}>
+                    {typeof deck.user === "string"
+                      ? deck.user
+                      : deck.user.name.split(" ")[0]}
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+
+        {/* Edit Deck Dialog */}
+        <EditDeckDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          onEditSubmit={handleEditSubmit}
+          initialTitle={editTitle}
+          initialDescription={editDescription}
+          initialIsPublic={editIsPublic}
+        />
+      </>
     );
   }
 };

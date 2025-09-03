@@ -8,9 +8,15 @@ interface DeckHeaderProps {
   deck: Deck;
   flashcards: IFlashcard[];
   onStudyDeck: () => void;
+  onImportPDF: () => void; 
 }
 
-const DeckHeader = ({ deck, flashcards, onStudyDeck }: DeckHeaderProps) => {
+const DeckHeader = ({
+  deck,
+  flashcards,
+  onStudyDeck,
+  onImportPDF,
+}: DeckHeaderProps) => {
   return (
     <div className="mb-6 md:mb-8">
       <Card className="border-2 border-primary bg-yellow noise">
@@ -36,6 +42,7 @@ const DeckHeader = ({ deck, flashcards, onStudyDeck }: DeckHeaderProps) => {
             <div className="flex flex-row gap-2 md:ml-4">
               <Button
                 size="sm"
+                onClick={onImportPDF} // Add onClick handler
                 className="flex items-center gap-1 md:gap-2 bg-green text-primary border-2 border-primary hover:bg-green/70 text-xs md:text-sm"
               >
                 <span className="hidden sm:inline">Magic</span> Import

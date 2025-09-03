@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import Deck from "@/lib/models/Deck";
-import Flashcard from "@/lib/models/Flashcard"; // 👈 Import Flashcard model
+import Flashcard from "@/lib/models/Flashcard";
 import UserDeckActivity from "@/lib/models/UserDeckActivity";
 import { ConnectDB } from "@/lib/config/db";
 
@@ -11,13 +11,14 @@ export const getDecks = async (params: {
   const { deckId, userId } = params;
   await ConnectDB();
 
-  // Ensure models are registered
   if (!mongoose.models.Flashcard) {
-    require("@/lib/models/Flashcard"); // Force registration if not already registered
+    require("@/lib/models/Flashcard");
   }
 
   if (deckId) {
-    const deck = await Deck.findById(deckId).populate("flashcards");
+    const deck = await Deck.findById(deckId)
+      .populate("flashcards")
+      .populate("user", "name"); 
     if (!deck) throw new Error("Deck not found");
 
     if (userId) {
@@ -34,10 +35,14 @@ export const getDecks = async (params: {
   if (userId) {
     return Deck.find({
       $or: [{ user: userId }, { sharedWith: userId }],
-    }).populate("flashcards");
+    })
+      .populate("flashcards")
+      .populate("user", "name"); 
   }
 
-  return Deck.find({ isPublic: true }).populate("flashcards");
+  return Deck.find({ isPublic: true })
+    .populate("flashcards")
+    .populate("user", "name"); 
 };
 
 // Create a new deck
@@ -49,7 +54,14 @@ export const createDeck = async (data: {
 }) => {
   await ConnectDB();
   const { title, description, isPublic, userId } = data;
-  return Deck.create({ title, description, isPublic, user: userId });
+  const deck = await Deck.create({
+    title,
+    description,
+    isPublic,
+    user: userId,
+  });
+  
+  return deck.populate("user", "name");
 };
 
 // Update deck
@@ -66,7 +78,7 @@ export const updateDeck = async (data: {
     deckId,
     { title, description, isPublic, sharedWith },
     { new: true }
-  );
+  ).populate("user", "name"); 
   if (!deck) throw new Error("Deck not found");
   return deck;
 };
@@ -74,7 +86,7 @@ export const updateDeck = async (data: {
 // Delete deck
 export const deleteDeck = async (deckId: string) => {
   await ConnectDB();
-  const deleted = await Deck.findByIdAndDelete(deckId);
+  const deleted = await Deck.findByIdAndDelete(deckId).populate("user", "name");
   if (!deleted) throw new Error("Deck not found");
   return deleted;
 };

@@ -113,6 +113,13 @@ export const useFlashcards = (deckId: string) => {
     }
   };
 
+ 
+  const addMultipleFlashcards = async (
+    flashcards: Omit<IFlashcard, "id" | "createdAt" | "updatedAt">[]
+  ) => {
+  
+  };
+
   return {
     flashcards,
     isLoading,
@@ -120,5 +127,6 @@ export const useFlashcards = (deckId: string) => {
     addFlashcard,
     updateFlashcard,
     deleteFlashcard,
+    addMultipleFlashcards
   };
 };

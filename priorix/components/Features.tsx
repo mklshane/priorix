@@ -20,7 +20,7 @@ const Features: React.FC = () => {
         "Create interactive flashcards for effective spaced repetition learning",
       details:
         "Smart algorithms track your progress and optimize review timing",
-      benefits: ["Memory retention", "Quick reviews", "Progress tracking"],
+      benefits: ["Memory retention", "Quick reviews", "Flashcards Generation"],
     },
     {
       name: "Notes",

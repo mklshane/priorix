@@ -39,7 +39,10 @@ const DecksPage: React.FC = () => {
       const res = await fetch("/api/deck", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newDeckData),
+        body: JSON.stringify({
+          ...newDeckData,
+          userId: session?.user?.id, // <-- Make sure this is passed
+        }),
       });
 
       if (!res.ok) throw new Error("Failed to create deck");
@@ -50,6 +53,7 @@ const DecksPage: React.FC = () => {
       console.error("Error creating deck:", err);
     }
   };
+
 
   const handleDeleteDeck = async (deckId: string) => {
     if (
@@ -81,6 +85,31 @@ const DecksPage: React.FC = () => {
     // Add your deck opening logic here
   };
 
+  const handleEditDeck = async (
+    deckId: string,
+    title: string,
+    description: string,
+    isPublic: boolean
+  ) => {
+    try {
+      const res = await fetch(`/api/deck`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ deckId, title, description, isPublic }),
+      });
+
+      if (!res.ok) throw new Error("Failed to update deck");
+
+      const updatedDeck: Deck = await res.json();
+      setDecks((prev) =>
+        prev.map((deck) => (deck._id === deckId ? updatedDeck : deck))
+      );
+    } catch (err) {
+      console.error("Error updating deck:", err);
+      alert("Failed to update deck. Please try again.");
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="w-[90%] mx-auto min-h-screen py-8 flex items-center justify-center">
@@ -102,6 +131,7 @@ const DecksPage: React.FC = () => {
               index={i}
               onClick={handleDeckClick}
               onDeleteClick={handleDeleteDeck}
+              onEditClick={handleEditDeck}
             />
           ))}
         </div>

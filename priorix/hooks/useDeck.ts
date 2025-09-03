@@ -1,4 +1,3 @@
-// src/app/deck-details/hooks/useDeck.ts
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Deck } from "@/types/deck";

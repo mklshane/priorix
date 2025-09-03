@@ -168,7 +168,7 @@ const StudyPage = () => {
   const currentCard = flashcards[currentCardIndex];
 
   return (
-    <div className="container mx-auto p-4 max-w-3xl">
+    <div className="container mx-auto px-4 max-w-3xl">
       <div className="mb-4 text-center flex justify-between items-center">
         <p className="text-muted-foreground">
           Card {currentCardIndex + 1} of {flashcards.length}
@@ -197,7 +197,7 @@ const StudyPage = () => {
         onClick={handleCardClick}
       >
         <Card
-          className={`h-85 border-2 border-primary flex flex-col items-center justify-center relative ${
+          className={`h-135 sm:h-85 border-2 border-primary flex flex-col items-center justify-center relative ${
             isFlipped ? "bg-yellow/50" : "bg-yellow/30"
           }`}
         >
@@ -276,7 +276,7 @@ const StudyPage = () => {
           onClick={handlePreviousCard}
           variant="outline"
           disabled={flashcards.length <= 1}
-          className="border-2 border-black bg-green hover:bg-green/70"
+          className="border-2 border-black bg-green hover:bg-green/70 min-w-30"
         >
           <ChevronLeft className="mr-2 h-4 w-4" /> Previous
         </Button>
@@ -284,7 +284,7 @@ const StudyPage = () => {
         <Button
           onClick={() => setIsFlipped(!isFlipped)}
           variant="outline"
-          className="bg-pink border-2 border-primary"
+          className="hidden sm:flex bg-pink border-2 border-primary"
         >
           {isFlipped
             ? frontContent === "term"
@@ -299,7 +299,7 @@ const StudyPage = () => {
           onClick={handleNextCard}
           variant="outline"
           disabled={flashcards.length <= 1}
-          className="border-2 border-primary bg-green hover:bg-green/70"
+          className="border-2 border-primary bg-green hover:bg-green/70 min-w-30"
         >
           Next <ChevronRight className="ml-2 h-4 w-4" />
         </Button>

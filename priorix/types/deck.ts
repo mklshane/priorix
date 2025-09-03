@@ -5,12 +5,12 @@ export interface Deck {
   _id: string;
   title: string;
   length: number;
-  description?: string; 
+  description?: string;
   isPublic: boolean;
-  user: string; // Changed from userId to user to match model
-  flashcards: string[] | IFlashcard[]; 
+  user: string | { _id: string; name: string };
+  flashcards: string[] | IFlashcard[];
   sharedWith?: string[];
-  createdAt: string; 
+  createdAt: string;
   updatedAt: string;
 }
 
