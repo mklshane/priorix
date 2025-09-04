@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import DeckCard from "@/components/DeckCard";
 import AddDeckModal from "@/components/Deck/AddDeckModal";
+import RecentDecks from "@/components/dashboard/RecentDeck";
 import { Deck, CreateDeckRequest } from "@/types/deck";
 import { useSession } from "next-auth/react";
 import { useToast } from "@/hooks/useToast";
@@ -11,7 +12,7 @@ const DecksPage: React.FC = () => {
   const [decks, setDecks] = useState<Deck[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { data: session } = useSession();
-  const { showToast, dismissToast } = useToast(); 
+  const { showToast, dismissToast } = useToast();
 
   useEffect(() => {
     const fetchDecks = async () => {
@@ -34,7 +35,7 @@ const DecksPage: React.FC = () => {
     };
 
     fetchDecks();
-    console.log("Fetching decks successful")
+    console.log("Fetching decks successful");
   }, [session?.user?.id]);
 
   const handleAddDeck = async (newDeckData: CreateDeckRequest) => {
@@ -54,11 +55,11 @@ const DecksPage: React.FC = () => {
 
       const createdDeck: Deck = await res.json();
       setDecks((prev) => [...prev, createdDeck]);
-      dismissToast(); 
+      dismissToast();
       showToast("Deck created successfully!", "success");
     } catch (err) {
       console.error("Error creating deck:", err);
-      dismissToast(); 
+      dismissToast();
       showToast("Failed to create deck", "error");
     }
   };
@@ -82,11 +83,11 @@ const DecksPage: React.FC = () => {
       if (!res.ok) throw new Error("Failed to delete deck");
 
       setDecks((prev) => prev.filter((deck) => deck._id !== deckId));
-      dismissToast(); 
+      dismissToast();
       showToast("Deck deleted successfully!", "success");
     } catch (err) {
       console.error("Error deleting deck:", err);
-      dismissToast(); 
+      dismissToast();
       showToast("Failed to delete deck", "error");
     }
   };
@@ -112,11 +113,11 @@ const DecksPage: React.FC = () => {
       setDecks((prev) =>
         prev.map((deck) => (deck._id === deckId ? updatedDeck : deck))
       );
-      dismissToast(); 
+      dismissToast();
       showToast("Deck updated successfully!", "success");
     } catch (err) {
       console.error("Error updating deck:", err);
-      dismissToast(); 
+      dismissToast();
       showToast("Failed to update deck", "error");
     }
   };
@@ -130,26 +131,43 @@ const DecksPage: React.FC = () => {
   }
 
   return (
-    <div className="w-[80%] mx-auto py-4">
-      {decks.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {decks.map((deck, i) => (
-            <DeckCard
-              key={deck._id}
-              deck={deck}
-              index={i}
-              onDeleteClick={handleDeleteDeck}
-              onEditClick={handleEditDeck}
-            />
-          ))}
+    <div className="w-[90%] mx-auto">
+      {/* Recent Decks Section */}
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold font-sora text-foreground mb-4">
+          Recently Accessed
+        </h2>
+        <RecentDecks />
+      </div>
+
+      {/* User's Created Decks Section */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl font-bold font-sora text-foreground">
+            Your Decks
+          </h2>
         </div>
-      ) : (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">
-            You don't have any decks yet. Create your first one!
-          </p>
-        </div>
-      )}
+
+        {decks.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {decks.map((deck, i) => (
+              <DeckCard
+                key={deck._id}
+                deck={deck}
+                index={i}
+                onDeleteClick={handleDeleteDeck}
+                onEditClick={handleEditDeck}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">
+              You don't have any decks yet. Create your first one!
+            </p>
+          </div>
+        )}
+      </div>
 
       <AddDeckModal onAddDeck={handleAddDeck} />
     </div>

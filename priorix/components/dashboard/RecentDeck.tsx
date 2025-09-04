@@ -71,13 +71,19 @@ export default function RecentDecks() {
   return (
     <div className="grid gap-4 grid-cols-1 md:grid-cols-4">
       {recentDecks.map((deck, index) => {
-        // Add validation for each deck
         if (!deck || !deck._id) {
           console.warn("Invalid deck data:", deck);
           return null;
         }
 
-        return <DeckCard key={deck._id} deck={deck} index={index} />;
+        return (
+          <DeckCard
+            key={deck._id}
+            deck={deck}
+            index={index}
+            showMenu={true} 
+          />
+        );
       })}
     </div>
   );

@@ -1,11 +1,13 @@
+// components/DeckDetails/FlashcardsList.tsx
 import { IFlashcard } from "@/types/flashcard";
 import FlashcardItem from "./FlashcardItem";
 import EmptyFlashcards from "./EmptyFlashcards";
 
 interface FlashcardsListProps {
   flashcards: IFlashcard[];
-  onEdit: (flashcard: IFlashcard) => void;
-  onDelete: (id: string) => void;
+  onEdit?: (flashcard: IFlashcard) => void; // Make optional
+  onDelete?: (id: string) => void; // Make optional
+  isOwner?: boolean;
 }
 
 const FlashcardsList = ({
@@ -26,7 +28,8 @@ const FlashcardsList = ({
               key={flashcard._id || index}
               flashcard={flashcard}
               onEdit={onEdit}
-              onDelete={onDelete}
+              onDelete={onDelete} 
+              
             />
           ))}
         </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect} from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useToast } from "@/hooks/useToast";
@@ -16,6 +16,7 @@ import ErrorState from "@/components/DeckDetails/ErrorState";
 import NotFoundState from "@/components/DeckDetails/NotFoundState";
 import ImportModal from "@/components/DeckDetails/ImportModal";
 import { importPDF } from "@/utils/pdfImporter";
+import { useDeckContext } from "@/contexts/DeckContext";
 
 const DeckDetailPage = () => {
   const params = useParams();
@@ -23,6 +24,7 @@ const DeckDetailPage = () => {
   const router = useRouter();
   const [showImportModal, setShowImportModal] = useState(false);
   const { showToast, dismissToast } = useToast();
+  const { data: session } = useSession();
 
   const { deck, isLoading: isDeckLoading, error: deckError } = useDeck(deckId);
   const {
@@ -40,12 +42,25 @@ const DeckDetailPage = () => {
   );
   const [error, setError] = useState<string | null>(null);
   const [isImporting, setIsImporting] = useState(false);
+  const { isOwner, setDeck } = useDeckContext();
+
+  
+
+  useEffect(() => {
+    if (deck) {
+      setDeck(deck);
+    }
+  }, [deck, setDeck]);
 
   const handleStudyDeck = () => {
     router.push(`/decks/${deckId}/study`);
   };
 
   const handleOpenImportModal = () => {
+    if (!isOwner) {
+      showToast("Only deck owners can import cards", "error");
+      return;
+    }
     setShowImportModal(true);
   };
 
@@ -54,6 +69,11 @@ const DeckDetailPage = () => {
   };
 
   const handleImportPDF = async (file: File, importDeckId: string) => {
+    if (!isOwner) {
+      showToast("Only deck owners can import cards", "error");
+      return;
+    }
+
     setIsImporting(true);
     setError(null);
     showToast("Importing PDF...", "loading");
@@ -65,7 +85,6 @@ const DeckDetailPage = () => {
       dismissToast();
       showToast("Flashcards imported successfully!", "success");
       setShowImportModal(false);
-    
     } catch (err) {
       console.error("PDF import error:", err);
       const errorMessage =
@@ -80,6 +99,11 @@ const DeckDetailPage = () => {
   };
 
   const handleAddFlashcard = async (term: string, definition: string) => {
+    if (!isOwner) {
+      showToast("Only deck owners can add cards", "error");
+      return;
+    }
+
     showToast("Creating flashcard...", "loading");
 
     try {
@@ -102,6 +126,11 @@ const DeckDetailPage = () => {
     term: string,
     definition: string
   ) => {
+    if (!isOwner) {
+      showToast("Only deck owners can edit cards", "error");
+      return;
+    }
+
     showToast("Updating flashcard...", "loading");
 
     try {
@@ -120,6 +149,11 @@ const DeckDetailPage = () => {
   };
 
   const handleDeleteFlashcard = async (id: string) => {
+    if (!isOwner) {
+      showToast("Only deck owners can delete cards", "error");
+      return;
+    }
+
     showToast("Deleting flashcard...", "loading");
 
     try {
@@ -163,7 +197,7 @@ const DeckDetailPage = () => {
         deck={deck}
         flashcards={flashcards}
         onStudyDeck={handleStudyDeck}
-        onImportPDF={handleOpenImportModal}
+        onImportPDF={isOwner ? handleOpenImportModal : undefined} 
       />
 
       {isImporting && (
@@ -178,16 +212,20 @@ const DeckDetailPage = () => {
         </div>
       )}
 
-      <AddFlashcardForm
-        onAddFlashcard={handleAddFlashcard}
-        error={error}
-        setError={setError}
-      />
+      {/* Only show add flashcard form if user is owner */}
+      {isOwner && (
+        <AddFlashcardForm
+          onAddFlashcard={handleAddFlashcard}
+          error={error}
+          setError={setError}
+        />
+      )}
 
       <FlashcardsList
         flashcards={flashcards}
-        onEdit={setEditingFlashcard}
-        onDelete={handleDeleteFlashcard}
+        onEdit={isOwner ? setEditingFlashcard : undefined} // Only allow edit if owner
+        onDelete={isOwner ? handleDeleteFlashcard : undefined} // Only allow delete if owner
+        isOwner={isOwner}
       />
 
       {editingFlashcard && (

@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/useToast";
 import EditFlashcardDialog from "@/components/EditFlashcardDialog";
+import { useDeckContext } from "@/contexts/DeckContext";
 
 const StudyPage = () => {
   const params = useParams();
@@ -56,8 +57,8 @@ const StudyPage = () => {
   const [editingFlashcard, setEditingFlashcard] = useState<IFlashcard | null>(
     null
   );
+  const { isOwner } = useDeckContext(); 
 
-  // Keep track of the current card ID to maintain position after updates
   const currentCardIdRef = useRef<string | null>(null);
   const shuffleOrderRef = useRef<string[]>([]);
 
@@ -266,12 +267,9 @@ const StudyPage = () => {
       dismissToast();
       showToast("Flashcard deleted successfully!", "success");
 
-      // Refresh the flashcards list after deletion
       if (flashcards.length === 1) {
-        // If it was the last card, go back to deck details
         window.location.href = `/decks/${deckId}`;
       } else {
-        // Otherwise, reload to refresh the list
         window.location.reload();
       }
     } catch (err) {
@@ -383,29 +381,32 @@ const StudyPage = () => {
                   Definition
                 </DropdownMenuItem>
 
-                <DropdownMenuSeparator />
+                {isOwner && (
+                  <div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingFlashcard(currentCard);
+                      }}
+                      className="flex items-center"
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit
+                    </DropdownMenuItem>
 
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setEditingFlashcard(currentCard);
-                  }}
-                  className="flex items-center"
-                >
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit
-                </DropdownMenuItem>
-
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDeleteFlashcard(currentCard._id);
-                  }}
-                  className="flex items-center text-red-600 focus:text-red-600"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteFlashcard(currentCard._id);
+                      }}
+                      className="flex items-center text-red-600 focus:text-red-600"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete
+                    </DropdownMenuItem>
+                  </div>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
