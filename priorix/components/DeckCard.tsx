@@ -213,11 +213,11 @@ const DeckCard: React.FC<DeckCardProps> = ({
                   </DropdownMenuItem>
 
                   {/* Copy direct link option */}
-                  <DropdownMenuItem
+                  {/* <DropdownMenuItem
                     onClick={(e) => handleShareDeck(e, deck._id)}
                   >
                     <Copy className="h-4 w-4 mr-2" /> Copy Link
-                  </DropdownMenuItem>
+                  </DropdownMenuItem> */}
                 </DropdownMenuContent>
               </DropdownMenu>
             )}

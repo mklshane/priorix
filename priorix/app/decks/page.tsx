@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import DeckCard from "@/components/DeckCard";
 import AddDeckModal from "@/components/Deck/AddDeckModal";
 import RecentDecks from "@/components/dashboard/RecentDeck";
+import ConfirmDeleteModal from "@/components/ConfirmDeleteModal";
 import { Deck, CreateDeckRequest } from "@/types/deck";
 import { useSession } from "next-auth/react";
 import { useToast } from "@/hooks/useToast";
@@ -11,6 +12,9 @@ import { useToast } from "@/hooks/useToast";
 const DecksPage: React.FC = () => {
   const [decks, setDecks] = useState<Deck[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deckToDelete, setDeckToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const { data: session } = useSession();
   const { showToast, dismissToast } = useToast();
 
@@ -35,8 +39,7 @@ const DecksPage: React.FC = () => {
     };
 
     fetchDecks();
-    console.log("Fetching decks successful");
-  }, [session?.user?.id]);
+  }, [session?.user?.id, showToast]);
 
   const handleAddDeck = async (newDeckData: CreateDeckRequest) => {
     showToast("Creating deck...", "loading");
@@ -64,32 +67,41 @@ const DecksPage: React.FC = () => {
     }
   };
 
-  const handleDeleteDeck = async (deckId: string) => {
-    if (
-      !confirm(
-        "Are you sure you want to delete this deck? This action cannot be undone."
-      )
-    ) {
-      return;
-    }
+  const handleDeleteClick = (deckId: string) => {
+    setDeckToDelete(deckId);
+    setDeleteModalOpen(true);
+  };
 
+  const handleDeleteConfirm = async () => {
+    if (!deckToDelete) return;
+
+    setIsDeleting(true);
     showToast("Deleting deck...", "loading");
 
     try {
-      const res = await fetch(`/api/deck/${deckId}`, {
+      const res = await fetch(`/api/deck/${deckToDelete}`, {
         method: "DELETE",
       });
 
       if (!res.ok) throw new Error("Failed to delete deck");
 
-      setDecks((prev) => prev.filter((deck) => deck._id !== deckId));
+      setDecks((prev) => prev.filter((deck) => deck._id !== deckToDelete));
       dismissToast();
       showToast("Deck deleted successfully!", "success");
     } catch (err) {
       console.error("Error deleting deck:", err);
       dismissToast();
       showToast("Failed to delete deck", "error");
+    } finally {
+      setIsDeleting(false);
+      setDeleteModalOpen(false);
+      setDeckToDelete(null);
     }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteModalOpen(false);
+    setDeckToDelete(null);
   };
 
   const handleEditDeck = async (
@@ -132,6 +144,16 @@ const DecksPage: React.FC = () => {
 
   return (
     <div className="w-[90%] mx-auto">
+      {/* Delete Confirmation Modal */}
+      <ConfirmDeleteModal
+        isOpen={deleteModalOpen}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Deck"
+        description="Are you sure you want to delete this deck? This action cannot be undone."
+        isLoading={isDeleting}
+      />
+
       {/* Recent Decks Section */}
       <div className="mb-8">
         <h2 className="text-2xl font-bold font-sora text-foreground mb-4">
@@ -155,7 +177,7 @@ const DecksPage: React.FC = () => {
                 key={deck._id}
                 deck={deck}
                 index={i}
-                onDeleteClick={handleDeleteDeck}
+                onDeleteClick={handleDeleteClick} // Pass the click handler instead of direct delete
                 onEditClick={handleEditDeck}
               />
             ))}

@@ -81,7 +81,7 @@ export default function RecentDecks() {
             key={deck._id}
             deck={deck}
             index={index}
-            showMenu={true} 
+            
           />
         );
       })}
