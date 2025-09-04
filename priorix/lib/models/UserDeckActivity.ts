@@ -1,3 +1,4 @@
+// lib/models/UserDeckActivity.ts
 import mongoose, { Schema, Document, Model } from "mongoose";
 
 export interface IUserDeckActivity extends Document {
@@ -15,8 +16,21 @@ const UserDeckActivitySchema: Schema<IUserDeckActivity> = new Schema(
   { timestamps: true }
 );
 
+UserDeckActivitySchema.index({ userId: 1, deckId: 1 }, { unique: true });
+
 const UserDeckActivity: Model<IUserDeckActivity> =
-  (mongoose.models && mongoose.models.UserDeckActivity) ||
+  mongoose.models.UserDeckActivity ||
   mongoose.model<IUserDeckActivity>("UserDeckActivity", UserDeckActivitySchema);
+
+export const recordDeckAccess = async (
+  userId: mongoose.Types.ObjectId,
+  deckId: mongoose.Types.ObjectId
+) => {
+  return await UserDeckActivity.findOneAndUpdate(
+    { userId, deckId },
+    { $set: { lastAccessedAt: new Date() } },
+    { upsert: true, new: true }
+  );
+};
 
 export default UserDeckActivity;

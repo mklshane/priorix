@@ -11,7 +11,7 @@ const DecksPage: React.FC = () => {
   const [decks, setDecks] = useState<Deck[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { data: session } = useSession();
-  const { showToast, dismissToast } = useToast(); // Use the custom hook
+  const { showToast, dismissToast } = useToast(); 
 
   useEffect(() => {
     const fetchDecks = async () => {
@@ -34,7 +34,8 @@ const DecksPage: React.FC = () => {
     };
 
     fetchDecks();
-  }, [session?.user?.id, showToast]);
+    console.log("Fetching decks successful")
+  }, [session?.user?.id]);
 
   const handleAddDeck = async (newDeckData: CreateDeckRequest) => {
     showToast("Creating deck...", "loading");
