@@ -11,3 +11,4 @@ node_modules/* linguist-vendored
 # Force TypeScript recognition
 *.ts linguist-language=TypeScript
 *.tsx linguist-language=TypeScript
+*.mjs linguist-language=TypeScript
