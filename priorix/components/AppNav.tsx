@@ -25,13 +25,37 @@ export default function AppNav({ onToggleSidebar }: AppNavProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [deckName, setDeckName] = useState<string>("");
+  const [fromDashboardRecent, setFromDashboardRecent] = useState(false);
+
+  // Initialize from sessionStorage on client side only
+  useEffect(() => {
+    const fromDashboard =
+      sessionStorage.getItem("fromDashboardRecent") === "true";
+    setFromDashboardRecent(fromDashboard);
+  }, []);
 
   const handleBack = () => {
+    // Check if we came from dashboard recent decks
+    const lastDashboardPath = sessionStorage.getItem("lastDashboardPath");
 
-    if (isOnStudyPage) {
+    if (
+      fromDashboardRecent &&
+      lastDashboardPath &&
+      lastDashboardPath !== pathname
+    ) {
+      // Navigate back to the stored dashboard path
+      sessionStorage.removeItem("fromDashboardRecent");
+      sessionStorage.removeItem("lastDashboardPath");
+      router.push(lastDashboardPath);
+    } else if (isOnStudyPage) {
+      // Default behavior: go back to deck page from study
       router.push(`/decks/${getDeckId()}`);
     } else if (isOnDeckPage) {
+      // Default behavior: go back to decks list
       router.push("/decks");
+    } else {
+      // Fallback: go to dashboard
+      router.push("/dashboard");
     }
   };
 
@@ -86,8 +110,26 @@ export default function AppNav({ onToggleSidebar }: AppNavProps) {
   }, [pathname]);
 
   const isOnDeckPage = pathname.match(/^\/decks\/([^\/]+)$/) !== null;
-
   const isOnStudyPage = pathname.match(/^\/decks\/([^\/]+)\/study$/) !== null;
+
+  // Show back button only in specific cases:
+  // 1. When on deck/study pages AND we came from dashboard recent decks
+  // 2. When on study page (to go back to deck)
+  // 3. When on deck page but NOT from dashboard (to go back to decks list)
+  const shouldShowBackButton =
+    (isOnDeckPage && fromDashboardRecent) ||
+    (isOnStudyPage && fromDashboardRecent) ||
+    isOnStudyPage ||
+    (isOnDeckPage && !fromDashboardRecent);
+
+  // Show hamburger menu when:
+  // 1. On dashboard page
+  // 2. On other pages that aren't deck/study pages (like /decks, /todo, /notes)
+  // 3. On deck pages but NOT from dashboard recent decks
+  const shouldShowHamburgerMenu =
+    pathname === "/dashboard" ||
+    (!isOnDeckPage && !isOnStudyPage) ||
+    (isOnDeckPage && !fromDashboardRecent);
 
   const pageNames: Record<string, string> = {
     "/dashboard": "Priorix",
@@ -97,7 +139,6 @@ export default function AppNav({ onToggleSidebar }: AppNavProps) {
   };
 
   const getCurrentPage = () => {
-
     if (isOnStudyPage) {
       return deckName || "Study";
     }
@@ -113,7 +154,7 @@ export default function AppNav({ onToggleSidebar }: AppNavProps) {
     if (pageNames[pathname]) {
       return pageNames[pathname];
     }
-    
+
     return (
       pathname
         .split("/")
@@ -125,7 +166,6 @@ export default function AppNav({ onToggleSidebar }: AppNavProps) {
   };
 
   const currentPage = getCurrentPage();
-  const shouldShowBackButton = isOnDeckPage || isOnStudyPage;
 
   return (
     <nav className="w-full px-6 py-4 bg-primary-foreground border-b border-gray-200  dark:border-gray-700">
@@ -141,7 +181,7 @@ export default function AppNav({ onToggleSidebar }: AppNavProps) {
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-          ) : (
+          ) : shouldShowHamburgerMenu ? (
             <Button
               variant="ghost"
               size="sm"
@@ -150,7 +190,7 @@ export default function AppNav({ onToggleSidebar }: AppNavProps) {
             >
               <Menu className="h-5 w-5" />
             </Button>
-          )}
+          ) : null}
         </div>
 
         {/* Center - Page Name */}

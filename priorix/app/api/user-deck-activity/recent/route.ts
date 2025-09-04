@@ -1,4 +1,3 @@
-// app/api/user-deck-activity/recent/route.ts
 import { NextResponse } from "next/server";
 import { ConnectDB } from "@/lib/config/db";
 import UserDeckActivity from "@/lib/models/UserDeckActivity";
@@ -18,20 +17,29 @@ export async function GET(req: Request) {
       );
     }
 
-    // Use aggregation for reliable results
+    // Use aggregation with double lookup to get user data
     const recentActivities = await UserDeckActivity.aggregate([
       { $match: { userId: new mongoose.Types.ObjectId(userId) } },
       { $sort: { lastAccessedAt: -1 } },
       { $limit: limit },
       {
         $lookup: {
-          from: "decks", // The actual collection name in MongoDB
+          from: "decks", 
           localField: "deckId",
           foreignField: "_id",
           as: "deck",
         },
       },
       { $unwind: "$deck" },
+      {
+        $lookup: {
+          from: "users",
+          localField: "deck.user", 
+          foreignField: "_id",
+          as: "userData",
+        },
+      },
+      { $unwind: { path: "$userData", preserveNullAndEmptyArrays: true } }, 
       {
         $project: {
           _id: "$deck._id",
@@ -44,6 +52,11 @@ export async function GET(req: Request) {
           updatedAt: "$deck.updatedAt",
           lastStudied: {
             $dateToString: { format: "%Y-%m-%d", date: "$lastAccessedAt" },
+          },
+          user: {
+            _id: "$userData._id",
+            name: "$userData.name",
+            email: "$userData.email",
           },
         },
       },

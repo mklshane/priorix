@@ -14,9 +14,8 @@ import {
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import EditDeckDialog from "./Deck/EditDeckDialog";
-import { useSession } from "next-auth/react"; // Import useSession
+import { useSession } from "next-auth/react";
 
-// 🔹 Helper: record activity - Now requires userId
 const recordDeckAccess = async (deckId: string, userId: string) => {
   try {
     const response = await fetch("/api/user-deck-activity/record", {
@@ -64,7 +63,7 @@ const DeckCard: React.FC<DeckCardProps> = ({
   const [editDescription, setEditDescription] = useState("");
   const [editIsPublic, setEditIsPublic] = useState(true);
   const router = useRouter();
-  const { data: session } = useSession(); // Get session data
+  const { data: session } = useSession();
 
   if (!deck) return null;
 
@@ -72,25 +71,25 @@ const DeckCard: React.FC<DeckCardProps> = ({
     deck.length ?? (deck.flashcards ? deck.flashcards.length : 0);
 
   const handleDeckClick = async (deckId: string) => {
-    // Only record access if user is authenticated
+  
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("fromDashboardRecent", "true");
+      sessionStorage.setItem("lastDashboardPath", window.location.pathname);
+    }
+
     if (session?.user?.id) {
       await recordDeckAccess(deckId, session.user.id);
     }
     router.push(`/decks/${deckId}`);
   };
 
-  // Get display name for the user
   const getDisplayName = () => {
-    if (deck.lastStudied) {
-      return `Last studied ${deck.lastStudied}`;
+    if (deck.user && typeof deck.user === "object" && deck.user.name) {
+      return deck.user.name.split(" ")[0]; 
     }
 
     if (typeof deck.user === "string") {
       return deck.user;
-    }
-
-    if (deck.user?.name) {
-      return deck.user.name.split(" ")[0];
     }
 
     return "Unknown";
@@ -164,7 +163,7 @@ const DeckCard: React.FC<DeckCardProps> = ({
               <span className="font-semibold font-sora text-foreground">
                 {deckLength} cards
               </span>
-              <div className="flex items-center text-foreground">
+              <div className="flex items-center text-foreground text-xs">
                 {getDisplayName()}
               </div>
             </div>

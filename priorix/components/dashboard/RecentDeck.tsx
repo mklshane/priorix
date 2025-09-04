@@ -32,7 +32,6 @@ export default function RecentDecks() {
 
         const data = await res.json();
 
-        // Validate the data structure
         if (Array.isArray(data)) {
           setRecentDecks(data);
         } else {

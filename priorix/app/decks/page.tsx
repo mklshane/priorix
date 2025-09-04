@@ -54,11 +54,11 @@ const DecksPage: React.FC = () => {
 
       const createdDeck: Deck = await res.json();
       setDecks((prev) => [...prev, createdDeck]);
-      dismissToast(); // Dismiss loading toast
+      dismissToast(); 
       showToast("Deck created successfully!", "success");
     } catch (err) {
       console.error("Error creating deck:", err);
-      dismissToast(); // Dismiss loading toast
+      dismissToast(); 
       showToast("Failed to create deck", "error");
     }
   };
@@ -82,11 +82,11 @@ const DecksPage: React.FC = () => {
       if (!res.ok) throw new Error("Failed to delete deck");
 
       setDecks((prev) => prev.filter((deck) => deck._id !== deckId));
-      dismissToast(); // Dismiss loading toast
+      dismissToast(); 
       showToast("Deck deleted successfully!", "success");
     } catch (err) {
       console.error("Error deleting deck:", err);
-      dismissToast(); // Dismiss loading toast
+      dismissToast(); 
       showToast("Failed to delete deck", "error");
     }
   };
@@ -112,11 +112,11 @@ const DecksPage: React.FC = () => {
       setDecks((prev) =>
         prev.map((deck) => (deck._id === deckId ? updatedDeck : deck))
       );
-      dismissToast(); // Dismiss loading toast
+      dismissToast(); 
       showToast("Deck updated successfully!", "success");
     } catch (err) {
       console.error("Error updating deck:", err);
-      dismissToast(); // Dismiss loading toast
+      dismissToast(); 
       showToast("Failed to update deck", "error");
     }
   };
