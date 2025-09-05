@@ -44,7 +44,6 @@ export const getDecks = async (params: {
     .populate("user", "name"); 
 };
 
-// Create a new deck
 export const createDeck = async (data: {
   title: string;
   description?: string;
@@ -63,7 +62,6 @@ export const createDeck = async (data: {
   return deck.populate("user", "name");
 };
 
-// Update deck
 export const updateDeck = async (data: {
   deckId: string;
   title?: string;

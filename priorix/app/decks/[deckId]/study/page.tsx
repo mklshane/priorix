@@ -39,7 +39,6 @@ const StudyPage = () => {
   const params = useParams();
   const deckId = params.deckId as string;
   const { showToast, dismissToast } = useToast();
-
   const { currentCardIndex, saveCardIndex } = useCardPersistence(deckId);
   const { deck, isLoading: isDeckLoading } = useDeck(deckId);
   const {
@@ -58,23 +57,60 @@ const StudyPage = () => {
     null
   );
   const { isOwner } = useDeckContext();
-
   const currentCardIdRef = useRef<string | null>(null);
 
-  // Get saved shuffle order from localStorage
-  const getShuffleOrder = (): string[] => {
-    if (typeof window === "undefined") return [];
-    const saved = localStorage.getItem(`shuffleOrder-${deckId}`);
-    return saved ? JSON.parse(saved) : [];
-  };
-
-  // Save shuffle order to localStorage
-  const saveShuffleOrder = (order: string[]) => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem(`shuffleOrder-${deckId}`, JSON.stringify(order));
+  // Helper function to get saved preferences from localStorage
+  const getSavedPreferences = () => {
+    if (typeof window === "undefined") {
+      return { frontContent: "term" as const, isShuffled: false };
+    }
+    try {
+      const saved = localStorage.getItem(`studyPrefs-${deckId}`);
+      return saved
+        ? JSON.parse(saved)
+        : { frontContent: "term" as const, isShuffled: false };
+    } catch (error) {
+      console.error("Error parsing study preferences:", error);
+      return { frontContent: "term" as const, isShuffled: false };
     }
   };
 
+  // Helper function to get saved shuffle order from localStorage
+  const getShuffleOrder = (): string[] => {
+    if (typeof window === "undefined") return [];
+    try {
+      const saved = localStorage.getItem(`shuffleOrder-${deckId}`);
+      return saved ? JSON.parse(saved) : [];
+    } catch (error) {
+      console.error("Error parsing shuffle order:", error);
+      return [];
+    }
+  };
+
+  // Helper function to save shuffle order to localStorage
+  const saveShuffleOrder = (order: string[]) => {
+    if (typeof window === "undefined") return;
+    try {
+      localStorage.setItem(`shuffleOrder-${deckId}`, JSON.stringify(order));
+    } catch (error) {
+      console.error("Error saving shuffle order:", error);
+    }
+  };
+
+  // Helper function to save preferences to localStorage
+  const savePreferences = () => {
+    if (typeof window === "undefined") return;
+    try {
+      localStorage.setItem(
+        `studyPrefs-${deckId}`,
+        JSON.stringify({ frontContent, isShuffled })
+      );
+    } catch (error) {
+      console.error("Error saving study preferences:", error);
+    }
+  };
+
+  // Shuffle array helper
   const shuffleArray = (array: IFlashcard[]) => {
     const newArray = [...array];
     for (let i = newArray.length - 1; i > 0; i--) {
@@ -84,64 +120,50 @@ const StudyPage = () => {
     return newArray;
   };
 
-  const renderText = (text: string, isTerm: boolean = false) => {
-    return text.split("\n").map((line, index) => (
-      <p
-        key={index}
-        className={`my-1 ${isTerm ? "text-2xl font-bold" : "text-xl"}`}
-      >
-        {line}
-      </p>
-    ));
-  };
-
-  const getSavedPreferences = () => {
-    const saved = localStorage.getItem(`studyPrefs-${deckId}`);
-    return saved
-      ? JSON.parse(saved)
-      : { frontContent: "term", isShuffled: false };
-  };
-
+  // Initialize state and load preferences
   useEffect(() => {
     const prefs = getSavedPreferences();
     setFrontContent(prefs.frontContent);
-    setIsShuffled(prefs.isShuffled || false);
+    setIsShuffled(prefs.isShuffled);
   }, [deckId]);
 
+  // Handle flashcard array updates and shuffle order
   useEffect(() => {
-    if (originalFlashcards.length > 0) {
-      let newFlashcards: IFlashcard[];
+    if (originalFlashcards.length === 0) {
+      setFlashcards([]);
+      saveShuffleOrder([]);
+      return;
+    }
 
-      if (isShuffled) {
-        // Try to get the saved shuffle order
-        const savedShuffleOrder = getShuffleOrder();
-
-        // Check if we have a valid saved shuffle order that matches our current cards
-        if (
-          savedShuffleOrder.length === originalFlashcards.length &&
-          savedShuffleOrder.every((id) =>
-            originalFlashcards.some((card) => card._id === id)
-          )
-        ) {
-          // Reconstruct the shuffled array using the saved order
-          newFlashcards = savedShuffleOrder
-            .map((id) => originalFlashcards.find((card) => card._id === id))
-            .filter(Boolean) as IFlashcard[];
-        } else {
-          // Create new shuffle and save the order
-          newFlashcards = shuffleArray(originalFlashcards);
-          const newOrder = newFlashcards.map((card) => card._id);
-          saveShuffleOrder(newOrder);
-        }
+    let newFlashcards: IFlashcard[] = [];
+    if (isShuffled) {
+      const savedShuffleOrder = getShuffleOrder();
+      if (
+        savedShuffleOrder.length === originalFlashcards.length &&
+        savedShuffleOrder.every((id) =>
+          originalFlashcards.some((card) => card._id === id)
+        )
+      ) {
+        newFlashcards = savedShuffleOrder
+          .map((id) => originalFlashcards.find((card) => card._id === id))
+          .filter(Boolean) as IFlashcard[];
       } else {
-        newFlashcards = originalFlashcards;
-        // Clear shuffle order when not shuffled
-        saveShuffleOrder([]);
+        newFlashcards = shuffleArray(originalFlashcards);
+        saveShuffleOrder(newFlashcards.map((card) => card._id));
       }
+    } else {
+      newFlashcards = originalFlashcards;
+      saveShuffleOrder([]);
+    }
 
+    // Only update flashcards if they have changed
+    if (
+      newFlashcards.length !== flashcards.length ||
+      newFlashcards.some((card, i) => card._id !== flashcards[i]?._id)
+    ) {
       setFlashcards(newFlashcards);
 
-      // If we have a current card ID, find its new position
+      // Update currentCardIndex if necessary
       if (currentCardIdRef.current) {
         const newIndex = newFlashcards.findIndex(
           (card) => card._id === currentCardIdRef.current
@@ -149,36 +171,28 @@ const StudyPage = () => {
         if (newIndex !== -1 && newIndex !== currentCardIndex) {
           saveCardIndex(newIndex);
         }
+      } else if (
+        currentCardIndex >= newFlashcards.length &&
+        newFlashcards.length > 0
+      ) {
+        saveCardIndex(0);
       }
     }
   }, [originalFlashcards, isShuffled]);
 
-  // Update current card ID ref whenever the current card changes
+  // Update current card ID ref
   useEffect(() => {
     if (flashcards.length > 0 && flashcards[currentCardIndex]) {
       currentCardIdRef.current = flashcards[currentCardIndex]._id;
     }
   }, [flashcards, currentCardIndex]);
 
+  // Save preferences when frontContent or isShuffled changes
   useEffect(() => {
-    if (flashcards.length > 0 && currentCardIndex >= flashcards.length) {
-      saveCardIndex(0);
-    }
-  }, [flashcards.length, currentCardIndex, saveCardIndex]);
+    savePreferences();
+  }, [frontContent, isShuffled]);
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem(
-        `studyPrefs-${deckId}`,
-        JSON.stringify({ frontContent, isShuffled })
-      );
-    }
-  }, [frontContent, isShuffled, deckId]);
-
-  useEffect(() => {
-    saveCardIndex(currentCardIndex);
-  }, [currentCardIndex, saveCardIndex]);
-
+  // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const activeElement = document.activeElement;
@@ -187,9 +201,7 @@ const StudyPage = () => {
         (activeElement.tagName === "INPUT" ||
           activeElement.tagName === "TEXTAREA");
 
-      if (isInputFocused) {
-        return;
-      }
+      if (isInputFocused) return;
 
       if (e.code === "Space") {
         e.preventDefault();
@@ -209,7 +221,6 @@ const StudyPage = () => {
 
   const handleNextCard = useCallback(() => {
     if (flashcards.length === 0) return;
-
     const nextIndex = (currentCardIndex + 1) % flashcards.length;
     saveCardIndex(nextIndex);
     setIsFlipped(false);
@@ -217,7 +228,6 @@ const StudyPage = () => {
 
   const handlePreviousCard = useCallback(() => {
     if (flashcards.length === 0) return;
-
     const prevIndex =
       (currentCardIndex - 1 + flashcards.length) % flashcards.length;
     saveCardIndex(prevIndex);
@@ -237,17 +247,6 @@ const StudyPage = () => {
     const newIsShuffled = !isShuffled;
     setIsShuffled(newIsShuffled);
     setIsFlipped(false);
-
-    if (newIsShuffled) {
-      // Create new shuffle order and save it
-      const shuffledCards = shuffleArray(originalFlashcards);
-      const newOrder = shuffledCards.map((card) => card._id);
-      saveShuffleOrder(newOrder);
-    } else {
-      // Clear shuffle order when unshuffling
-      saveShuffleOrder([]);
-    }
-
     saveCardIndex(0);
     currentCardIdRef.current = null;
   };
@@ -258,13 +257,11 @@ const StudyPage = () => {
     definition: string
   ) => {
     showToast("Updating flashcard...", "loading");
-
     try {
       await updateFlashcard(id, term, definition);
       dismissToast();
       showToast("Flashcard updated successfully!", "success");
       setEditingFlashcard(null);
-      // The card position will be maintained by the useEffect above
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to update flashcard";
@@ -283,16 +280,15 @@ const StudyPage = () => {
     }
 
     showToast("Deleting flashcard...", "loading");
-
     try {
       await deleteFlashcard(id);
       dismissToast();
       showToast("Flashcard deleted successfully!", "success");
-
       if (flashcards.length === 1) {
         window.location.href = `/decks/${deckId}`;
       } else {
-        window.location.reload();
+        saveCardIndex(0);
+        currentCardIdRef.current = null;
       }
     } catch (err) {
       const errorMessage =
@@ -300,6 +296,17 @@ const StudyPage = () => {
       dismissToast();
       showToast(errorMessage, "error");
     }
+  };
+
+  const renderText = (text: string, isTerm: boolean = false) => {
+    return text.split("\n").map((line, index) => (
+      <p
+        key={index}
+        className={`my-1 ${isTerm ? "text-2xl font-bold" : "text-xl"}`}
+      >
+        {line}
+      </p>
+    ));
   };
 
   if (isDeckLoading || isFlashcardsLoading) {

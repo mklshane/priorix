@@ -8,6 +8,7 @@ export default function Home() {
       <div className="h-screen bg-purple/15 noise">
         {" "}
         <Navbar />
+        <div className="mt-5"></div>
         <Hero />
       </div>
       {/* <div className="w-[30%] h-0.5 bg-black mx-auto rounded-4xl"></div> */}
