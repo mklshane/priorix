@@ -11,7 +11,7 @@ export async function GET(
   { params }: { params: { deckId: string } }
 ) {
   await ConnectDB();
-  const { deckId } = params;
+  const { deckId } = await params;
 
   try {
     const { searchParams } = new URL(req.url);
@@ -44,7 +44,7 @@ export async function DELETE(
   { params }: { params: { deckId: string } }
 ) {
   await ConnectDB();
-  const { deckId } = params;
+  const { deckId } = await params;
 
   try {
     const deck = await Deck.findById(deckId);
