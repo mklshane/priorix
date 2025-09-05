@@ -1,132 +1,533 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckSquare, Plus } from "lucide-react";
-import { useState } from "react";
+import {
+  CheckSquare,
+  Plus,
+  Trash2,
+  Calendar,
+  Tag,
+  FileText,
+} from "lucide-react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/useToast";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { useSession } from "next-auth/react";
 
-interface Todo {
-  id: number;
-  title: string;
-  completed: boolean;
+interface Task {
+  _id: string;
+  taskTitle: string;
+  description?: string;
+  status: "todo" | "in-progress" | "completed";
+  dueDate?: string;
+  tags: string[];
+  completedAt?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
-const initialTodos: Todo[] = [
-  {
-    id: 1,
-    title: "Finish project presentation slides",
-    completed: true,
-  },
-  {
-    id: 2,
-    title: "Review JavaScript concepts flashcards",
-    completed: false,
-  },
-  {
-    id: 3,
-    title: "Prepare for client meeting tomorrow",
-    completed: false,
-  },
-];
-
 export default function TodoList() {
-  const [todos, setTodos] = useState<Todo[]>(initialTodos);
-  const [newTodo, setNewTodo] = useState<string>("");
+  const { data: session, status: sessionStatus } = useSession();
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState<boolean>(false);
+  const [completingTaskId, setCompletingTaskId] = useState<string | null>(null);
+  const { showToast } = useToast();
 
-  const addTodo = (): void => {
-    if (newTodo.trim() === "") return;
+  // New task form state
+  const [newTask, setNewTask] = useState({
+    taskTitle: "",
+    description: "",
+    dueDate: "",
+    tags: "",
+  });
 
-    const newTodoItem: Todo = {
-      id: Date.now(),
-      title: newTodo,
-      completed: false,
-    };
+  useEffect(() => {
+    console.log("Session status changed:", sessionStatus);
+    if (sessionStatus === "authenticated") {
+      console.log("User authenticated, fetching tasks...");
+      fetchTasks();
+    } else if (sessionStatus === "unauthenticated") {
+      console.log("User not authenticated");
+      setLoading(false);
+      setTasks([]);
+    }
+  }, [sessionStatus]);
 
-    setTodos([newTodoItem, ...todos]);
-    setNewTodo("");
-  };
+  const fetchTasks = async () => {
+    if (!session?.user?.id) {
+      console.log("No user ID in session, skipping fetch");
+      setLoading(false);
+      return;
+    }
 
-  const toggleTodo = (id: number): void => {
-    setTodos(
-      todos.map((todo) =>
-        todo.id === id ? { ...todo, completed: !todo.completed } : todo
-      )
-    );
-  };
+    try {
+      setLoading(true);
+      console.log("Fetching tasks for user:", session.user.id);
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>): void => {
-    if (e.key === "Enter") {
-      addTodo();
+      // Add userId to the query parameters
+      const response = await fetch(
+        `/api/tasks?status=todo&userId=${session.user.id}`
+      );
+      console.log("Response status:", response.status);
+
+      if (!response.ok) {
+        // Try to get detailed error message
+        let errorMessage = `HTTP error! status: ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+          console.error("API Error details:", errorData);
+        } catch (e) {
+          console.error("Could not parse error response:", e);
+        }
+
+        if (response.status === 401) {
+          showToast("Please sign in to view tasks", "error");
+        } else if (response.status === 400) {
+          showToast("Invalid request. Please try again.", "error");
+        } else {
+          showToast(`Failed to load tasks: ${errorMessage}`, "error");
+        }
+        return;
+      }
+
+      const tasksData = await response.json();
+      console.log("Tasks received:", tasksData);
+      setTasks(tasksData);
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+      showToast("Failed to load tasks. Please check your connection.", "error");
+    } finally {
+      setLoading(false);
     }
   };
 
+  const addTask = async (): Promise<void> => {
+    if (newTask.taskTitle.trim() === "") {
+      showToast("Task title is required", "error");
+      return;
+    }
+
+    if (!session?.user?.id) {
+      showToast("Please sign in to create tasks", "error");
+      return;
+    }
+
+    try {
+      const tagsArray = newTask.tags
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter((tag) => tag !== "");
+
+      console.log("Creating task with data:", {
+        taskTitle: newTask.taskTitle.trim(),
+        description: newTask.description.trim(),
+        dueDate: newTask.dueDate,
+        tags: tagsArray,
+        userId: session.user.id,
+      });
+
+      const response = await fetch("/api/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          taskTitle: newTask.taskTitle.trim(),
+          description: newTask.description.trim() || undefined,
+          dueDate: newTask.dueDate || undefined,
+          tags: tagsArray,
+          userId: session.user.id, // Add userId to the request body
+        }),
+      });
+
+      console.log("Create task response status:", response.status);
+
+      if (!response.ok) {
+        let errorMessage = `HTTP error! status: ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+          console.error("API Error details:", errorData);
+        } catch (e) {
+          console.error("Could not parse error response:", e);
+        }
+
+        if (response.status === 401) {
+          showToast("Please sign in to create tasks", "error");
+        } else if (response.status === 400) {
+          showToast("Invalid task data. Please check your input.", "error");
+        } else {
+          showToast(`Failed to create task: ${errorMessage}`, "error");
+        }
+        return;
+      }
+
+      const createdTask = await response.json();
+      console.log("Task created successfully:", createdTask);
+
+      setTasks([createdTask, ...tasks]);
+
+      // Reset form and close dialog
+      setNewTask({
+        taskTitle: "",
+        description: "",
+        dueDate: "",
+        tags: "",
+      });
+      setIsAddDialogOpen(false);
+
+      showToast("Task added successfully", "success");
+    } catch (error) {
+      console.error("Error adding task:", error);
+      showToast("Failed to add task. Please try again.", "error");
+    }
+  };
+
+  const updateTaskStatus = async (
+    taskId: string,
+    currentStatus: string
+  ): Promise<void> => {
+    if (!session?.user?.id) {
+      showToast("Please sign in to update tasks", "error");
+      return;
+    }
+
+    try {
+      const newStatus = currentStatus === "completed" ? "todo" : "completed";
+      console.log(
+        "Updating task status:",
+        taskId,
+        "from",
+        currentStatus,
+        "to",
+        newStatus
+      );
+
+      const response = await fetch(`/api/tasks/${taskId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: newStatus,
+          userId: session.user.id, // Add userId to the request body
+        }),
+      });
+
+      if (!response.ok) {
+        let errorMessage = `HTTP error! status: ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+          console.error("Could not parse error response:", e);
+        }
+
+        if (response.status === 401) {
+          showToast("Please sign in to update tasks", "error");
+        } else {
+          showToast(`Failed to update task: ${errorMessage}`, "error");
+        }
+        return;
+      }
+
+      const updatedTask = await response.json();
+
+      if (newStatus === "completed") {
+        setTasks(tasks.filter((task) => task._id !== taskId));
+      } else {
+        setTasks(
+          tasks.map((task) => (task._id === taskId ? updatedTask : task))
+        );
+      }
+
+      showToast(`Task marked as ${newStatus}`, "success");
+    } catch (error) {
+      console.error("Error updating task:", error);
+      showToast("Failed to update task", "error");
+    }
+  };
+
+  const deleteTask = async (taskId: string): Promise<void> => {
+    if (!session?.user?.id) {
+      showToast("Please sign in to delete tasks", "error");
+      return;
+    }
+
+    try {
+      console.log("Deleting task:", taskId);
+
+      // Add userId as query parameter for DELETE request
+      const response = await fetch(
+        `/api/tasks/${taskId}?userId=${session.user.id}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (!response.ok) {
+        let errorMessage = `HTTP error! status: ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+          console.error("Could not parse error response:", e);
+        }
+
+        if (response.status === 401) {
+          showToast("Please sign in to delete tasks", "error");
+        } else {
+          showToast(`Failed to delete task: ${errorMessage}`, "error");
+        }
+        return;
+      }
+
+      setTasks(tasks.filter((task) => task._id !== taskId));
+      showToast("Task deleted successfully", "success");
+    } catch (error) {
+      console.error("Error deleting task:", error);
+      showToast("Failed to delete task", "error");
+    }
+  };
+
+  const formatDate = (dateString?: string): string => {
+    if (!dateString) return "";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  if (sessionStatus === "loading" || loading) {
+    console.log("Rendering loading state");
+    return (
+      <Card className="bg-card border-2 border-black py-7 h-full flex flex-col gap-0">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-card-foreground text-lg flex items-center gap-2">
+            <CheckSquare className="h-5 w-5" />
+            Todo List
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex items-center gap-3 p-2 rounded-md">
+                <div className="h-5 w-5 bg-muted rounded animate-pulse"></div>
+                <div className="h-4 bg-muted rounded flex-1 animate-pulse"></div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  console.log("Rendering main component. Session:", session, "Tasks:", tasks);
+
   return (
-    <Card className="bg-card border-2 border-black py-7 h-100 md:max-h-[317.636px] flex flex-col gap-1">
+    <Card className="bg-card border-2 border-black py-7 h-full flex flex-col gap-0">
       <CardHeader className="pb-3">
         <CardTitle className="text-card-foreground text-lg flex items-center gap-2">
           <CheckSquare className="h-5 w-5" />
           Todo List
+          {tasks.length > 0 && (
+            <span className="text-sm text-muted-foreground ml-2">
+              ({tasks.length})
+            </span>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col overflow-hidden">
-        {/* Add new todo input */}
-        <div className="flex gap-2 mb-4">
-          <Input
-            placeholder="Add a new task..."
-            value={newTodo}
-            onChange={(e) => setNewTodo(e.target.value)}
-            onKeyPress={handleKeyPress}
-            className="flex-1"
-          />
-          <Button onClick={addTodo} size="icon">
-            <Plus className="h-4 w-4" />
-          </Button>
-        </div>
+        {/* Add Task Button */}
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="mb-4" disabled={!session}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add New Task
+            </Button>
+          </DialogTrigger>
 
-        {/* Scrollable todo items container */}
-        <div className="flex-1 overflow-y-auto pr-2">
-          <div className="space-y-3">
-            {todos.map((todo) => (
-              <div
-                key={todo.id}
-                className="flex items-center gap-3 p-2 rounded-md hover:bg-muted/50"
-              >
-                <button
-                  onClick={() => toggleTodo(todo.id)}
-                  className={`flex h-5 w-5 items-center justify-center rounded border ${
-                    todo.completed
-                      ? "bg-primary border-primary"
-                      : "border-muted-foreground/30"
-                  }`}
-                >
-                  {todo.completed && (
-                    <svg
-                      className="h-3 w-3 text-white"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={3}
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                  )}
-                </button>
-                <span
-                  className={`flex-1 text-sm ${
-                    todo.completed
-                      ? "text-muted-foreground line-through"
-                      : "text-card-foreground"
-                  }`}
-                >
-                  {todo.title}
-                </span>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>Add New Task</DialogTitle>
+            </DialogHeader>
+
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="taskTitle">Task Title *</Label>
+                <Input
+                  id="taskTitle"
+                  placeholder="Enter task title..."
+                  value={newTask.taskTitle}
+                  onChange={(e) =>
+                    setNewTask({ ...newTask, taskTitle: e.target.value })
+                  }
+                />
               </div>
-            ))}
+
+              <div className="grid gap-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  placeholder="Enter task description..."
+                  value={newTask.description}
+                  onChange={(e) =>
+                    setNewTask({ ...newTask, description: e.target.value })
+                  }
+                  rows={3}
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="dueDate">Due Date</Label>
+                <Input
+                  id="dueDate"
+                  type="date"
+                  value={newTask.dueDate}
+                  onChange={(e) =>
+                    setNewTask({ ...newTask, dueDate: e.target.value })
+                  }
+                />
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="tags">
+                  Tags{" "}
+                  <span className="text-muted-foreground text-sm">
+                    (comma-separated)
+                  </span>
+                </Label>
+                <Input
+                  id="tags"
+                  placeholder="work, personal, urgent..."
+                  value={newTask.tags}
+                  onChange={(e) =>
+                    setNewTask({ ...newTask, tags: e.target.value })
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setIsAddDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={addTask}
+                disabled={newTask.taskTitle.trim() === ""}
+              >
+                Add Task
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {!session ? (
+          <div className="text-center text-muted-foreground py-8">
+            Please sign in to manage tasks
           </div>
-        </div>
+        ) : tasks.length === 0 ? (
+          <div className="text-center text-muted-foreground py-8">
+            No tasks yet. Click "Add New Task" to get started!
+          </div>
+        ) : (
+          <div className="flex-1 overflow-y-auto pr-2">
+            <div className="space-y-3">
+              {tasks.map((task) => (
+                <div
+                  key={task._id}
+                  className="flex items-start gap-3 p-3 rounded-md hover:bg-muted/50 border-1 border-primary group"
+                >
+                  <button
+                    onClick={() => updateTaskStatus(task._id, task.status)}
+                    className={`flex h-5 w-5 items-center justify-center rounded border mt-0.5 transition-all duration-200 ${
+                      task.status === "completed" ||
+                      completingTaskId === task._id
+                        ? "bg-primary border-primary"
+                        : "border-muted-foreground/30 hover:border-primary/50"
+                    }`}
+                    disabled={completingTaskId === task._id}
+                  >
+                    {(task.status === "completed" ||
+                      completingTaskId === task._id) && (
+                      <svg
+                        className="h-3 w-3 text-white"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={3}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    )}
+                  </button>
+
+                  <div className="flex-1 min-w-0">
+                    <div
+                      className={`text-sm ${
+                        task.status === "completed"
+                          ? "text-muted-foreground line-through"
+                          : "text-card-foreground"
+                      }`}
+                    >
+                      {task.taskTitle}
+                    </div>
+
+                    {task.description && (
+                      <div className="text-xs text-muted-foreground mt-1 flex items-start gap-1">
+                        <FileText className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                        <span>{task.description}</span>
+                      </div>
+                    )}
+
+                    {task.dueDate && (
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                        <Calendar className="h-3 w-3" />
+                        Due {formatDate(task.dueDate)}
+                      </div>
+                    )}
+
+                    {task.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {task.tags.map((tag, index) => (
+                          <span
+                            key={index}
+                            className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full flex items-center gap-1"
+                          >
+                            <Tag className="h-3 w-3" />
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={() => deleteTask(task._id)}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive/80"
+                    title="Delete task"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

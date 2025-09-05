@@ -139,7 +139,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
             onClick={onClose}
             variant="outline"
             className="border-gray-300 dark:border-gray-600"
-            disabled={isImporting} 
+            disabled={isImporting}
           >
             Cancel
           </Button>
@@ -176,6 +176,14 @@ const ImportModal: React.FC<ImportModalProps> = ({
               "Generate Flashcards"
             )}
           </Button>
+        </div>
+
+        {/* Additional info */}
+        <div className="mt-4 text-xs text-gray-500 dark:text-gray-400">
+          <p>• This may take a few moments depending on the PDF size</p>
+          <p>
+            • The AI will extract key terms and create flashcards automatically
+          </p>
         </div>
       </div>
     </div>

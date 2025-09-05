@@ -40,7 +40,7 @@ const quickActions = [
 
 export default function QuickActions() {
   return (
-    <Card className="bg-card border-2 border-black shadow-sm overflow-hidden gap-0">
+    <Card className="bg-card border-2 border-black shadow-sm overflow-hidden h-full gap-0">
       <CardHeader className="pb-3">
         <CardTitle className="text-card-foreground flex items-center gap-2 text-lg">
           Quick Actions
@@ -51,7 +51,7 @@ export default function QuickActions() {
           <Button
             key={action.title}
             variant="outline"
-            className={`w-full justify-between h-auto p-4 rounded-lg transition-all duration-200 border-2 ${action.color} ${action.borderColor} ${action.hover} group`}
+            className={`w-full justify-between h-auto p-2 rounded-lg transition-all duration-200 border-2 ${action.color} ${action.borderColor} ${action.hover} group`}
           >
             <div className="flex items-center gap-3">
               <div
