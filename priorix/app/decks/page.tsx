@@ -8,6 +8,8 @@ import ConfirmDeleteModal from "@/components/ConfirmDeleteModal";
 import { Deck, CreateDeckRequest } from "@/types/deck";
 import { useSession } from "next-auth/react";
 import { useToast } from "@/hooks/useToast";
+import { Button } from "@/components/ui/button"; // Add this import
+import { Plus } from "lucide-react"; // Add this import
 
 const DecksPage: React.FC = () => {
   const [decks, setDecks] = useState<Deck[]>([]);
@@ -15,6 +17,7 @@ const DecksPage: React.FC = () => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deckToDelete, setDeckToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isAddDeckModalOpen, setIsAddDeckModalOpen] = useState(false);
   const { data: session } = useSession();
   const { showToast, dismissToast } = useToast();
 
@@ -60,6 +63,7 @@ const DecksPage: React.FC = () => {
       setDecks((prev) => [...prev, createdDeck]);
       dismissToast();
       showToast("Deck created successfully!", "success");
+      setIsAddDeckModalOpen(false); // Close modal after successful creation
     } catch (err) {
       console.error("Error creating deck:", err);
       dismissToast();
@@ -177,21 +181,47 @@ const DecksPage: React.FC = () => {
                 key={deck._id}
                 deck={deck}
                 index={i}
-                onDeleteClick={handleDeleteClick} // Pass the click handler instead of direct delete
+                onDeleteClick={handleDeleteClick}
                 onEditClick={handleEditDeck}
               />
             ))}
           </div>
         ) : (
           <div className="text-center py-12">
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground mb-4">
               You don't have any decks yet. Create your first one!
             </p>
+            <Button onClick={() => setIsAddDeckModalOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Create Your First Deck
+            </Button>
           </div>
         )}
       </div>
 
-      <AddDeckModal onAddDeck={handleAddDeck} />
+      <Button
+        onClick={() => setIsAddDeckModalOpen(true)}
+        className="fixed bottom-8 right-8 rounded-full p-5 h-10 w-10"
+      >
+        <Plus className="h-20 w-20" />
+      </Button>
+
+      {/* Floating Action Button for mobile */}
+      <div className="fixed bottom-6 right-6 md:hidden">
+        <Button
+          size="lg"
+          className="rounded-full w-14 h-14 shadow-lg"
+          onClick={() => setIsAddDeckModalOpen(true)}
+        >
+          <Plus className="h-6 w-6" />
+        </Button>
+      </div>
+
+      <AddDeckModal
+        open={isAddDeckModalOpen}
+        onOpenChange={setIsAddDeckModalOpen}
+        onAddDeck={handleAddDeck}
+      />
     </div>
   );
 };

@@ -17,7 +17,6 @@ export async function GET(req: Request) {
       );
     }
 
-    // Use aggregation with double lookup to get user data
     const recentActivities = await UserDeckActivity.aggregate([
       { $match: { userId: new mongoose.Types.ObjectId(userId) } },
       { $sort: { lastAccessedAt: -1 } },

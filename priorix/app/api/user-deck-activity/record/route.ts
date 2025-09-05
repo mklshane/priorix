@@ -1,4 +1,3 @@
-// app/api/user-deck-activity/record/route.ts
 import { NextResponse } from "next/server";
 import { ConnectDB } from "@/lib/config/db";
 import { recordDeckAccess } from "@/lib/models/UserDeckActivity";
@@ -19,7 +18,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Record the deck access
     await recordDeckAccess(
       new mongoose.Types.ObjectId(userId),
       new mongoose.Types.ObjectId(deckId)

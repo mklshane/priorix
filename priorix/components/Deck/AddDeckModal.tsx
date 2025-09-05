@@ -11,17 +11,21 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "../ui/dialog";
 import { CreateDeckRequest } from "@/types/deck";
 import { useSession } from "next-auth/react";
 
 interface AddDeckModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   onAddDeck: (deck: CreateDeckRequest) => void;
 }
 
-const AddDeckModal: React.FC<AddDeckModalProps> = ({ onAddDeck }) => {
-  const [open, setOpen] = useState(false);
+const AddDeckModal: React.FC<AddDeckModalProps> = ({
+  open,
+  onOpenChange,
+  onAddDeck,
+}) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [isPublic, setIsPublic] = useState(true);
@@ -37,26 +41,23 @@ const AddDeckModal: React.FC<AddDeckModalProps> = ({ onAddDeck }) => {
     setError("");
 
     try {
-      
       const userId = session?.user?.id;
 
       if (!userId) {
         throw new Error("User not authenticated");
       }
 
-      
       onAddDeck({
         title: title.trim(),
         description: description.trim(),
         isPublic: isPublic,
-     /*    userId: userId, // MongoDB ID from session */
       });
 
       // Reset form and close modal
       setTitle("");
       setDescription("");
       setIsPublic(true);
-      setOpen(false);
+      onOpenChange(false);
     } catch (error) {
       console.error("Error creating deck:", error);
       setError("Failed to create deck. Please try again.");
@@ -66,12 +67,7 @@ const AddDeckModal: React.FC<AddDeckModalProps> = ({ onAddDeck }) => {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <div className="fixed right-8 bottom-8 bg-primary flex items-center justify-center w-12 h-12 rounded-full hover:border-2 hover:border-primary hover:bg-primary/80 cursor-pointer shadow-lg">
-          <button className="text-center text-3xl text-primary-foreground">+</button>
-        </div>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Create New Deck</DialogTitle>

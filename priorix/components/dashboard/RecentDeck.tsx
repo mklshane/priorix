@@ -51,7 +51,19 @@ export default function RecentDecks() {
   }, [session?.user?.id]);
 
   if (loading) {
-    return <p className="text-center text-sm">Loading recent decks...</p>;
+    return (
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <div
+            key={index}
+            className="animate-pulse bg-muted rounded-lg p-4 h-32"
+          >
+            <div className="h-4 bg-muted-foreground/20 rounded mb-2"></div>
+            <div className="h-3 bg-muted-foreground/20 rounded w-3/4"></div>
+          </div>
+        ))}
+      </div>
+    );
   }
 
   if (error) {
@@ -59,12 +71,6 @@ export default function RecentDecks() {
       <p className="text-center text-red-500 text-sm">
         Error loading recent decks: {error}
       </p>
-    );
-  }
-
-  if (recentDecks.length === 0) {
-    return (
-      <p className="text-center text-muted-foreground">No recent decks yet.</p>
     );
   }
 
@@ -76,15 +82,20 @@ export default function RecentDecks() {
           return null;
         }
 
-        return (
-          <DeckCard
-            key={deck._id}
-            deck={deck}
-            index={index}
-            
-          />
-        );
+        return <DeckCard key={deck._id} deck={deck} index={index} />;
       })}
+
+      {Array.from({ length: 4 - recentDecks.length }).map((_, index) => (
+        <div
+          key={`placeholder-${index}`}
+          className="border-2 border-dashed border-muted-foreground/30 rounded-lg p-6 flex flex-col items-center justify-center text-muted-foreground/50 min-h-[150px]"
+        >
+          <div className="text-center">
+            <div className="text-2xl mb-2"></div>
+            <p className="text-sm">No recent deck</p>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

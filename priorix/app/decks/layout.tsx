@@ -4,7 +4,7 @@ import { ReactNode, useState, useEffect } from "react";
 import AppNav from "@/components/AppNav";
 import Sidebar from "@/components/Sidebar";
 import { Toaster } from "react-hot-toast";
-import { DeckProvider } from "@/contexts/DeckContext"; // Import the DeckProvider
+import { DeckProvider } from "@/contexts/DeckContext";
 
 interface DeckLayoutProps {
   children: ReactNode;
@@ -27,7 +27,7 @@ export default function DeckLayout({ children }: DeckLayoutProps) {
   return (
     <DeckProvider>
       {" "}
-      {/* Wrap everything with DeckProvider */}
+
       <div className="relative h-screen bg-background">
         {sidebarOpen && (
           <div
@@ -49,7 +49,6 @@ export default function DeckLayout({ children }: DeckLayoutProps) {
           <main className="flex-1 overflow-y-auto p-6">{children}</main>
         </div>
 
-        {/* Move Toaster inside the DeckProvider but outside the main layout div */}
         <Toaster
           position="top-right"
           toastOptions={{

@@ -22,7 +22,6 @@ export async function GET(
       return NextResponse.json({ message: "Deck not found" }, { status: 404 });
     }
 
-    // Optional: log user activity if userId is provided
     if (userId) {
       await UserDeckActivity.findOneAndUpdate(
         { userId, deckId },
@@ -48,19 +47,17 @@ export async function DELETE(
   const { deckId } = params;
 
   try {
-    // Find the deck first
     const deck = await Deck.findById(deckId);
     if (!deck) {
       return NextResponse.json({ message: "Deck not found" }, { status: 404 });
     }
 
-    // Delete all flashcards linked to this deck
     const result = await Flashcard.deleteMany({
       deck: new mongoose.Types.ObjectId(deckId),
     });
     console.log("Deleted flashcards:", result.deletedCount);
 
-    // Delete the deck itself
+    
     const deleted = await Deck.findByIdAndDelete(deckId).populate(
       "user",
       "name"

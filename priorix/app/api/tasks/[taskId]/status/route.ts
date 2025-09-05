@@ -1,4 +1,3 @@
-// app/api/tasks/[taskId]/status/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { ConnectDB } from "@/lib/config/db";
 import Task from "@/lib/models/Task";

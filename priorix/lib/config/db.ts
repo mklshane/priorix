@@ -6,13 +6,11 @@ if (!MONGO_URI) {
   throw new Error("Please define the MONGO_URI environment variable");
 }
 
-// Cache the connection to prevent multiple connections in development
 interface MongooseCache {
   conn: typeof mongoose | null;
   promise: Promise<typeof mongoose> | null;
 }
 
-// Use globalThis instead of global
 let cached = (globalThis as any).mongooseCache as MongooseCache | undefined;
 
 if (!cached) {

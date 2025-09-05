@@ -12,7 +12,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Menu, User, Settings, LogOut, ArrowLeft } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useParams } from "next/navigation";
 import ThemeToggle from "./button/ThemeToggle";
 
 interface AppNavProps {
@@ -24,18 +24,40 @@ export default function AppNav({ onToggleSidebar }: AppNavProps) {
   const user = session?.user;
   const pathname = usePathname();
   const router = useRouter();
+  const params = useParams();
   const [deckName, setDeckName] = useState<string>("");
   const [fromDashboardRecent, setFromDashboardRecent] = useState(false);
 
-  // Initialize from sessionStorage on client side only
   useEffect(() => {
     const fromDashboard =
       sessionStorage.getItem("fromDashboardRecent") === "true";
     setFromDashboardRecent(fromDashboard);
   }, []);
 
+  const isOnDeckPage = pathname.match(/^\/decks\/([^\/]+)$/) !== null;
+  const isOnStudyPage = pathname.match(/^\/decks\/([^\/]+)\/study$/) !== null;
+
   const handleBack = () => {
-    // Check if we came from dashboard recent decks
+
+    if (isOnStudyPage) {
+      const deckId = getDeckId(); 
+      console.log("Study page - deckId:", deckId);
+
+      if (deckId && deckId !== "new") {
+        const targetUrl = `/decks/${deckId}`;
+        sessionStorage.removeItem("fromDashboardRecent");
+        sessionStorage.removeItem("lastDashboardPath");
+        router.push(`/decks/${deckId}`);
+        return;
+      } else {
+        console.log("No valid deckId found, going to /decks");
+    
+        sessionStorage.removeItem("fromDashboardRecent");
+        sessionStorage.removeItem("lastDashboardPath");
+        router.push("/decks");
+        return;
+      }
+    }
     const lastDashboardPath = sessionStorage.getItem("lastDashboardPath");
 
     if (
@@ -43,20 +65,27 @@ export default function AppNav({ onToggleSidebar }: AppNavProps) {
       lastDashboardPath &&
       lastDashboardPath !== pathname
     ) {
-      // Navigate back to the stored dashboard path
       sessionStorage.removeItem("fromDashboardRecent");
       sessionStorage.removeItem("lastDashboardPath");
       router.push(lastDashboardPath);
-    } else if (isOnStudyPage) {
-      // Default behavior: go back to deck page from study
-      router.push(`/decks/${getDeckId()}`);
-    } else if (isOnDeckPage) {
-      // Default behavior: go back to decks list
-      router.push("/decks");
-    } else {
-      // Fallback: go to dashboard
-      router.push("/dashboard");
+      return;
     }
+    if (isOnDeckPage) {
+      if (
+        fromDashboardRecent &&
+        lastDashboardPath &&
+        lastDashboardPath !== pathname
+      ) {
+        sessionStorage.removeItem("fromDashboardRecent");
+        sessionStorage.removeItem("lastDashboardPath");
+        router.push(lastDashboardPath);
+      } else {
+        router.push("/decks");
+      }
+      return;
+    }
+    console.log("Navigating to /dashboard (fallback)");
+    router.push("/dashboard");
   };
 
   const handleToggle = () => {
@@ -79,11 +108,18 @@ export default function AppNav({ onToggleSidebar }: AppNavProps) {
   };
 
   const getDeckId = () => {
-    const deckMatch = pathname.match(/^\/decks\/([^\/]+)$/);
-    if (deckMatch) return deckMatch[1];
-
+    if (params.deckId) {
+      return params.deckId as string;
+    }
     const studyMatch = pathname.match(/^\/decks\/([^\/]+)\/study$/);
-    if (studyMatch) return studyMatch[1];
+    if (studyMatch && studyMatch[1]) {
+      return studyMatch[1];
+    }
+
+    const deckMatch = pathname.match(/^\/decks\/([^\/]+)$/);
+    if (deckMatch && deckMatch[1]) {
+      return deckMatch[1];
+    }
 
     return null;
   };
@@ -107,29 +143,18 @@ export default function AppNav({ onToggleSidebar }: AppNavProps) {
     } else {
       setDeckName("");
     }
-  }, [pathname]);
+  }, [pathname, params]);
 
-  const isOnDeckPage = pathname.match(/^\/decks\/([^\/]+)$/) !== null;
-  const isOnStudyPage = pathname.match(/^\/decks\/([^\/]+)\/study$/) !== null;
-
-  // Show back button only in specific cases:
-  // 1. When on deck/study pages AND we came from dashboard recent decks
-  // 2. When on study page (to go back to deck)
-  // 3. When on deck page but NOT from dashboard (to go back to decks list)
-  const shouldShowBackButton =
-    (isOnDeckPage && fromDashboardRecent) ||
-    (isOnStudyPage && fromDashboardRecent) ||
-    isOnStudyPage ||
-    (isOnDeckPage && !fromDashboardRecent);
+  // Show back button in these cases:
+  // 1. Always show on study pages (to go back to deck details)
+  // 2. Always show on deck pages (to go back to appropriate location)
+  const shouldShowBackButton = isOnStudyPage || isOnDeckPage;
 
   // Show hamburger menu when:
   // 1. On dashboard page
   // 2. On other pages that aren't deck/study pages (like /decks, /todo, /notes)
-  // 3. On deck pages but NOT from dashboard recent decks
   const shouldShowHamburgerMenu =
-    pathname === "/dashboard" ||
-    (!isOnDeckPage && !isOnStudyPage) ||
-    (isOnDeckPage && !fromDashboardRecent);
+    pathname === "/dashboard" || (!isOnDeckPage && !isOnStudyPage);
 
   const pageNames: Record<string, string> = {
     "/dashboard": "Priorix",

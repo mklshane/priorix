@@ -1,15 +1,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, BookOpen, CheckSquare, FileText, Zap } from "lucide-react";
+import { Plus, BookOpen, CheckSquare, FileText } from "lucide-react";
+
+interface QuickActionsProps {
+  onOpenAddDeckModal: () => void;
+}
 
 const quickActions = [
   {
     title: "New Flashcard Set",
     description: "Create a new set of flashcards",
     icon: BookOpen,
-    color:
-      "bg-pink ",
-    iconColor: "text-pink-500 dark:text-pink",
+    color: "bg-pink",
     borderColor: "border-black dark:border-pink",
     hover:
       "hover:shadow-lg hover:-translate-y-0.5 hover:border-pink-300 dark:hover:border-pink",
@@ -18,27 +20,32 @@ const quickActions = [
     title: "Add Todo",
     description: "Add a new task to your list",
     icon: CheckSquare,
-    color:
-      "bg-green ",
-    iconColor: "text-perry dark:text-blue",
-    borderColor: "border-black dark:border-blue",
+    color: "bg-green",
+    borderColor: "border-black dark:border-green",
     hover:
-      "hover:shadow-lg hover:-translate-y-0.5 hover:border-blue-300 dark:hover:border-blue",
+      "hover:shadow-lg hover:-translate-y-0.5 hover:border-green dark:hover:green",
   },
   {
     title: "Create Note",
     description: "Start writing a new note",
     icon: FileText,
-    color:
-      "bg-yellow ",
-    iconColor: "text-amber-500 dark:text-yellow",
+    color: "bg-yellow",
     borderColor: "border-black dark:border-yellow",
     hover:
       "hover:shadow-lg hover:-translate-y-0.5 hover:border-amber-300 dark:hover:border-yellow",
   },
 ];
 
-export default function QuickActions() {
+export default function QuickActions({
+  onOpenAddDeckModal,
+}: QuickActionsProps) {
+  const handleActionClick = (title: string) => {
+    if (title === "New Flashcard Set") {
+      onOpenAddDeckModal();
+    }
+    // Add handlers for other actions if needed
+  };
+
   return (
     <Card className="bg-card border-2 border-black shadow-sm overflow-hidden h-full gap-0">
       <CardHeader className="pb-3">
@@ -52,10 +59,11 @@ export default function QuickActions() {
             key={action.title}
             variant="outline"
             className={`w-full justify-between h-auto p-2 rounded-lg transition-all duration-200 border-2 ${action.color} ${action.borderColor} ${action.hover} group`}
+            onClick={() => handleActionClick(action.title)}
           >
             <div className="flex items-center gap-3">
               <div
-                className={`p-2 rounded-md ${action.iconColor} bg-white/50 dark:bg-black/20 group-hover:scale-110 transition-transform duration-200`}
+                className={`p-2 rounded-md text-primary bg-white/50 dark:bg-black/20 group-hover:scale-110 transition-transform duration-200`}
               >
                 <action.icon className="h-4 w-4" />
               </div>
@@ -67,7 +75,7 @@ export default function QuickActions() {
               </div>
             </div>
             <div
-              className={`p-1 rounded-full ${action.iconColor} bg-white/70 dark:bg-black/20 group-hover:scale-110 transition-transform duration-200`}
+              className={`p-1 rounded-full text-primary bg-white/70 dark:bg-black/20 group-hover:scale-110 transition-transform duration-200`}
             >
               <Plus className="h-3 w-3" />
             </div>

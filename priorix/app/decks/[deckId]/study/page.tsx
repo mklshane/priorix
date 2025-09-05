@@ -57,10 +57,23 @@ const StudyPage = () => {
   const [editingFlashcard, setEditingFlashcard] = useState<IFlashcard | null>(
     null
   );
-  const { isOwner } = useDeckContext(); 
+  const { isOwner } = useDeckContext();
 
   const currentCardIdRef = useRef<string | null>(null);
-  const shuffleOrderRef = useRef<string[]>([]);
+
+  // Get saved shuffle order from localStorage
+  const getShuffleOrder = (): string[] => {
+    if (typeof window === "undefined") return [];
+    const saved = localStorage.getItem(`shuffleOrder-${deckId}`);
+    return saved ? JSON.parse(saved) : [];
+  };
+
+  // Save shuffle order to localStorage
+  const saveShuffleOrder = (order: string[]) => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem(`shuffleOrder-${deckId}`, JSON.stringify(order));
+    }
+  };
 
   const shuffleArray = (array: IFlashcard[]) => {
     const newArray = [...array];
@@ -73,16 +86,16 @@ const StudyPage = () => {
 
   const renderText = (text: string, isTerm: boolean = false) => {
     return text.split("\n").map((line, index) => (
-      <p key={index} className={`text-2xl my-1 ${isTerm ? "font-bold" : ""}`}>
+      <p
+        key={index}
+        className={`my-1 ${isTerm ? "text-2xl font-bold" : "text-xl"}`}
+      >
         {line}
       </p>
     ));
   };
 
   const getSavedPreferences = () => {
-    if (typeof window === "undefined")
-      return { frontContent: "term", isShuffled: false };
-
     const saved = localStorage.getItem(`studyPrefs-${deckId}`);
     return saved
       ? JSON.parse(saved)
@@ -100,31 +113,30 @@ const StudyPage = () => {
       let newFlashcards: IFlashcard[];
 
       if (isShuffled) {
-        // If we have a saved shuffle order and the current card ID, try to maintain order
+        // Try to get the saved shuffle order
+        const savedShuffleOrder = getShuffleOrder();
+
+        // Check if we have a valid saved shuffle order that matches our current cards
         if (
-          shuffleOrderRef.current.length === originalFlashcards.length &&
-          currentCardIdRef.current
+          savedShuffleOrder.length === originalFlashcards.length &&
+          savedShuffleOrder.every((id) =>
+            originalFlashcards.some((card) => card._id === id)
+          )
         ) {
           // Reconstruct the shuffled array using the saved order
-          const orderedCards = shuffleOrderRef.current
+          newFlashcards = savedShuffleOrder
             .map((id) => originalFlashcards.find((card) => card._id === id))
             .filter(Boolean) as IFlashcard[];
-
-          // Add any new cards that weren't in the original shuffle
-          const existingIds = new Set(shuffleOrderRef.current);
-          const newCards = originalFlashcards.filter(
-            (card) => !existingIds.has(card._id)
-          );
-
-          newFlashcards = [...orderedCards, ...newCards];
         } else {
           // Create new shuffle and save the order
           newFlashcards = shuffleArray(originalFlashcards);
-          shuffleOrderRef.current = newFlashcards.map((card) => card._id);
+          const newOrder = newFlashcards.map((card) => card._id);
+          saveShuffleOrder(newOrder);
         }
       } else {
         newFlashcards = originalFlashcards;
-        shuffleOrderRef.current = [];
+        // Clear shuffle order when not shuffled
+        saveShuffleOrder([]);
       }
 
       setFlashcards(newFlashcards);
@@ -222,11 +234,21 @@ const StudyPage = () => {
   };
 
   const handleShuffleToggle = () => {
-    setIsShuffled(!isShuffled);
+    const newIsShuffled = !isShuffled;
+    setIsShuffled(newIsShuffled);
     setIsFlipped(false);
+
+    if (newIsShuffled) {
+      // Create new shuffle order and save it
+      const shuffledCards = shuffleArray(originalFlashcards);
+      const newOrder = shuffledCards.map((card) => card._id);
+      saveShuffleOrder(newOrder);
+    } else {
+      // Clear shuffle order when unshuffling
+      saveShuffleOrder([]);
+    }
+
     saveCardIndex(0);
-    // Clear the shuffle order when toggling
-    shuffleOrderRef.current = [];
     currentCardIdRef.current = null;
   };
 
@@ -328,7 +350,7 @@ const StudyPage = () => {
         onClick={handleCardClick}
       >
         <Card
-          className={`h-135 sm:h-85 border-2 border-primary flex flex-col items-center justify-center relative ${
+          className={`h-135 sm:h-95 border-2 border-primary flex flex-col items-center justify-center relative ${
             isFlipped ? "bg-yellow/50" : "bg-yellow/30"
           }`}
         >

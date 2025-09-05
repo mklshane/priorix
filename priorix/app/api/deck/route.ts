@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as deckController from "./controller";
 
-
-
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -12,7 +10,7 @@ export async function GET(req: NextRequest) {
     const result = await deckController.getDecks({ deckId, userId });
     return NextResponse.json(result);
   } catch (err: any) {
-    console.error("Error in GET /api/deck:", err); 
+    console.error("Error in GET /api/deck:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
@@ -36,4 +34,3 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
-

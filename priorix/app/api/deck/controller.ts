@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 import Deck from "@/lib/models/Deck";
-import Flashcard from "@/lib/models/Flashcard";
 import UserDeckActivity from "@/lib/models/UserDeckActivity";
 import { ConnectDB } from "@/lib/config/db";
 
