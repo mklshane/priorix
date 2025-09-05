@@ -24,7 +24,6 @@ export async function PATCH(
 
     await ConnectDB();
 
-    // If marking as completed, delete the task from database
     if (status === "completed") {
       const task = await Task.findOneAndDelete({
         _id: taskId,
@@ -35,7 +34,6 @@ export async function PATCH(
         return NextResponse.json({ error: "Task not found" }, { status: 404 });
       }
 
-      // Return the deleted task data for frontend confirmation
       return NextResponse.json({
         ...task.toObject(),
         status: "completed",
@@ -44,7 +42,6 @@ export async function PATCH(
       });
     }
 
-    // For other status updates (todo, in-progress), update normally
     const updateData: any = { status };
 
     if (status === "todo" || status === "in-progress") {

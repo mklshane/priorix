@@ -6,6 +6,7 @@ import {
   Calendar,
   Tag,
   FileText,
+  MoreVertical,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,12 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useSession } from "next-auth/react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Task {
   _id: string;
@@ -51,12 +58,9 @@ export default function TodoList() {
   });
 
   useEffect(() => {
-    console.log("Session status changed:", sessionStatus);
     if (sessionStatus === "authenticated") {
-      console.log("User authenticated, fetching tasks...");
       fetchTasks();
     } else if (sessionStatus === "unauthenticated") {
-      console.log("User not authenticated");
       setLoading(false);
       setTasks([]);
     }
@@ -64,23 +68,18 @@ export default function TodoList() {
 
   const fetchTasks = async () => {
     if (!session?.user?.id) {
-      console.log("No user ID in session, skipping fetch");
       setLoading(false);
       return;
     }
 
     try {
       setLoading(true);
-      console.log("Fetching tasks for user:", session.user.id);
 
-      // Add userId to the query parameters
       const response = await fetch(
         `/api/tasks?status=todo&userId=${session.user.id}`
       );
-      console.log("Response status:", response.status);
 
       if (!response.ok) {
-        // Try to get detailed error message
         let errorMessage = `HTTP error! status: ${response.status}`;
         try {
           const errorData = await response.json();
@@ -101,7 +100,7 @@ export default function TodoList() {
       }
 
       const tasksData = await response.json();
-      console.log("Tasks received:", tasksData);
+
       setTasks(tasksData);
     } catch (error) {
       console.error("Error fetching tasks:", error);
@@ -144,7 +143,7 @@ export default function TodoList() {
           description: newTask.description.trim() || undefined,
           dueDate: newTask.dueDate || undefined,
           tags: tagsArray,
-          userId: session.user.id, // Add userId to the request body
+          userId: session.user.id,
         }),
       });
 
@@ -175,7 +174,6 @@ export default function TodoList() {
 
       setTasks([createdTask, ...tasks]);
 
-      // Reset form and close dialog
       setNewTask({
         taskTitle: "",
         description: "",
@@ -201,22 +199,16 @@ export default function TodoList() {
     }
 
     try {
+      setCompletingTaskId(taskId);
+
       const newStatus = currentStatus === "completed" ? "todo" : "completed";
-      console.log(
-        "Updating task status:",
-        taskId,
-        "from",
-        currentStatus,
-        "to",
-        newStatus
-      );
 
       const response = await fetch(`/api/tasks/${taskId}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           status: newStatus,
-          userId: session.user.id, // Add userId to the request body
+          userId: session.user.id,
         }),
       });
 
@@ -234,23 +226,30 @@ export default function TodoList() {
         } else {
           showToast(`Failed to update task: ${errorMessage}`, "error");
         }
+        setCompletingTaskId(null); // Reset visual feedback on error
         return;
       }
 
       const updatedTask = await response.json();
 
       if (newStatus === "completed") {
-        setTasks(tasks.filter((task) => task._id !== taskId));
+        // Add a small delay to show the checkmark before removing
+        setTimeout(() => {
+          setTasks(tasks.filter((task) => task._id !== taskId));
+          setCompletingTaskId(null);
+        }, 300);
       } else {
         setTasks(
           tasks.map((task) => (task._id === taskId ? updatedTask : task))
         );
+        setCompletingTaskId(null);
       }
 
       showToast(`Task marked as ${newStatus}`, "success");
     } catch (error) {
       console.error("Error updating task:", error);
       showToast("Failed to update task", "error");
+      setCompletingTaskId(null); // Reset visual feedback on error
     }
   };
 
@@ -261,9 +260,6 @@ export default function TodoList() {
     }
 
     try {
-      console.log("Deleting task:", taskId);
-
-      // Add userId as query parameter for DELETE request
       const response = await fetch(
         `/api/tasks/${taskId}?userId=${session.user.id}`,
         {
@@ -306,7 +302,6 @@ export default function TodoList() {
   };
 
   if (sessionStatus === "loading" || loading) {
-    console.log("Rendering loading state");
     return (
       <Card className="bg-card border-2 border-black py-7 h-full flex flex-col gap-0">
         <CardHeader className="pb-3">
@@ -328,8 +323,6 @@ export default function TodoList() {
       </Card>
     );
   }
-
-  console.log("Rendering main component. Session:", session, "Tasks:", tasks);
 
   return (
     <Card className="bg-card border-2 border-black py-7 h-full flex flex-col gap-0">
@@ -451,15 +444,15 @@ export default function TodoList() {
                   <button
                     onClick={() => updateTaskStatus(task._id, task.status)}
                     className={`flex h-5 w-5 items-center justify-center rounded border mt-0.5 transition-all duration-200 ${
-                      task.status === "completed" ||
-                      completingTaskId === task._id
+                      completingTaskId === task._id ||
+                      task.status === "completed"
                         ? "bg-primary border-primary"
                         : "border-muted-foreground/30 hover:border-primary/50"
                     }`}
                     disabled={completingTaskId === task._id}
                   >
-                    {(task.status === "completed" ||
-                      completingTaskId === task._id) && (
+                    {(completingTaskId === task._id ||
+                      task.status === "completed") && (
                       <svg
                         className="h-3 w-3 text-white"
                         fill="none"
@@ -477,27 +470,29 @@ export default function TodoList() {
                   </button>
 
                   <div className="flex-1 min-w-0">
-                    <div
-                      className={`text-sm ${
-                        task.status === "completed"
-                          ? "text-muted-foreground line-through"
-                          : "text-card-foreground"
-                      }`}
-                    >
-                      {task.taskTitle}
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
+                      <div
+                        className={`text-sm ${
+                          task.status === "completed"
+                            ? "text-muted-foreground line-through"
+                            : "text-card-foreground"
+                        }`}
+                      >
+                        {task.taskTitle}
+                      </div>
+
+                      {task.dueDate && (
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground sm:ml-2 sm:mt-0.5 whitespace-nowrap">
+                          <Calendar className="h-3 w-3" />
+                          Due {formatDate(task.dueDate)}
+                        </div>
+                      )}
                     </div>
 
                     {task.description && (
                       <div className="text-xs text-muted-foreground mt-1 flex items-start gap-1">
                         <FileText className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                        <span>{task.description}</span>
-                      </div>
-                    )}
-
-                    {task.dueDate && (
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
-                        <Calendar className="h-3 w-3" />
-                        Due {formatDate(task.dueDate)}
+                        <span className="break-words">{task.description}</span>
                       </div>
                     )}
 
@@ -516,13 +511,25 @@ export default function TodoList() {
                     )}
                   </div>
 
-                  <button
-                    onClick={() => deleteTask(task._id)}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive/80"
-                    title="Delete task"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="h-8 w-8 p-0 opacity-70 group-hover:opacity-100 transition-opacity"
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={() => deleteTask(task._id)}
+                        className="text-destructive focus:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               ))}
             </div>

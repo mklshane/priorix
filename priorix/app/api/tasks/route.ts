@@ -19,7 +19,6 @@ export async function GET(request: NextRequest) {
 
     await ConnectDB();
 
-    // Build query
     const query: any = { createdBy: userId };
 
     if (status && status !== "all") {
