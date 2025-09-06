@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     siteName: "Priorix",
     images: [
       {
-        url: "/icon.png", // place an OG image in public folder
+        url: "httsp://og-image.png", // place an OG image in public folder
         width: 1200,
         height: 630,
         alt: "Priorix – Productivity App",

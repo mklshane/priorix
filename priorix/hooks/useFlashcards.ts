@@ -1,4 +1,3 @@
-// src/app/deck-details/hooks/useFlashcards.ts
 import { useState, useEffect } from "react";
 import { IFlashcard } from "@/types/flashcard";
 

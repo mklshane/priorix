@@ -251,24 +251,43 @@ const StudyPage = () => {
     currentCardIdRef.current = null;
   };
 
-  const handleEditFlashcard = async (
-    id: string,
-    term: string,
-    definition: string
-  ) => {
-    showToast("Updating flashcard...", "loading");
-    try {
-      await updateFlashcard(id, term, definition);
-      dismissToast();
-      showToast("Flashcard updated successfully!", "success");
-      setEditingFlashcard(null);
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Failed to update flashcard";
-      dismissToast();
-      showToast(errorMessage, "error");
-    }
-  };
+ const handleEditFlashcard = async (
+   id: string,
+   term: string,
+   definition: string
+ ) => {
+   if (!isOwner) {
+     showToast("Only deck owners can edit cards", "error");
+     return;
+   }
+
+   showToast("Updating flashcard...", "loading");
+
+   // Store previous state for rollback
+   const previousFlashcards = [...flashcards];
+
+   // Optimistically update flashcards state
+   setFlashcards((prevFlashcards) =>
+     prevFlashcards.map((card) =>
+       card._id === id ? { ...card, term, definition } : card
+     )
+   );
+
+   try {
+     await updateFlashcard(id, term, definition);
+     setEditingFlashcard(null);
+     dismissToast();
+     showToast("Flashcard updated successfully!", "success");
+   } catch (err) {
+     // Roll back on error
+     setFlashcards(previousFlashcards);
+     const errorMessage =
+       err instanceof Error ? err.message : "Failed to update flashcard";
+     dismissToast();
+     showToast(errorMessage, "error");
+   }
+ };
+
 
   const handleDeleteFlashcard = async (id: string) => {
     if (

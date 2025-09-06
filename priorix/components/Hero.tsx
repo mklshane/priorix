@@ -11,7 +11,7 @@ const Hero = () => {
     <div className="w-full max-w-6xl mx-auto px-10 sm:px-6 lg:px-8 py-10">
       <div className="flex flex-col md:flex-row items-center justify-between gap-10">
         {/* Left Content */}
-        <div className="flex flex-col space-y-6 md:w-1/2">
+        <div className="flex flex-col space-y-6 md:w-1/2 ml-10">
           <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white leading-tight">
             Focus on what
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet to-purple">
