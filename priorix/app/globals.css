@@ -67,6 +67,7 @@ body {
   --blue: #87ceeb;
   --darkcard: #2C2C4E;
   --darkborder: #41415D;
+  --card2: #29253C ;
 }
 
 .dark {
@@ -107,6 +108,7 @@ body {
   --blue: #818CF8;                 /* Periwinkle blue-purple */
   --darkcard: #121020;
   --darkborder: #4C1D95;
+  --card2: #372A54;
 }
 
 @theme inline {
@@ -138,6 +140,7 @@ body {
   --color-yellow: var(--yellow);
   --color-darkcard: var(--darkcard);
   --color-darkborder: var(--darkborder);
+  --color-card2: var(--card2);
 
   /* Sidebar Colors */
   --color-sidebar-ring: var(--sidebar-ring);

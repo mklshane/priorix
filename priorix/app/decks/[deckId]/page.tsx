@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -42,7 +42,13 @@ const DeckDetailPage = () => {
   );
   const [error, setError] = useState<string | null>(null);
   const [isImporting, setIsImporting] = useState(false);
+  const [retryKey, setRetryKey] = useState(0); 
   const { isOwner, setDeck } = useDeckContext();
+
+  useEffect(() => {
+    setError(null); 
+    setRetryKey((prev) => prev + 1);
+  }, [deckId]);
 
   useEffect(() => {
     if (deck) {
@@ -79,7 +85,6 @@ const DeckDetailPage = () => {
     try {
       const extractedFlashcards = await importPDF(file, importDeckId);
       await addMultipleFlashcards(extractedFlashcards);
-
       dismissToast();
       showToast("Flashcards imported successfully!", "success");
       setShowImportModal(false);
@@ -172,13 +177,14 @@ const DeckDetailPage = () => {
     return <LoadingState />;
   }
 
-  if ((deckError && !deck) || (flashcardsError && flashcards.length === 0)) {
+  if (deckError && flashcardsError && !deck && flashcards.length === 0) {
     const errorMessage = deckError || flashcardsError || "Failed to load data";
     return (
       <ErrorState
         error={errorMessage}
         onRetry={() => {
-          window.location.reload();
+          setError(null);
+          setRetryKey((prev) => prev + 1); 
         }}
       />
     );
@@ -189,7 +195,7 @@ const DeckDetailPage = () => {
   }
 
   return (
-    <div className="w-[90%] mx-auto py-2">
+    <div className="w-[90%] mx-auto py-2" key={retryKey}>
       <ImportModal
         isOpen={showImportModal}
         onClose={handleCloseImportModal}

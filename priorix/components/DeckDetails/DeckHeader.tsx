@@ -34,7 +34,7 @@ const DeckHeader = ({
 
   return (
     <div className="mb-6 md:mb-8">
-      <Card className="border-2 border-primary bg-yellow dark:bg-yellow/30 dark:border-darkborder">
+      <Card className="border-2 border-primary bg-yellow dark:bg-card2 dark:border-darkborder">
         <CardContent className="py-4 md:py-0">
           <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
             <div className="flex-1">
