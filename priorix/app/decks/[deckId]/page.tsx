@@ -1,6 +1,6 @@
-"use client";
+"use client"
 
-import React, { useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useToast } from "@/hooks/useToast";
@@ -43,8 +43,6 @@ const DeckDetailPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [isImporting, setIsImporting] = useState(false);
   const { isOwner, setDeck } = useDeckContext();
-
-  
 
   useEffect(() => {
     if (deck) {
@@ -174,9 +172,15 @@ const DeckDetailPage = () => {
     return <LoadingState />;
   }
 
-  if (deckError && !deck) {
+  if ((deckError && !deck) || (flashcardsError && flashcards.length === 0)) {
+    const errorMessage = deckError || flashcardsError || "Failed to load data";
     return (
-      <ErrorState error={deckError} onRetry={() => window.location.reload()} />
+      <ErrorState
+        error={errorMessage}
+        onRetry={() => {
+          window.location.reload();
+        }}
+      />
     );
   }
 
@@ -197,7 +201,7 @@ const DeckDetailPage = () => {
         deck={deck}
         flashcards={flashcards}
         onStudyDeck={handleStudyDeck}
-        onImportPDF={isOwner ? handleOpenImportModal : undefined} 
+        onImportPDF={isOwner ? handleOpenImportModal : undefined}
       />
 
       {isImporting && (
@@ -212,7 +216,6 @@ const DeckDetailPage = () => {
         </div>
       )}
 
-      {/* Only show add flashcard form if user is owner */}
       {isOwner && (
         <AddFlashcardForm
           onAddFlashcard={handleAddFlashcard}
@@ -223,8 +226,8 @@ const DeckDetailPage = () => {
 
       <FlashcardsList
         flashcards={flashcards}
-        onEdit={isOwner ? setEditingFlashcard : undefined} // Only allow edit if owner
-        onDelete={isOwner ? handleDeleteFlashcard : undefined} // Only allow delete if owner
+        onEdit={isOwner ? setEditingFlashcard : undefined}
+        onDelete={isOwner ? handleDeleteFlashcard : undefined}
         isOwner={isOwner}
       />
 

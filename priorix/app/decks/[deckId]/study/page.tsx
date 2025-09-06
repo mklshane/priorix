@@ -40,10 +40,11 @@ const StudyPage = () => {
   const deckId = params.deckId as string;
   const { showToast, dismissToast } = useToast();
   const { currentCardIndex, saveCardIndex } = useCardPersistence(deckId);
-  const { deck, isLoading: isDeckLoading } = useDeck(deckId);
+  const { deck, isLoading: isDeckLoading, error: deckError } = useDeck(deckId);
   const {
     flashcards: originalFlashcards,
     isLoading: isFlashcardsLoading,
+    error: flashcardsError,
     updateFlashcard,
     deleteFlashcard,
   } = useFlashcards(deckId);
@@ -129,7 +130,7 @@ const StudyPage = () => {
 
   // Handle flashcard array updates and shuffle order
   useEffect(() => {
-    if (originalFlashcards.length === 0) {
+    if (originalFlashcards.length === 0 && !isFlashcardsLoading) {
       setFlashcards([]);
       saveShuffleOrder([]);
       return;
@@ -156,14 +157,12 @@ const StudyPage = () => {
       saveShuffleOrder([]);
     }
 
-    // Only update flashcards if they have changed
     if (
       newFlashcards.length !== flashcards.length ||
       newFlashcards.some((card, i) => card._id !== flashcards[i]?._id)
     ) {
       setFlashcards(newFlashcards);
 
-      // Update currentCardIndex if necessary
       if (currentCardIdRef.current) {
         const newIndex = newFlashcards.findIndex(
           (card) => card._id === currentCardIdRef.current
@@ -178,7 +177,13 @@ const StudyPage = () => {
         saveCardIndex(0);
       }
     }
-  }, [originalFlashcards, isShuffled]);
+  }, [
+    originalFlashcards,
+    isShuffled,
+    isFlashcardsLoading,
+    currentCardIndex,
+    saveCardIndex,
+  ]);
 
   // Update current card ID ref
   useEffect(() => {
@@ -251,43 +256,38 @@ const StudyPage = () => {
     currentCardIdRef.current = null;
   };
 
- const handleEditFlashcard = async (
-   id: string,
-   term: string,
-   definition: string
- ) => {
-   if (!isOwner) {
-     showToast("Only deck owners can edit cards", "error");
-     return;
-   }
+  const handleEditFlashcard = async (
+    id: string,
+    term: string,
+    definition: string
+  ) => {
+    if (!isOwner) {
+      showToast("Only deck owners can edit cards", "error");
+      return;
+    }
 
-   showToast("Updating flashcard...", "loading");
+    showToast("Updating flashcard...", "loading");
 
-   // Store previous state for rollback
-   const previousFlashcards = [...flashcards];
+    const previousFlashcards = [...flashcards];
+    setFlashcards((prevFlashcards) =>
+      prevFlashcards.map((card) =>
+        card._id === id ? { ...card, term, definition } : card
+      )
+    );
 
-   // Optimistically update flashcards state
-   setFlashcards((prevFlashcards) =>
-     prevFlashcards.map((card) =>
-       card._id === id ? { ...card, term, definition } : card
-     )
-   );
-
-   try {
-     await updateFlashcard(id, term, definition);
-     setEditingFlashcard(null);
-     dismissToast();
-     showToast("Flashcard updated successfully!", "success");
-   } catch (err) {
-     // Roll back on error
-     setFlashcards(previousFlashcards);
-     const errorMessage =
-       err instanceof Error ? err.message : "Failed to update flashcard";
-     dismissToast();
-     showToast(errorMessage, "error");
-   }
- };
-
+    try {
+      await updateFlashcard(id, term, definition);
+      setEditingFlashcard(null);
+      dismissToast();
+      showToast("Flashcard updated successfully!", "success");
+    } catch (err) {
+      setFlashcards(previousFlashcards);
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to update flashcard";
+      dismissToast();
+      showToast(errorMessage, "error");
+    }
+  };
 
   const handleDeleteFlashcard = async (id: string) => {
     if (
@@ -328,11 +328,49 @@ const StudyPage = () => {
     ));
   };
 
+  // Show loading state if either deck or flashcards are loading
   if (isDeckLoading || isFlashcardsLoading) {
     return <LoadingState />;
   }
 
-  if (!deck || originalFlashcards.length === 0) {
+  // Show error state if both deck and flashcards failed to load
+  if (
+    (deckError && !deck) ||
+    (flashcardsError && originalFlashcards.length === 0)
+  ) {
+    const errorMessage = deckError || flashcardsError || "Failed to load data";
+    return (
+      <div className="container mx-auto p-4">
+        <Card>
+          <CardContent className="p-8 text-center">
+            <p>{errorMessage}</p>
+            <Button
+              onClick={() => window.location.reload()}
+              variant="outline"
+              className="mt-4"
+            >
+              Retry
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show not found or no flashcards state
+  if (!deck) {
+    return (
+      <div className="container mx-auto p-4">
+        <Card>
+          <CardContent className="p-8 text-center">
+            <p>Deck not found.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (originalFlashcards.length === 0) {
     return (
       <div className="container mx-auto p-4">
         <Card>
@@ -344,6 +382,7 @@ const StudyPage = () => {
     );
   }
 
+  // At this point, deck is non-null and flashcards exist
   const currentCard = flashcards[currentCardIndex];
 
   return (

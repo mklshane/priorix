@@ -8,8 +8,8 @@ import ConfirmDeleteModal from "@/components/ConfirmDeleteModal";
 import { Deck, CreateDeckRequest } from "@/types/deck";
 import { useSession } from "next-auth/react";
 import { useToast } from "@/hooks/useToast";
-import { Button } from "@/components/ui/button"; // Add this import
-import { Plus } from "lucide-react"; // Add this import
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 
 const DecksPage: React.FC = () => {
   const [decks, setDecks] = useState<Deck[]>([]);
@@ -35,7 +35,10 @@ const DecksPage: React.FC = () => {
         setDecks(data);
       } catch (err) {
         console.error("Error loading decks:", err);
-        showToast("Failed to load decks", "error");
+        // Only show error toast if we didn't get any decks
+        if (decks.length === 0) {
+          showToast("Failed to load decks", "error");
+        }
       } finally {
         setIsLoading(false);
       }
@@ -63,7 +66,7 @@ const DecksPage: React.FC = () => {
       setDecks((prev) => [...prev, createdDeck]);
       dismissToast();
       showToast("Deck created successfully!", "success");
-      setIsAddDeckModalOpen(false); // Close modal after successful creation
+      setIsAddDeckModalOpen(false);
     } catch (err) {
       console.error("Error creating deck:", err);
       dismissToast();

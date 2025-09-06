@@ -120,7 +120,6 @@ const DeckCard: React.FC<DeckCardProps> = ({
     }
   };
 
-
   // no implementation yet
   const handleAddToFavorites = (e: React.MouseEvent, deckId: string) => {
     e.stopPropagation();
@@ -202,6 +201,8 @@ const DeckCard: React.FC<DeckCardProps> = ({
                   {/* Options for all users (owner and non-owner) */}
                   <DropdownMenuItem
                     onClick={(e) => handleAddToFavorites(e, deck._id)}
+                    disabled // Disable the menu item
+                    className="text-muted-foreground opacity-60 cursor-not-allowed" // Grayish and disabled styling
                   >
                     <Star className="h-4 w-4 mr-2" /> Add to Favorites
                   </DropdownMenuItem>
