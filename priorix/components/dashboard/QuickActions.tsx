@@ -52,7 +52,7 @@ export default function QuickActions({
   };
 
   return (
-    <Card className="bg-card border-2 border-black shadow-sm overflow-hidden h-full gap-0">
+    <Card className="bg-card border-2 border-black shadow-sm overflow-hidden h-full gap-0 dark:border-darkborder">
       <CardHeader className="pb-3">
         <CardTitle className="text-card-foreground flex items-center gap-2 text-lg">
           Quick Actions

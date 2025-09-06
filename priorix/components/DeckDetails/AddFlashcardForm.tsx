@@ -98,7 +98,7 @@ const AddFlashcardForm = ({
 
   return (
     <div className="mb-8">
-      <Card className="border-2 border-primary bg-green">
+      <Card className="border-2 border-primary bg-green dark:bg-darkcard dark:border-darkborder">
         <CardHeader>
           <CardTitle className="text-xl">Add New Flashcard</CardTitle>
         </CardHeader>

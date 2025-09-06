@@ -42,7 +42,7 @@ const FlashcardItem = ({
   };
 
   return (
-    <Card className="hover:shadow-md transition-shadow bg-purple/15 border-2 border-primary">
+    <Card className="hover:shadow-md transition-shadow bg-purple/15 border-2 border-primary dark:border-darkborder">
       <CardContent className="py-2 md:py-0">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 items-center">
           {/* Term Section */}

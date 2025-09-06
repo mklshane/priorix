@@ -113,7 +113,7 @@ const LoginBox = () => {
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full bg-gradient-to-r bg-purple text-foreground py-3 px-4 rounded-2xl hover:bg-purple/80 focus:outline-none focus:ring-2 focus:ring-course-blue transition shadow-md hover:shadow-lg border-2 border-black"
+              className="w-full bg-gradient-to-r bg-purple text-foreground py-3 px-4 rounded-2xl hover:bg-purple/80 focus:outline-none focus:ring-2 focus:ring-course-blue transition shadow-md hover:shadow-lg btn-base btn-hover btn-active"
             >
               Sign in
             </button>
@@ -133,8 +133,8 @@ const LoginBox = () => {
             {/* Google Login Button */}
             <button
               type="button"
-              onClick={() => signIn("google", {callbackUrl: "/dashboard"})}
-              className="flex-1 flex items-center justify-center px-4 py-3 border-2 border-black rounded-2xl bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-input transition shadow-sm hover:shadow-md"
+              onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+              className="flex-1 flex items-center justify-center px-4 py-3 rounded-2xl bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-input transition shadow-sm hover:shadow-md btn-base btn-hover btn-active"
             >
               <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                 <path
@@ -156,8 +156,6 @@ const LoginBox = () => {
               </svg>
               <span className="text-gray-700 font-medium">Google</span>
             </button>
-
-           
           </div>
         </div>
 
@@ -166,7 +164,7 @@ const LoginBox = () => {
           <p className="text-foreground">
             Don't have an account?{" "}
             <Link href={"/signup"}>
-              <button className="font-bold transition ">
+              <button className="font-bold transition hover:text-purple">
                 Sign up
               </button>
             </Link>

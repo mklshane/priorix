@@ -8,7 +8,7 @@ export default function Calendar() {
   const today = new Date().getDate();
 
   return (
-    <Card className="bg-green/60 border-2 border-black shadow-sm h-full gap-0">
+    <Card className="bg-green/60 border-2 border-black shadow-sm h-full gap-0 dark:bg-darkcard dark:border-darkborder">
       <CardHeader className="pb-3">
         <CardTitle className="text-card-foreground flex items-center gap-2 text-lg">
           <CalendarIcon className="h-5 w-5" />

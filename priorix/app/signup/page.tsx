@@ -136,7 +136,7 @@ const SignUp = () => {
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full bg-purple text-foreground py-3 px-4 rounded-2xl hover:bg-purple/70 focus:outline-none focus:ring-2 focus:ring-course-blue transition shadow-md hover:shadow-lg border-2 border-black"
+              className="w-full bg-purple text-foreground py-3 px-4 rounded-2xl hover:bg-purple/70 focus:outline-none focus:ring-2 focus:ring-course-blue transition shadow-md hover:shadow-lg btn-base btn-hover btn-active"
             >
               Create Account
             </button>
@@ -155,7 +155,7 @@ const SignUp = () => {
             <button
               type="button"
               onClick={() => signIn("google", { redirectTo: "/dashboard" })}
-              className="flex-1 flex items-center justify-center px-4 py-3 border-2 border-black rounded-2xl bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-input transition shadow-sm hover:shadow-md"
+              className="flex-1 flex items-center justify-center px-4 py-3 rounded-2xl bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-input transition shadow-sm hover:shadow-md btn-base btn-hover btn-active"
             >
               <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                 <path
@@ -177,8 +177,6 @@ const SignUp = () => {
               </svg>
               <span className="text-gray-700 font-medium">Google</span>
             </button>
-
-            
           </div>
           {/* Login Prompt */}{" "}
           <div className="mt-6 text-center">
@@ -188,7 +186,7 @@ const SignUp = () => {
               Already have an account?{" "}
               <Link
                 href="/login"
-                className="font-bold text-course-blue hover:text-course-pink transition"
+                className="font-bold text-course-blue hover:text-purple transition"
               >
                 {" "}
                 Log in{" "}

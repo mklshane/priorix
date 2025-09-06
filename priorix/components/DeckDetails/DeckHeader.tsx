@@ -34,7 +34,7 @@ const DeckHeader = ({
 
   return (
     <div className="mb-6 md:mb-8">
-      <Card className="border-2 border-primary bg-yellow noise">
+      <Card className="border-2 border-primary bg-yellow dark:bg-yellow/30 dark:border-darkborder">
         <CardContent className="py-4 md:py-0">
           <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
             <div className="flex-1">
@@ -71,7 +71,7 @@ const DeckHeader = ({
                 <Button
                   size="sm"
                   onClick={onImportPDF}
-                  className="flex items-center gap-1 md:gap-2 bg-green text-primary border-2 border-primary hover:bg-green/70 text-xs md:text-sm"
+                  className="flex items-center gap-1 md:gap-2 bg-green text-primary border-2 border-primary hover:bg-green/70 text-xs md:text-sm btn-hover btn-active dark:text-white"
                 >
                   <svg
                     className="w-4 h-4"
@@ -95,7 +95,7 @@ const DeckHeader = ({
                 <Button
                   size="sm"
                   onClick={onStudyDeck}
-                  className="flex items-center gap-1 md:gap-2 bg-pink text-primary border-2 border-primary hover:bg-pink/70 text-xs md:text-sm"
+                  className="flex items-center gap-1 md:gap-2 bg-pink text-primary border-2 border-primary hover:bg-pink/70 text-xs md:text-sm btn-hover btn-active dark:text-yellow"
                 >
                   Study Now
                 </Button>

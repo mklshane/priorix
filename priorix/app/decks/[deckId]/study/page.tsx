@@ -382,7 +382,6 @@ const StudyPage = () => {
     );
   }
 
-  // At this point, deck is non-null and flashcards exist
   const currentCard = flashcards[currentCardIndex];
 
   return (
@@ -398,7 +397,7 @@ const StudyPage = () => {
                 onClick={handleShuffleToggle}
                 variant={isShuffled ? "default" : "outline"}
                 size="sm"
-                className="rounded-full"
+                className="rounded-full btn-hover btn-active"
               >
                 <Shuffle />
               </Button>
@@ -416,7 +415,9 @@ const StudyPage = () => {
       >
         <Card
           className={`h-135 sm:h-95 border-2 border-primary flex flex-col items-center justify-center relative ${
-            isFlipped ? "bg-yellow/50" : "bg-yellow/30"
+            isFlipped
+              ? "bg-yellow/50 dark:bg-violet/50"
+              : "bg-yellow/30 dark:bg-violet/20"
           }`}
         >
           <div className="absolute top-4 text-muted-foreground text-sm text-center w-full">
@@ -521,7 +522,7 @@ const StudyPage = () => {
           onClick={handlePreviousCard}
           variant="outline"
           disabled={flashcards.length <= 1}
-          className="border-2 border-black bg-green hover:bg-green/70 min-w-30"
+          className="border-2 border-black bg-green hover:bg-green/70 min-w-30 btn-hover btn-active"
         >
           <ChevronLeft className="mr-2 h-4 w-4" /> Previous
         </Button>
@@ -529,7 +530,7 @@ const StudyPage = () => {
         <Button
           onClick={() => setIsFlipped(!isFlipped)}
           variant="outline"
-          className="hidden sm:flex bg-pink border-2 border-primary"
+          className="hidden sm:flex bg-pink border-2 border-primary btn-hover btn-active"
         >
           {isFlipped
             ? frontContent === "term"
@@ -544,7 +545,7 @@ const StudyPage = () => {
           onClick={handleNextCard}
           variant="outline"
           disabled={flashcards.length <= 1}
-          className="border-2 border-primary bg-green hover:bg-green/70 min-w-30"
+          className="border-2 border-primary bg-green hover:bg-green/70 min-w-30 btn-hover btn-active"
         >
           Next <ChevronRight className="ml-2 h-4 w-4" />
         </Button>

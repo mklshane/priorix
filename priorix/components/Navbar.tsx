@@ -13,14 +13,14 @@ const Navbar: React.FC = () => {
         <Link href="">Contact</Link>
       </div> */}
 
-      <div className="ml-auto flex gap-2">
+      <div className="ml-auto flex gap-3">
         <Link href={"/login"}>
-          <button className="bg-pink px-5 py-2 rounded-4xl text-sm border-2 border-black text-secondary-foreground font-semibold font-sora hover:bg-primary-foreground">
+          <button className="btn-base btn-hover btn-active btn-pink btn-size-md">
             Log In
           </button>
         </Link>
         <Link href={"/signup"}>
-          <button className="bg-green px-3 py-2 rounded-4xl text-sm border-2 border-black text-secondary-foreground font-semibold font-sora hover:bg-primary-foreground">
+          <button className="btn-base btn-hover btn-active btn-green btn-size-md ">
             Get Started
           </button>
         </Link>

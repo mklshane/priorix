@@ -49,10 +49,10 @@ export default function DashboardPage() {
   };
 
   return (
-    <>
+    <div>
       {/* Header */}
       <div className="mb-8">
-        <Card className="bg-green/70 noise border-2 border-black">
+        <Card className="bg-green/70 border-2 border-black dark:bg-darkcard dark:border-darkborder ">
           <CardContent className="py-3 px-14">
             <div className="flex items-center justify-between">
               <div>
@@ -113,6 +113,6 @@ export default function DashboardPage() {
         onOpenChange={setIsAddDeckModalOpen}
         onAddDeck={handleAddDeck}
       />
-    </>
+    </div>
   );
 }

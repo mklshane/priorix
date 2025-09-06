@@ -303,7 +303,7 @@ export default function TodoList() {
 
   if (sessionStatus === "loading" || loading) {
     return (
-      <Card className="bg-card border-2 border-black py-7 h-full flex flex-col gap-0">
+      <Card className="bg-card border-2 border-black py-7 h-full flex flex-col gap-0  dark:border-darkborder">
         <CardHeader className="pb-3">
           <CardTitle className="text-card-foreground text-lg flex items-center gap-2">
             <CheckSquare className="h-5 w-5" />
@@ -325,7 +325,7 @@ export default function TodoList() {
   }
 
   return (
-    <Card className="bg-card border-2 border-black py-7 h-full flex flex-col gap-0">
+    <Card className="bg-card border-2 border-black py-7 h-full flex flex-col gap-0 dark:border-darkborder">
       <CardHeader className="pb-3">
         <CardTitle className="text-card-foreground text-lg flex items-center gap-2">
           <CheckSquare className="h-5 w-5" />

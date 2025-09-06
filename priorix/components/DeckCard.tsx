@@ -66,6 +66,7 @@ const DeckCard: React.FC<DeckCardProps> = ({
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editIsPublic, setEditIsPublic] = useState(true);
+  const [isClicked, setIsClicked] = useState(false);
   const router = useRouter();
   const { data: session } = useSession();
   const { showToast } = useToast();
@@ -83,6 +84,9 @@ const DeckCard: React.FC<DeckCardProps> = ({
       deck.user._id === session?.user?.id);
 
   const handleDeckClick = async (deckId: string) => {
+    setIsClicked(true);
+    setTimeout(() => setIsClicked(false), 150); // Reset after animation
+
     if (typeof window !== "undefined") {
       sessionStorage.setItem("fromDashboardRecent", "true");
       sessionStorage.setItem("lastDashboardPath", window.location.pathname);
@@ -145,7 +149,11 @@ const DeckCard: React.FC<DeckCardProps> = ({
         className={cn(
           `border-0 overflow-hidden ${
             colors[index % colors.length]
-          } shadow-md border-2 border-primary cursor-pointer hover:shadow-lg`,
+          } shadow-md border-2 border-primary cursor-pointer dark:border-[#D8B4FE]
+          transition-all duration-200 ease-out
+          hover:shadow-lg hover:-translate-y-1.5
+          active:translate-y-0 active:shadow-md`,
+          isClicked && "translate-y-0",
           className
         )}
         onClick={() => handleDeckClick(deck._id)}
@@ -164,7 +172,7 @@ const DeckCard: React.FC<DeckCardProps> = ({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 -mt-1 -mr-2"
+                    className="h-8 w-8 -mt-1 -mr-2 transition-all duration-200 hover:bg-white/20"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <MoreVertical className="h-4 w-4" />
@@ -182,6 +190,7 @@ const DeckCard: React.FC<DeckCardProps> = ({
                           setEditIsPublic(deck.isPublic || true);
                           setEditDialogOpen(true);
                         }}
+                        className="transition-colors duration-150 hover:bg-accent"
                       >
                         <Edit className="h-4 w-4 mr-2" /> Edit
                       </DropdownMenuItem>
@@ -190,7 +199,7 @@ const DeckCard: React.FC<DeckCardProps> = ({
                           e.stopPropagation();
                           onDeleteClick?.(deck._id);
                         }}
-                        className="text-red-600"
+                        className="text-red-600 transition-colors duration-150 hover:bg-red-50 hover:text-red-700"
                       >
                         <Trash2 className="h-4 w-4 mr-2" /> Delete
                       </DropdownMenuItem>
@@ -201,24 +210,18 @@ const DeckCard: React.FC<DeckCardProps> = ({
                   {/* Options for all users (owner and non-owner) */}
                   <DropdownMenuItem
                     onClick={(e) => handleAddToFavorites(e, deck._id)}
-                    disabled // Disable the menu item
-                    className="text-muted-foreground opacity-60 cursor-not-allowed" // Grayish and disabled styling
+                    disabled
+                    className="text-muted-foreground opacity-60 cursor-not-allowed transition-colors duration-150"
                   >
                     <Star className="h-4 w-4 mr-2" /> Add to Favorites
                   </DropdownMenuItem>
 
                   <DropdownMenuItem
                     onClick={(e) => handleShareDeck(e, deck._id)}
+                    className="transition-colors duration-150 hover:bg-accent"
                   >
                     <Share className="h-4 w-4 mr-2" /> Share
                   </DropdownMenuItem>
-
-                  {/* Copy direct link option */}
-                  {/* <DropdownMenuItem
-                    onClick={(e) => handleShareDeck(e, deck._id)}
-                  >
-                    <Copy className="h-4 w-4 mr-2" /> Copy Link
-                  </DropdownMenuItem> */}
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
@@ -250,7 +253,7 @@ const DeckCard: React.FC<DeckCardProps> = ({
         </CardContent>
       </Card>
 
-      {/* Edit Deck Dialog - Only show for owner */}
+      {/* Edit Deck Dialog - only show for owner */}
       {isOwner && (
         <EditDeckDialog
           open={editDialogOpen}

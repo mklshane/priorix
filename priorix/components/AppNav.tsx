@@ -38,9 +38,8 @@ export default function AppNav({ onToggleSidebar }: AppNavProps) {
   const isOnStudyPage = pathname.match(/^\/decks\/([^\/]+)\/study$/) !== null;
 
   const handleBack = () => {
-
     if (isOnStudyPage) {
-      const deckId = getDeckId(); 
+      const deckId = getDeckId();
       console.log("Study page - deckId:", deckId);
 
       if (deckId && deckId !== "new") {
@@ -51,7 +50,7 @@ export default function AppNav({ onToggleSidebar }: AppNavProps) {
         return;
       } else {
         console.log("No valid deckId found, going to /decks");
-    
+
         sessionStorage.removeItem("fromDashboardRecent");
         sessionStorage.removeItem("lastDashboardPath");
         router.push("/decks");
@@ -193,7 +192,7 @@ export default function AppNav({ onToggleSidebar }: AppNavProps) {
   const currentPage = getCurrentPage();
 
   return (
-    <nav className="w-full px-6 py-4 bg-primary-foreground border-b border-gray-200  dark:border-gray-700">
+    <nav className="w-full px-6 py-4 bg-primary-foreground dark:bg-[#232339] border-b border-gray-200  dark:border-gray-700">
       <div className="flex items-center justify-between relative">
         {/* Left - Hamburger Menu or Back Button */}
         <div className="flex-shrink-0">
@@ -201,7 +200,7 @@ export default function AppNav({ onToggleSidebar }: AppNavProps) {
             <Button
               variant="ghost"
               size="sm"
-              className="back-button"
+              className="back-button btn-active"
               onClick={handleBack}
             >
               <ArrowLeft className="h-5 w-5" />
@@ -251,19 +250,25 @@ export default function AppNav({ onToggleSidebar }: AppNavProps) {
                 className="w-48 dark:bg-gray-800 dark:border-gray-700"
               >
                 <div className="px-2 py-1.5">
-                  <p className="font-sora text-sm font-medium text-gray-900 dark:text-white">
+                  <p className="font-sora text-sm font-medium text-gray-900 dark:text-white truncate">
                     {user.name}
                   </p>
-                  <p className="font-sora text-xs text-gray-500 dark:text-gray-400">
+                  <p className="font-sora text-xs text-gray-500 dark:text-gray-400 truncate">
                     {user.email}
                   </p>
                 </div>
                 <DropdownMenuSeparator className="dark:bg-gray-700" />
-                <DropdownMenuItem className="cursor-pointer font-sora dark:text-gray-300 dark:focus:bg-gray-700">
+                <DropdownMenuItem
+                  disabled
+                  className="cursor-not-allowed font-sora text-muted-foreground opacity-60 dark:text-gray-500 dark:focus:bg-gray-700"
+                >
                   <User className="mr-2 h-4 w-4" />
                   Profile
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer font-sora dark:text-gray-300 dark:focus:bg-gray-700">
+                <DropdownMenuItem
+                  disabled
+                  className="cursor-not-allowed font-sora text-muted-foreground opacity-60 dark:text-gray-500 dark:focus:bg-gray-700"
+                >
                   <Settings className="mr-2 h-4 w-4" />
                   Settings
                 </DropdownMenuItem>
