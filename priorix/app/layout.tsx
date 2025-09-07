@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     siteName: "Priorix",
     images: [
       {
-        url: "https://priorix.vercel.app/og-image.png", // put og-image.png in /public
+        url: "https://priorix.vercel.app/og-image.png", 
         width: 1200,
         height: 630,
         alt: "Priorix – Productivity App",
