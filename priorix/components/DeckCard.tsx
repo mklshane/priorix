@@ -1,7 +1,19 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { MoreVertical, Trash2, Edit, Star, Share, Copy } from "lucide-react";
+import {
+  MoreVertical,
+  Trash2,
+  Edit,
+  Star,
+  Share,
+  Copy,
+  X,
+  MessageSquare,
+  Twitter,
+  Linkedin,
+  Link2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Deck } from "@/types/deck";
@@ -17,6 +29,12 @@ import React, { useState } from "react";
 import EditDeckDialog from "./Deck/EditDeckDialog";
 import { useSession } from "next-auth/react";
 import { useToast } from "@/hooks/useToast";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const recordDeckAccess = async (deckId: string, userId: string) => {
   try {
@@ -63,6 +81,7 @@ const DeckCard: React.FC<DeckCardProps> = ({
   showMenu = true,
 }) => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editIsPublic, setEditIsPublic] = useState(true);
@@ -76,7 +95,6 @@ const DeckCard: React.FC<DeckCardProps> = ({
   const deckLength =
     deck.length ?? (deck.flashcards ? deck.flashcards.length : 0);
 
-  // Check if the current user is the owner of this deck
   const isOwner =
     session?.user?.id === deck.user ||
     (deck.user &&
@@ -100,16 +118,18 @@ const DeckCard: React.FC<DeckCardProps> = ({
 
   const handleShareDeck = async (e: React.MouseEvent, deckId: string) => {
     e.stopPropagation();
+    setShareDialogOpen(true);
+  };
 
+  const copyToClipboard = async (deckId: string) => {
     try {
       const shareUrl = `${window.location.origin}/decks/${deckId}`;
 
-      // Copy to clipboard
       if (navigator.clipboard && window.isSecureContext) {
         await navigator.clipboard.writeText(shareUrl);
         showToast("Link copied to clipboard!", "success");
+        setShareDialogOpen(false);
       } else {
-        // Fallback for older browsers
         const textArea = document.createElement("textarea");
         textArea.value = shareUrl;
         document.body.appendChild(textArea);
@@ -117,11 +137,39 @@ const DeckCard: React.FC<DeckCardProps> = ({
         document.execCommand("copy");
         document.body.removeChild(textArea);
         showToast("Link copied to clipboard!", "success");
+        setShareDialogOpen(false);
       }
     } catch (err) {
       console.error("Failed to copy link:", err);
       showToast("Failed to copy link", "error");
     }
+  };
+
+  const shareViaPlatform = (platform: string, deckId: string) => {
+    const shareUrl = `${window.location.origin}/decks/${deckId}`;
+    const shareText = `Check out this deck: ${deck.title}`;
+
+    let url = "";
+
+    switch (platform) {
+      case "messenger":
+        url = `fb-messenger://share?link=${encodeURIComponent(shareUrl)}`;
+        break;
+      case "linkedin":
+        url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
+          shareUrl
+        )}`;
+        break;
+      case "whatsapp":
+        url = `https://wa.me/?text=${encodeURIComponent(
+          shareText + " " + shareUrl
+        )}`;
+        break;
+      default:
+        return;
+    }
+
+    window.open(url, "_blank", "width=600,height=400");
   };
 
   // no implementation yet
@@ -252,6 +300,86 @@ const DeckCard: React.FC<DeckCardProps> = ({
           </div>
         </CardContent>
       </Card>
+
+      {/* Share Dialog */}
+      <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
+        <DialogContent className="sm:max-w-md bg-card border-0 shadow-xl">
+          <DialogHeader className="space-y-4">
+            <DialogTitle className="text-xl font-sora text-center flex items-center justify-between">
+              <span className="flex-1 text-center">Share Deck</span>
+             
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-6 py-4">
+            <div className="flex flex-col items-center space-y-2 mb-4">
+              <h3 className="font-medium text-lg text-center line-clamp-2">
+                {deck.title}
+              </h3>
+              <p className="text-sm text-muted-foreground text-center">
+                Share this deck with others
+              </p>
+            </div>
+
+            <div className="grid grid-cols-4 gap-4 mb-6">
+              <Button
+                variant="outline"
+                className="flex flex-col items-center h-16 py-2 px-3 bg-background hover:bg-accent"
+                onClick={() => copyToClipboard(deck._id)}
+              >
+                <Link2 className="h-6 w-6 mb-1" />
+                <span className="text-xs">Copy Link</span>
+              </Button>
+
+              
+
+              <Button
+                variant="outline"
+                className="flex flex-col items-center h-16 py-2 px-3 bg-background hover:bg-accent"
+                onClick={() => shareViaPlatform("messenger", deck._id)}
+              >
+                <MessageSquare className="h-6 w-6 mb-1 text-blue-600" />
+                <span className="text-xs">Messenger</span>
+              </Button>
+
+              <Button
+                variant="outline"
+                className="flex flex-col items-center h-16 py-2 px-3 bg-background hover:bg-accent"
+                onClick={() => shareViaPlatform("linkedin", deck._id)}
+              >
+                <Linkedin className="h-6 w-6 mb-1 text-blue-700" />
+                <span className="text-xs">LinkedIn</span>
+              </Button>
+
+              <Button
+                variant="outline"
+                className="flex flex-col items-center h-16 py-2 px-3 bg-background hover:bg-accent"
+                onClick={() => shareViaPlatform("whatsapp", deck._id)}
+              >
+                <MessageSquare className="h-6 w-6 mb-1 text-green-500" />
+                <span className="text-xs">WhatsApp</span>
+              </Button>
+            </div>
+
+            <div className="flex space-x-3">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setShareDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                className="flex-1 bg-primary hover:bg-primary/90"
+                onClick={() => copyToClipboard(deck._id)}
+              >
+                <Copy className="h-4 w-4 mr-2" />
+                Copy Deck Link
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Deck Dialog - only show for owner */}
       {isOwner && (
