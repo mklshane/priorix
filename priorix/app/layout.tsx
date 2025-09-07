@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Lora, Sora } from "next/font/google";
 import "./globals.css";
-import { SessionProvider } from "next-auth/react";
-import ToastProvider from "@/components/providers/ToastProvider";
-
+import ClientProviders from "@/contexts/ClientProviders";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,12 +23,10 @@ const sora = Sora({
   subsets: ["latin"],
 });
 
-
 export const metadata: Metadata = {
   title: "Priorix",
   description:
     "Priorix – Your productivity companion for managing tasks, study sessions, and personal growth efficiently.",
-
   icons: {
     icon: [
       { url: "/icon.ico", sizes: "any" },
@@ -38,7 +34,6 @@ export const metadata: Metadata = {
     ],
     apple: [{ url: "/icon.png", sizes: "180x180", type: "image/png" }],
   },
-
   openGraph: {
     title: "Priorix",
     description:
@@ -47,7 +42,7 @@ export const metadata: Metadata = {
     siteName: "Priorix",
     images: [
       {
-        url: "https://priorix.vercel.app/og-image.png", // put og-image.png in /public
+        url: "https://priorix.vercel.app/og-image.png",
         width: 1200,
         height: 630,
         alt: "Priorix – Productivity App",
@@ -57,8 +52,6 @@ export const metadata: Metadata = {
     type: "website",
   },
 };
-
-
 
 export default function RootLayout({
   children,
@@ -70,8 +63,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${lora.variable} ${sora.variable} antialiased`}
       >
-        <ToastProvider />
-        <SessionProvider>{children}</SessionProvider>
+        <ClientProviders>{children}</ClientProviders>
       </body>
     </html>
   );

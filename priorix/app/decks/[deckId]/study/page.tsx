@@ -6,6 +6,7 @@ import { useCardPersistence } from "@/hooks/useCardPersistence";
 import { IFlashcard } from "@/types/flashcard";
 import { useDeck } from "@/hooks/useDeck";
 import { useFlashcards } from "@/hooks/useFlashcards";
+import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   ChevronLeft,
@@ -21,9 +22,9 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
   Tooltip,
@@ -42,13 +43,12 @@ const StudyPage = () => {
   const { currentCardIndex, saveCardIndex } = useCardPersistence(deckId);
   const { deck, isLoading: isDeckLoading, error: deckError } = useDeck(deckId);
   const {
-    flashcards: originalFlashcards,
+    flashcards,
     isLoading: isFlashcardsLoading,
     error: flashcardsError,
     updateFlashcard,
     deleteFlashcard,
   } = useFlashcards(deckId);
-  const [flashcards, setFlashcards] = useState<IFlashcard[]>([]);
   const [isFlipped, setIsFlipped] = useState(false);
   const [isShuffled, setIsShuffled] = useState(false);
   const [frontContent, setFrontContent] = useState<"term" | "definition">(
@@ -58,6 +58,7 @@ const StudyPage = () => {
     null
   );
   const { isOwner } = useDeckContext();
+  const queryClient = useQueryClient();
   const currentCardIdRef = useRef<string | null>(null);
 
   // Helper function to get saved preferences from localStorage
@@ -76,9 +77,14 @@ const StudyPage = () => {
     }
   };
 
-  // Helper function to get saved shuffle order from localStorage
+  // Helper function to get saved shuffle order from cache or localStorage
   const getShuffleOrder = (): string[] => {
     if (typeof window === "undefined") return [];
+    const cachedOrder = queryClient.getQueryData<string[]>([
+      "shuffleOrder",
+      deckId,
+    ]);
+    if (cachedOrder) return cachedOrder;
     try {
       const saved = localStorage.getItem(`shuffleOrder-${deckId}`);
       return saved ? JSON.parse(saved) : [];
@@ -88,9 +94,10 @@ const StudyPage = () => {
     }
   };
 
-  // Helper function to save shuffle order to localStorage
+  // Helper function to save shuffle order to cache and localStorage
   const saveShuffleOrder = (order: string[]) => {
     if (typeof window === "undefined") return;
+    queryClient.setQueryData(["shuffleOrder", deckId], order);
     try {
       localStorage.setItem(`shuffleOrder-${deckId}`, JSON.stringify(order));
     } catch (error) {
@@ -112,85 +119,54 @@ const StudyPage = () => {
   };
 
   // Shuffle array helper
-  const shuffleArray = (array: IFlashcard[]) => {
-    const newArray = [...array];
-    for (let i = newArray.length - 1; i > 0; i--) {
+  const shuffleArray = (array: IFlashcard[]): string[] => {
+    const ids = [...array.map((card) => card._id)];
+    for (let i = ids.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+      [ids[i], ids[j]] = [ids[j], ids[i]];
     }
-    return newArray;
+    return ids;
   };
 
-  // Initialize state and load preferences
+  // Initialize preferences and shuffle order
   useEffect(() => {
     const prefs = getSavedPreferences();
     setFrontContent(prefs.frontContent);
     setIsShuffled(prefs.isShuffled);
   }, [deckId]);
 
-  // Handle flashcard array updates and shuffle order
-  useEffect(() => {
-    if (originalFlashcards.length === 0 && !isFlashcardsLoading) {
-      setFlashcards([]);
-      saveShuffleOrder([]);
-      return;
-    }
-
-    let newFlashcards: IFlashcard[] = [];
-    if (isShuffled) {
-      const savedShuffleOrder = getShuffleOrder();
-      if (
-        savedShuffleOrder.length === originalFlashcards.length &&
-        savedShuffleOrder.every((id) =>
-          originalFlashcards.some((card) => card._id === id)
-        )
-      ) {
-        newFlashcards = savedShuffleOrder
-          .map((id) => originalFlashcards.find((card) => card._id === id))
-          .filter(Boolean) as IFlashcard[];
-      } else {
-        newFlashcards = shuffleArray(originalFlashcards);
-        saveShuffleOrder(newFlashcards.map((card) => card._id));
-      }
-    } else {
-      newFlashcards = originalFlashcards;
-      saveShuffleOrder([]);
-    }
-
-    if (
-      newFlashcards.length !== flashcards.length ||
-      newFlashcards.some((card, i) => card._id !== flashcards[i]?._id)
-    ) {
-      setFlashcards(newFlashcards);
-
-      if (currentCardIdRef.current) {
-        const newIndex = newFlashcards.findIndex(
-          (card) => card._id === currentCardIdRef.current
-        );
-        if (newIndex !== -1 && newIndex !== currentCardIndex) {
-          saveCardIndex(newIndex);
+  // Derive shuffled flashcards
+  const orderedFlashcards = isShuffled
+    ? (() => {
+        const shuffleOrder = getShuffleOrder();
+        if (
+          shuffleOrder.length === flashcards.length &&
+          shuffleOrder.every((id) => flashcards.some((card) => card._id === id))
+        ) {
+          return shuffleOrder
+            .map((id) => flashcards.find((card) => card._id === id))
+            .filter(Boolean) as IFlashcard[];
         }
-      } else if (
-        currentCardIndex >= newFlashcards.length &&
-        newFlashcards.length > 0
-      ) {
-        saveCardIndex(0);
-      }
-    }
-  }, [
-    originalFlashcards,
-    isShuffled,
-    isFlashcardsLoading,
-    currentCardIndex,
-    saveCardIndex,
-  ]);
+        const newOrder = shuffleArray(flashcards);
+        saveShuffleOrder(newOrder);
+        return newOrder
+          .map((id) => flashcards.find((card) => card._id === id))
+          .filter(Boolean) as IFlashcard[];
+      })()
+    : flashcards;
 
-  // Update current card ID ref
+  // Update current card ID ref and adjust index if needed
   useEffect(() => {
-    if (flashcards.length > 0 && flashcards[currentCardIndex]) {
-      currentCardIdRef.current = flashcards[currentCardIndex]._id;
+    if (orderedFlashcards.length > 0 && orderedFlashcards[currentCardIndex]) {
+      currentCardIdRef.current = orderedFlashcards[currentCardIndex]._id;
+    } else if (
+      orderedFlashcards.length > 0 &&
+      currentCardIndex >= orderedFlashcards.length
+    ) {
+      saveCardIndex(0);
+      currentCardIdRef.current = orderedFlashcards[0]._id;
     }
-  }, [flashcards, currentCardIndex]);
+  }, [orderedFlashcards, currentCardIndex, saveCardIndex]);
 
   // Save preferences when frontContent or isShuffled changes
   useEffect(() => {
@@ -205,7 +181,6 @@ const StudyPage = () => {
         activeElement &&
         (activeElement.tagName === "INPUT" ||
           activeElement.tagName === "TEXTAREA");
-
       if (isInputFocused) return;
 
       if (e.code === "Space") {
@@ -222,22 +197,23 @@ const StudyPage = () => {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isFlipped, currentCardIndex, flashcards.length]);
+  }, [isFlipped, currentCardIndex, orderedFlashcards.length]);
 
   const handleNextCard = useCallback(() => {
-    if (flashcards.length === 0) return;
-    const nextIndex = (currentCardIndex + 1) % flashcards.length;
+    if (orderedFlashcards.length === 0) return;
+    const nextIndex = (currentCardIndex + 1) % orderedFlashcards.length;
     saveCardIndex(nextIndex);
     setIsFlipped(false);
-  }, [currentCardIndex, flashcards.length, saveCardIndex]);
+  }, [currentCardIndex, orderedFlashcards.length, saveCardIndex]);
 
   const handlePreviousCard = useCallback(() => {
-    if (flashcards.length === 0) return;
+    if (orderedFlashcards.length === 0) return;
     const prevIndex =
-      (currentCardIndex - 1 + flashcards.length) % flashcards.length;
+      (currentCardIndex - 1 + orderedFlashcards.length) %
+      orderedFlashcards.length;
     saveCardIndex(prevIndex);
     setIsFlipped(false);
-  }, [currentCardIndex, flashcards.length, saveCardIndex]);
+  }, [currentCardIndex, orderedFlashcards.length, saveCardIndex]);
 
   const handleCardClick = () => {
     setIsFlipped(!isFlipped);
@@ -254,6 +230,12 @@ const StudyPage = () => {
     setIsFlipped(false);
     saveCardIndex(0);
     currentCardIdRef.current = null;
+    if (newIsShuffled) {
+      const newOrder = shuffleArray(flashcards);
+      saveShuffleOrder(newOrder);
+    } else {
+      saveShuffleOrder([]);
+    }
   };
 
   const handleEditFlashcard = async (
@@ -266,22 +248,12 @@ const StudyPage = () => {
       return;
     }
 
-    showToast("Updating flashcard...", "loading");
-
-    const previousFlashcards = [...flashcards];
-    setFlashcards((prevFlashcards) =>
-      prevFlashcards.map((card) =>
-        card._id === id ? { ...card, term, definition } : card
-      )
-    );
-
     try {
-      await updateFlashcard(id, term, definition);
+      await updateFlashcard({ id, term, definition });
       setEditingFlashcard(null);
       dismissToast();
       showToast("Flashcard updated successfully!", "success");
     } catch (err) {
-      setFlashcards(previousFlashcards);
       const errorMessage =
         err instanceof Error ? err.message : "Failed to update flashcard";
       dismissToast();
@@ -298,16 +270,16 @@ const StudyPage = () => {
       return;
     }
 
-    showToast("Deleting flashcard...", "loading");
     try {
       await deleteFlashcard(id);
       dismissToast();
       showToast("Flashcard deleted successfully!", "success");
-      if (flashcards.length === 1) {
+      if (orderedFlashcards.length === 1) {
         window.location.href = `/decks/${deckId}`;
       } else {
         saveCardIndex(0);
         currentCardIdRef.current = null;
+        saveShuffleOrder([]);
       }
     } catch (err) {
       const errorMessage =
@@ -334,10 +306,7 @@ const StudyPage = () => {
   }
 
   // Show error state if both deck and flashcards failed to load
-  if (
-    (deckError && !deck) ||
-    (flashcardsError && originalFlashcards.length === 0)
-  ) {
+  if ((deckError && !deck) || (flashcardsError && flashcards.length === 0)) {
     const errorMessage = deckError || flashcardsError || "Failed to load data";
     return (
       <div className="container mx-auto p-4">
@@ -370,7 +339,7 @@ const StudyPage = () => {
     );
   }
 
-  if (originalFlashcards.length === 0) {
+  if (flashcards.length === 0) {
     return (
       <div className="container mx-auto p-4">
         <Card>
@@ -382,13 +351,13 @@ const StudyPage = () => {
     );
   }
 
-  const currentCard = flashcards[currentCardIndex];
+  const currentCard = orderedFlashcards[currentCardIndex];
 
   return (
     <div className="container mx-auto px-4 max-w-3xl">
       <div className="mb-4 text-center flex justify-between items-center">
         <p className="text-muted-foreground">
-          Card {currentCardIndex + 1} of {flashcards.length}
+          Card {currentCardIndex + 1} of {orderedFlashcards.length}
         </p>
         <TooltipProvider>
           <Tooltip>
@@ -468,7 +437,6 @@ const StudyPage = () => {
                 >
                   Definition
                 </DropdownMenuItem>
-
                 {isOwner && (
                   <div>
                     <DropdownMenuSeparator />
@@ -482,7 +450,6 @@ const StudyPage = () => {
                       <Edit className="h-4 w-4 mr-2" />
                       Edit
                     </DropdownMenuItem>
-
                     <DropdownMenuItem
                       onClick={(e) => {
                         e.stopPropagation();
@@ -498,7 +465,6 @@ const StudyPage = () => {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-
           <CardContent className="p-6 text-center">
             {isFlipped ? (
               <div className="flex flex-col items-center justify-center h-full">
@@ -521,12 +487,11 @@ const StudyPage = () => {
         <Button
           onClick={handlePreviousCard}
           variant="outline"
-          disabled={flashcards.length <= 1}
+          disabled={orderedFlashcards.length <= 1}
           className="border-2 border-black bg-green hover:bg-green/70 min-w-30 btn-hover btn-active"
         >
           <ChevronLeft className="mr-2 h-4 w-4" /> Previous
         </Button>
-
         <Button
           onClick={() => setIsFlipped(!isFlipped)}
           variant="outline"
@@ -540,11 +505,10 @@ const StudyPage = () => {
             ? "Show Definition"
             : "Show Term"}
         </Button>
-
         <Button
           onClick={handleNextCard}
           variant="outline"
-          disabled={flashcards.length <= 1}
+          disabled={orderedFlashcards.length <= 1}
           className="border-2 border-primary bg-green hover:bg-green/70 min-w-30 btn-hover btn-active"
         >
           Next <ChevronRight className="ml-2 h-4 w-4" />
