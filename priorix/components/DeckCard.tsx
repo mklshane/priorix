@@ -149,7 +149,7 @@ const DeckCard: React.FC<DeckCardProps> = ({
         className={cn(
           `border-0 overflow-hidden ${
             colors[index % colors.length]
-          } shadow-md border-2 border-primary cursor-pointer dark:border-[#D8B4FE]
+          } shadow-md border-2 border-primary cursor-pointer dark:border-[#9057cc]
           transition-all duration-200 ease-out dark:bg-card2
           hover:shadow-lg hover:-translate-y-1.5
           active:translate-y-0 active:shadow-md`,

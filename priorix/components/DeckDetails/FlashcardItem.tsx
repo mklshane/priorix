@@ -46,7 +46,7 @@ const FlashcardItem = ({
       <CardContent className="py-2 md:py-0">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 items-center">
           {/* Term Section */}
-          <div className="md:border-r md:border-gray-200 md:pr-4">
+          <div className="md:border-r md:border-sidebar-border md:pr-4">
             <h4 className="text-xs md:text-sm font-medium text-muted-foreground mb-1 md:mb-2">
               Term
             </h4>
@@ -54,7 +54,7 @@ const FlashcardItem = ({
           </div>
 
           {/* Definition Section */}
-          <div className="md:border-r md:border-gray-200 md:pr-4">
+          <div className="md:border-r md:border-sidebar-border md:pr-4">
             <h4 className="text-xs md:text-sm font-medium text-muted-foreground mb-1 md:mb-2">
               Definition
             </h4>

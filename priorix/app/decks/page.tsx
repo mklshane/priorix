@@ -161,14 +161,6 @@ const DecksPage: React.FC = () => {
         isLoading={isDeleting}
       />
 
-      {/* Recent Decks Section */}
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold font-sora text-foreground mb-4">
-          Recently Accessed
-        </h2>
-        <RecentDecks />
-      </div>
-
       {/* User's Created Decks Section */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
@@ -202,6 +194,14 @@ const DecksPage: React.FC = () => {
         )}
       </div>
 
+      {/* Recent Decks Section */}
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold font-sora text-foreground mb-4">
+          Recently Accessed
+        </h2>
+        <RecentDecks />
+      </div>
+
       <Button
         onClick={() => setIsAddDeckModalOpen(true)}
         className="fixed bottom-8 right-8 rounded-full p-5 h-10 w-10"
@@ -209,7 +209,6 @@ const DecksPage: React.FC = () => {
         <Plus className="h-20 w-20" />
       </Button>
 
-      {/* Floating Action Button for mobile */}
       <div className="fixed bottom-6 right-6 md:hidden">
         <Button
           size="lg"

@@ -116,7 +116,7 @@ const AddFlashcardForm = ({
                 placeholder="Enter the term"
                 onFocus={handleInputFocus}
                 onKeyDown={handleTermKeyDown}
-                className="border-2 border-primary bg-white"
+                className="border-2 border-primary bg-skin"
               />
             </div>
             <div className="grid gap-2">
@@ -131,7 +131,7 @@ const AddFlashcardForm = ({
                 rows={5}
                 onFocus={handleInputFocus}
                 onKeyDown={handleDefinitionKeyDown}
-                className="border-2 border-primary bg-white"
+                className="border-2 border-primary bg-skin"
               />
             </div>
             {error && <div className="text-sm text-red-500">{error}</div>}

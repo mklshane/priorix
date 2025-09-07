@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Sparkle, Sparkles } from "lucide-react";
 import RecentDecks from "@/components/dashboard/RecentDeck";
 import TodoList from "@/components/dashboard/TodoList";
 import QuickActions from "@/components/dashboard/QuickActions";
@@ -53,20 +53,23 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="mb-8">
         <Card className="bg-green/70 border-2 border-black dark:bg-darkcard dark:border-darkborder ">
-          <CardContent className="py-3 px-14">
+          <CardContent className="py-3 px-5 lg:px-14">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold font-sora text-foreground mb-4">
-                  Hi, {user?.name}
-                </h1>
-                <p className="text-lg font-sora text-foreground w-[90%]">
+                <div className="flex">
+                  <h1 className="text-3xl font-bold font-sora text-foreground mb-4 mr-2">
+                    Hi, {user?.name}
+                  </h1>
+                  <Sparkles />
+                </div>
+                <p className="text-md lg:text-lg font-sora text-foreground w-full lg:w-[90%]">
                   Ready to boost your productivity today? Time to set your
                   intentions, concentrate fully, and achieve more than you
                   planned today.
                 </p>
               </div>
               <div className="hidden md:block">
-                <div className="w-50 h-50 bg-white rounded-full flex items-center justify-center">
+                <div className="w-50 h-50 bg-white dark:bg-pink rounded-full flex items-center justify-center ">
                   <img src="/study.png" alt="" />
                 </div>
               </div>
