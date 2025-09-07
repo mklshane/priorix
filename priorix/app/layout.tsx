@@ -34,23 +34,6 @@ export const metadata: Metadata = {
     ],
     apple: [{ url: "/icon.png", sizes: "180x180", type: "image/png" }],
   },
-  openGraph: {
-    title: "Priorix",
-    description:
-      "Priorix – Your productivity companion for managing tasks, study sessions, and personal growth efficiently.",
-    url: "https://priorix.vercel.app/",
-    siteName: "Priorix",
-    images: [
-      {
-        url: "https://priorix.vercel.app/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "Priorix – Productivity App",
-      },
-    ],
-    locale: "en_US",
-    type: "website",
-  },
 };
 
 export default function RootLayout({
