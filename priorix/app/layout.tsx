@@ -31,17 +31,25 @@ export const metadata: Metadata = {
   description:
     "Priorix – Your productivity companion for managing tasks, study sessions, and personal growth efficiently.",
 
-  icons: "/icon.png",
+  icons: {
+    icon: [
+      { url: "/icon.ico", sizes: "any" }, 
+      { url: "/icon.png", type: "image/png", sizes: "32x32" },
+    ],
+    apple: [
+      { url: "/icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
 
   openGraph: {
     title: "Priorix",
     description:
       "Priorix – Your productivity companion for managing tasks, study sessions, and personal growth efficiently.",
-    url: "https://priorix.vercel.app/", 
+    url: "https://priorix.vercel.app/",
     siteName: "Priorix",
     images: [
       {
-        url: "httsp://og-image.png", // place an OG image in public folder
+        url: "/og-image.png", // put og-image.png in /public
         width: 1200,
         height: 630,
         alt: "Priorix – Productivity App",
@@ -51,6 +59,7 @@ export const metadata: Metadata = {
     type: "website",
   },
 };
+
 
 
 export default function RootLayout({
