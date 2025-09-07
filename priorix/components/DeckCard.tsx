@@ -124,19 +124,20 @@ const DeckCard: React.FC<DeckCardProps> = ({
   const copyToClipboard = async (deckId: string) => {
     try {
       const shareUrl = `${window.location.origin}/decks/${deckId}`;
+      const shareText = `Check out this deck "${deck.title}" on Priorix: ${shareUrl}`;
 
       if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(shareUrl);
-        showToast("Link copied to clipboard!", "success");
+        await navigator.clipboard.writeText(shareText);
+        showToast("Deck link copied to clipboard!", "success");
         setShareDialogOpen(false);
       } else {
         const textArea = document.createElement("textarea");
-        textArea.value = shareUrl;
+        textArea.value = shareText;
         document.body.appendChild(textArea);
         textArea.select();
         document.execCommand("copy");
         document.body.removeChild(textArea);
-        showToast("Link copied to clipboard!", "success");
+        showToast("Deck link copied to clipboard!", "success");
         setShareDialogOpen(false);
       }
     } catch (err) {
@@ -147,11 +148,12 @@ const DeckCard: React.FC<DeckCardProps> = ({
 
   const shareViaPlatform = (platform: string, deckId: string) => {
     const shareUrl = `${window.location.origin}/decks/${deckId}`;
-    const shareText = `Check out this deck: ${deck.title}`;
+    const shareText = `Check out this deck "${deck.title}" on Priorix`;
 
     let url = "";
 
     switch (platform) {
+     
       case "messenger":
         url = `fb-messenger://share?link=${encodeURIComponent(shareUrl)}`;
         break;
@@ -162,7 +164,7 @@ const DeckCard: React.FC<DeckCardProps> = ({
         break;
       case "whatsapp":
         url = `https://wa.me/?text=${encodeURIComponent(
-          shareText + " " + shareUrl
+          `${shareText}: ${shareUrl}`
         )}`;
         break;
       default:
@@ -331,7 +333,7 @@ const DeckCard: React.FC<DeckCardProps> = ({
                 <span className="text-xs">Copy Link</span>
               </Button>
 
-              
+             
 
               <Button
                 variant="outline"
