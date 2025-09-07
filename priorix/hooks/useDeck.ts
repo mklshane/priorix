@@ -1,47 +1,28 @@
-import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { Deck } from "@/types/deck";
 
+const fetchDeck = async (deckId: string, userId: string) => {
+  const res = await fetch(`/api/deck?id=${deckId}&userId=${userId}`);
+  if (!res.ok) {
+    if (res.status === 404) throw new Error("Deck not found");
+    throw new Error("Failed to fetch deck");
+  }
+  return res.json();
+};
+
 export const useDeck = (deckId: string) => {
   const { data: session } = useSession();
-  const [deck, setDeck] = useState<Deck | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchDeck = async () => {
-      if (!deckId || !session?.user?.id) {
-        setIsLoading(false);
-        return;
-      }
+  const {
+    data: deck,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["deck", deckId, session?.user?.id],
+    queryFn: () => fetchDeck(deckId, session?.user?.id!),
+    enabled: !!deckId && !!session?.user?.id,
+  });
 
-      try {
-        setIsLoading(true);
-        setError(null);
-
-        const deckResponse = await fetch(
-          `/api/deck?id=${deckId}&userId=${session.user.id}`
-        );
-
-        if (!deckResponse.ok) {
-          if (deckResponse.status === 404) {
-            throw new Error("Deck not found");
-          }
-          throw new Error("Failed to fetch deck");
-        }
-
-        const deckData: Deck = await deckResponse.json();
-        setDeck(deckData);
-      } catch (err) {
-        console.error("Error fetching deck:", err);
-        setError(err instanceof Error ? err.message : "Failed to load deck");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchDeck();
-  }, [deckId, session?.user?.id]);
-
-  return { deck, isLoading, error };
+  return { deck, isLoading, error: error?.message || null };
 };

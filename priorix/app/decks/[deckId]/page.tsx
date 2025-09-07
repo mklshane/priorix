@@ -23,7 +23,7 @@ const DeckDetailPage = () => {
   const deckId = params.deckId as string;
   const router = useRouter();
   const [showImportModal, setShowImportModal] = useState(false);
-  const { showToast, dismissToast } = useToast();
+  const { showToast } = useToast();
   const { data: session } = useSession();
 
   const { deck, isLoading: isDeckLoading, error: deckError } = useDeck(deckId);
@@ -42,11 +42,11 @@ const DeckDetailPage = () => {
   );
   const [error, setError] = useState<string | null>(null);
   const [isImporting, setIsImporting] = useState(false);
-  const [retryKey, setRetryKey] = useState(0); 
+  const [retryKey, setRetryKey] = useState(0);
   const { isOwner, setDeck } = useDeckContext();
 
   useEffect(() => {
-    setError(null); 
+    setError(null);
     setRetryKey((prev) => prev + 1);
   }, [deckId]);
 
@@ -80,21 +80,15 @@ const DeckDetailPage = () => {
 
     setIsImporting(true);
     setError(null);
-    showToast("Importing PDF...", "loading");
 
     try {
       const extractedFlashcards = await importPDF(file, importDeckId);
       await addMultipleFlashcards(extractedFlashcards);
-      dismissToast();
-      showToast("Flashcards imported successfully!", "success");
       setShowImportModal(false);
     } catch (err) {
-      console.error("PDF import error:", err);
       const errorMessage =
         err instanceof Error ? err.message : "Failed to import PDF";
       setError(errorMessage);
-      dismissToast();
-      showToast(errorMessage, "error");
       throw err;
     } finally {
       setIsImporting(false);
@@ -107,19 +101,13 @@ const DeckDetailPage = () => {
       return;
     }
 
-    showToast("Creating flashcard...", "loading");
-
     try {
-      await addFlashcard(term, definition);
+      await addFlashcard({ term, definition });
       setError(null);
-      dismissToast();
-      showToast("Flashcard created successfully!", "success");
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to create flashcard";
       setError(errorMessage);
-      dismissToast();
-      showToast(errorMessage, "error");
       throw err;
     }
   };
@@ -134,20 +122,14 @@ const DeckDetailPage = () => {
       return;
     }
 
-    showToast("Updating flashcard...", "loading");
-
     try {
-      await updateFlashcard(id, term, definition);
+      await updateFlashcard({ id, term, definition });
       setEditingFlashcard(null);
       setError(null);
-      dismissToast();
-      showToast("Flashcard updated successfully!", "success");
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to update flashcard";
       setError(errorMessage);
-      dismissToast();
-      showToast(errorMessage, "error");
     }
   };
 
@@ -157,19 +139,13 @@ const DeckDetailPage = () => {
       return;
     }
 
-    showToast("Deleting flashcard...", "loading");
-
     try {
       await deleteFlashcard(id);
       setError(null);
-      dismissToast();
-      showToast("Flashcard deleted successfully!", "success");
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to delete flashcard";
       setError(errorMessage);
-      dismissToast();
-      showToast(errorMessage, "error");
     }
   };
 
@@ -184,7 +160,7 @@ const DeckDetailPage = () => {
         error={errorMessage}
         onRetry={() => {
           setError(null);
-          setRetryKey((prev) => prev + 1); 
+          setRetryKey((prev) => prev + 1);
         }}
       />
     );
