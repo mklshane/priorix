@@ -69,7 +69,7 @@ export default function DashboardPage() {
                 </p>
               </div>
               <div className="hidden md:block">
-                <div className="w-50 h-50 bg-white dark:bg-pink rounded-full flex items-center justify-center ">
+                <div className="w-50 h-50 bg-white dark:bg-pink/90 rounded-full flex items-center justify-center ">
                   <img src="/study.png" alt="" />
                 </div>
               </div>

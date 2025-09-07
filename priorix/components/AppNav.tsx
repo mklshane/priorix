@@ -192,7 +192,7 @@ export default function AppNav({ onToggleSidebar }: AppNavProps) {
   const currentPage = getCurrentPage();
 
   return (
-    <nav className="w-full px-6 py-4 bg-primary-foreground dark:bg-[#232339] border-b border-gray-200  dark:border-gray-700">
+    <nav className="w-full px-6 py-4 bg-primary-foreground border-b border-border  ">
       <div className="flex items-center justify-between relative">
         {/* Left - Hamburger Menu or Back Button */}
         <div className="flex-shrink-0">
@@ -230,7 +230,7 @@ export default function AppNav({ onToggleSidebar }: AppNavProps) {
           {user && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center space-x-2 bg-gray-100 border-2 rounded-full hover:bg-slate-200 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white dark:border-gray-600 py-1 px-3 transition-colors">
+                <button className="flex items-center space-x-2 bg-muted border-2 rounded-full hover:bg-purple/20 text-primary py-2 px-2 md:py-1 md:px-3 transition-colors">
                   <span className="font-sora text-sm text-gray-700 dark:text-gray-300 hidden sm:block">
                     {firstName}
                   </span>
@@ -247,7 +247,7 @@ export default function AppNav({ onToggleSidebar }: AppNavProps) {
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"
-                className="w-48 dark:bg-gray-800 dark:border-gray-700"
+                className="w-48 dark:border-gray-700"
               >
                 <div className="px-2 py-1.5">
                   <p className="font-sora text-sm font-medium text-gray-900 dark:text-white truncate">

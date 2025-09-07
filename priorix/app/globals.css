@@ -72,13 +72,13 @@ body {
 
 .dark {
   --background: #0D0B14;        
-  --foreground: #F5F3FF;      
+  --foreground: #e3dcff;      
   --card: #1E1B2B;                 
   --card-foreground: #F5F3FF;
   --popover: #2A2640;             
-  --popover-foreground: #F5F3FF;
+  --popover-foreground: #e5e5e5;
   --primary: #8B5CF6;             
-  --primary-foreground: #FFFFFF;
+  --primary-foreground: #1E1B2B;
   --secondary: #2A2640;           
   --secondary-foreground: #F5F3FF;
   --muted: #2A2640;
