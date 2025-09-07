@@ -33,12 +33,10 @@ export const metadata: Metadata = {
 
   icons: {
     icon: [
-      { url: "/icon.ico", sizes: "any" }, 
+      { url: "/icon.ico", sizes: "any" },
       { url: "/icon.png", type: "image/png", sizes: "32x32" },
     ],
-    apple: [
-      { url: "/icon.png", sizes: "180x180", type: "image/png" },
-    ],
+    apple: [{ url: "/icon.png", sizes: "180x180", type: "image/png" }],
   },
 
   openGraph: {
@@ -49,7 +47,7 @@ export const metadata: Metadata = {
     siteName: "Priorix",
     images: [
       {
-        url: "/og-image.png", // put og-image.png in /public
+        url: "https://priorix.vercel.app/og-image.png", // put og-image.png in /public
         width: 1200,
         height: 630,
         alt: "Priorix – Productivity App",
