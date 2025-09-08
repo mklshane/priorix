@@ -126,6 +126,7 @@ export const useFlashcards = (deckId: string) => {
     },
   });
 
+  // debug
   const addMultipleFlashcards = useMutation({
     mutationFn: (
       flashcards: Omit<IFlashcard, "_id" | "createdAt" | "updatedAt">[]
