@@ -17,14 +17,16 @@ import NotFoundState from "@/components/DeckDetails/NotFoundState";
 import ImportModal from "@/components/DeckDetails/ImportModal";
 import { importPDF } from "@/utils/pdfImporter";
 import { useDeckContext } from "@/contexts/DeckContext";
+import { useQueryClient } from "@tanstack/react-query";
 
 const DeckDetailPage = () => {
   const params = useParams();
   const deckId = params.deckId as string;
   const router = useRouter();
   const [showImportModal, setShowImportModal] = useState(false);
-  const { showToast } = useToast();
+  const { showToast, dismissToast } = useToast();
   const { data: session } = useSession();
+  const queryClient = useQueryClient();
 
   const { deck, isLoading: isDeckLoading, error: deckError } = useDeck(deckId);
   const {
@@ -72,7 +74,7 @@ const DeckDetailPage = () => {
     setShowImportModal(false);
   };
 
-  const handleImportPDF = async (file: File, importDeckId: string) => {
+  const handleImportGeneratePDF = async (file: File, importDeckId: string) => {
     if (!isOwner) {
       showToast("Only deck owners can import cards", "error");
       return;
@@ -80,15 +82,26 @@ const DeckDetailPage = () => {
 
     setIsImporting(true);
     setError(null);
+    const toastId = showToast("Importing flashcards...", "loading"); // Show loading toast
 
     try {
-      const extractedFlashcards = await importPDF(file, importDeckId);
-      await addMultipleFlashcards(extractedFlashcards);
+      const newFlashcards = await importPDF(file, importDeckId);
+
+      // Update client-side cache
+      queryClient.setQueryData<IFlashcard[]>(
+        ["flashcards", deckId, session?.user?.id],
+        (old = []) => [...old, ...newFlashcards]
+      );
+
+      dismissToast();
+      showToast("Flashcards imported successfully!", "success");
       setShowImportModal(false);
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to import PDF";
       setError(errorMessage);
+      dismissToast();
+      showToast(errorMessage, "error");
       throw err;
     } finally {
       setIsImporting(false);
@@ -175,7 +188,7 @@ const DeckDetailPage = () => {
       <ImportModal
         isOpen={showImportModal}
         onClose={handleCloseImportModal}
-        onImport={handleImportPDF}
+        onImport={handleImportGeneratePDF}
         deckId={deckId}
       />
 
