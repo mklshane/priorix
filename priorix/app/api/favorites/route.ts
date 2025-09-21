@@ -89,7 +89,7 @@ export async function GET(req: Request) {
         .populate({
           path: "deckId",
           populate: {
-            path: "user", // populate the deck creator
+            path: "user", 
             select: "name email",
           },
         })
