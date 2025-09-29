@@ -65,3 +65,26 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
+
+export async function GET(req: Request) {
+  await ConnectDB();
+
+  try {
+    const { searchParams } = new URL(req.url);
+    const userId = searchParams.get("userId");
+    const deckId = searchParams.get("deckId");
+
+    if (!userId || !deckId) {
+      return NextResponse.json(
+        { error: "userId and deckId are required" },
+        { status: 400 }
+      );
+    }
+
+    const favorite = await Favorite.findOne({ userId, deckId });
+
+    return NextResponse.json({ isFavorited: !!favorite }, { status: 200 });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
