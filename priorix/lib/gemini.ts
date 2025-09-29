@@ -8,7 +8,7 @@ export async function generateFlashcardsFromText(
   deckId: string
 ): Promise<IFlashcard[]> {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
 
     const prompt = `
 You are a flashcard generator. Carefully read the following text and extract ALL key terms, names, people, events, concepts, objects, and important ideas.  
