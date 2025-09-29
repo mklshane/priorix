@@ -24,8 +24,6 @@ const fetchFavoriteDecks = async (userId: string): Promise<Deck[]> => {
   return res.json();
 };
 
-
-
 const DecksPage: React.FC = () => {
   const [isAddDeckModalOpen, setIsAddDeckModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -54,7 +52,6 @@ const DecksPage: React.FC = () => {
     queryFn: () => fetchFavoriteDecks(session?.user?.id!),
     enabled: !!session?.user?.id,
   });
-
 
   const addDeckMutation = useMutation({
     mutationFn: (newDeckData: CreateDeckRequest) =>
@@ -176,7 +173,6 @@ const DecksPage: React.FC = () => {
     [editDeckMutation]
   );
 
-  // Show loading state during initial load or when refetching
   const showLoadingState = isLoading || isFetching;
 
   return (
@@ -222,6 +218,7 @@ const DecksPage: React.FC = () => {
                 index={i}
                 onDeleteClick={handleDeleteClick}
                 onEditClick={handleEditDeck}
+                queryClient={queryClient}
               />
             ))}
           </div>
@@ -268,6 +265,7 @@ const DecksPage: React.FC = () => {
                 index={i}
                 onDeleteClick={handleDeleteClick}
                 onEditClick={handleEditDeck}
+                queryClient={queryClient}
               />
             ))}
           </div>

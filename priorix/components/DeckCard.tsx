@@ -35,6 +35,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useQueryClient } from "@tanstack/react-query";
 
 const recordDeckAccess = async (deckId: string, userId: string) => {
   try {
@@ -86,6 +87,7 @@ interface DeckCardProps {
   ) => void;
   index?: number;
   showMenu?: boolean;
+  queryClient?: ReturnType<typeof useQueryClient>;
 }
 
 const colors = ["bg-pink", "bg-green", "bg-yellow", "bg-purple"];
@@ -97,6 +99,7 @@ const DeckCard: React.FC<DeckCardProps> = ({
   onEditClick,
   index = 0,
   showMenu = true,
+  queryClient,
 }) => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
@@ -131,7 +134,6 @@ const DeckCard: React.FC<DeckCardProps> = ({
 
     checkFavorite();
   }, [session?.user?.id, deck._id]);
-
 
   const deckLength =
     deck.length ?? (deck.flashcards ? deck.flashcards.length : 0);
@@ -228,6 +230,9 @@ const DeckCard: React.FC<DeckCardProps> = ({
         if (!res.error) {
           showToast("Removed from favorites", "success");
           setIsFavorited(false);
+          queryClient?.invalidateQueries({
+            queryKey: ["favoriteDecks", session.user.id],
+          });
         } else {
           showToast(res.error, "error");
         }
@@ -236,6 +241,9 @@ const DeckCard: React.FC<DeckCardProps> = ({
         if (!res.error) {
           showToast("Added to favorites", "success");
           setIsFavorited(true);
+          queryClient?.invalidateQueries({
+            queryKey: ["favoriteDecks", session.user.id],
+          });
         } else {
           showToast(res.error, "error");
         }
@@ -245,7 +253,6 @@ const DeckCard: React.FC<DeckCardProps> = ({
       showToast("Something went wrong", "error");
     }
   };
-
 
   const getDisplayName = () => {
     if (deck.user && typeof deck.user === "object" && deck.user.name) {
