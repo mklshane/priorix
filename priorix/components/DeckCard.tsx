@@ -25,7 +25,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import EditDeckDialog from "./Deck/EditDeckDialog";
 import { useSession } from "next-auth/react";
 import { useToast } from "@/hooks/useToast";
@@ -35,6 +35,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useQueryClient } from "@tanstack/react-query";
 
 const recordDeckAccess = async (deckId: string, userId: string) => {
   try {
@@ -50,6 +51,24 @@ const recordDeckAccess = async (deckId: string, userId: string) => {
   } catch (err) {
     console.error("Failed to record deck access:", err);
   }
+};
+
+const addFavorite = async (deckId: string, userId: string) => {
+  const res = await fetch("/api/favorites", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, deckId }),
+  });
+  return res.json();
+};
+
+const removeFavorite = async (deckId: string, userId: string) => {
+  const res = await fetch("/api/favorites", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, deckId }),
+  });
+  return res.json();
 };
 
 interface DeckCardProps {
@@ -68,6 +87,7 @@ interface DeckCardProps {
   ) => void;
   index?: number;
   showMenu?: boolean;
+  queryClient?: ReturnType<typeof useQueryClient>;
 }
 
 const colors = ["bg-pink", "bg-green", "bg-yellow", "bg-purple"];
@@ -79,6 +99,7 @@ const DeckCard: React.FC<DeckCardProps> = ({
   onEditClick,
   index = 0,
   showMenu = true,
+  queryClient,
 }) => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
@@ -89,8 +110,30 @@ const DeckCard: React.FC<DeckCardProps> = ({
   const router = useRouter();
   const { data: session } = useSession();
   const { showToast } = useToast();
+  const [isFavorited, setIsFavorited] = useState(false);
 
   if (!deck) return null;
+
+  useEffect(() => {
+    const checkFavorite = async () => {
+      if (!session?.user?.id || !deck._id) return;
+
+      try {
+        const res = await fetch(
+          `/api/favorites?userId=${session.user.id}&deckId=${deck._id}`
+        );
+        const data = await res.json();
+
+        if (res.ok) {
+          setIsFavorited(data.isFavorited);
+        }
+      } catch (err) {
+        console.error("Failed to fetch favorite status:", err);
+      }
+    };
+
+    checkFavorite();
+  }, [session?.user?.id, deck._id]);
 
   const deckLength =
     deck.length ?? (deck.flashcards ? deck.flashcards.length : 0);
@@ -153,7 +196,6 @@ const DeckCard: React.FC<DeckCardProps> = ({
     let url = "";
 
     switch (platform) {
-     
       case "messenger":
         url = `fb-messenger://share?link=${encodeURIComponent(shareUrl)}`;
         break;
@@ -174,11 +216,42 @@ const DeckCard: React.FC<DeckCardProps> = ({
     window.open(url, "_blank", "width=600,height=400");
   };
 
-  // no implementation yet
-  const handleAddToFavorites = (e: React.MouseEvent, deckId: string) => {
+  const handleToggleFavorite = async (e: React.MouseEvent, deckId: string) => {
     e.stopPropagation();
-    console.log("Add to favorites:", deckId);
-    showToast("Added to favorites!", "success");
+
+    if (!session?.user?.id) {
+      showToast("You must be logged in", "error");
+      return;
+    }
+
+    try {
+      if (isFavorited) {
+        const res = await removeFavorite(deckId, session.user.id);
+        if (!res.error) {
+          showToast("Removed from favorites", "success");
+          setIsFavorited(false);
+          queryClient?.invalidateQueries({
+            queryKey: ["favoriteDecks", session.user.id],
+          });
+        } else {
+          showToast(res.error, "error");
+        }
+      } else {
+        const res = await addFavorite(deckId, session.user.id);
+        if (!res.error) {
+          showToast("Added to favorites", "success");
+          setIsFavorited(true);
+          queryClient?.invalidateQueries({
+            queryKey: ["favoriteDecks", session.user.id],
+          });
+        } else {
+          showToast(res.error, "error");
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      showToast("Something went wrong", "error");
+    }
   };
 
   const getDisplayName = () => {
@@ -259,11 +332,15 @@ const DeckCard: React.FC<DeckCardProps> = ({
 
                   {/* Options for all users (owner and non-owner) */}
                   <DropdownMenuItem
-                    onClick={(e) => handleAddToFavorites(e, deck._id)}
-                    disabled
-                    className="text-muted-foreground opacity-60 cursor-not-allowed transition-colors duration-150"
+                    onClick={(e) => handleToggleFavorite(e, deck._id)}
+                    className="transition-colors duration-150 hover:bg-accent"
                   >
-                    <Star className="h-4 w-4 mr-2" /> Add to Favorites
+                    <Star
+                      className={`h-4 w-4 mr-2 ${
+                        isFavorited ? "text-yellow-500 fill-yellow-500" : ""
+                      }`}
+                    />
+                    {isFavorited ? "Remove from Favorites" : "Add to Favorites"}
                   </DropdownMenuItem>
 
                   <DropdownMenuItem
@@ -309,7 +386,6 @@ const DeckCard: React.FC<DeckCardProps> = ({
           <DialogHeader className="space-y-4">
             <DialogTitle className="text-xl font-sora text-center flex items-center justify-between">
               <span className="flex-1 text-center">Share Deck</span>
-             
             </DialogTitle>
           </DialogHeader>
 
@@ -332,8 +408,6 @@ const DeckCard: React.FC<DeckCardProps> = ({
                 <Link2 className="h-6 w-6 mb-1" />
                 <span className="text-xs">Copy Link</span>
               </Button>
-
-             
 
               <Button
                 variant="outline"

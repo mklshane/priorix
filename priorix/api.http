@@ -1,2 +1,8 @@
-### add task
-GET http://localhost:3000/api/tasks?userId=68b34a67ab6c3e586c3e49eb
+### Add favorite
+POST http://localhost:3000/api/favorites
+Content-Type: application/json
+
+{
+  "userId": "68b1c6c64dfb6a7d35d44594",
+  "deckId": "68bdab5b3a0fdb99e4e7350e"
+}
