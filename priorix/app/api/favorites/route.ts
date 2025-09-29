@@ -74,17 +74,51 @@ export async function GET(req: Request) {
     const userId = searchParams.get("userId");
     const deckId = searchParams.get("deckId");
 
-    if (!userId || !deckId) {
+    if (!userId) {
       return NextResponse.json(
-        { error: "userId and deckId are required" },
+        { error: "userId is required" },
         { status: 400 }
       );
     }
 
-    const favorite = await Favorite.findOne({ userId, deckId });
+    if (deckId) {
+      const favorite = await Favorite.findOne({ userId, deckId });
+      return NextResponse.json({ isFavorited: !!favorite }, { status: 200 });
+    } else {
+      const favorites = await Favorite.find({ userId })
+        .populate({
+          path: "deckId",
+          populate: {
+            path: "user", // populate the deck creator
+            select: "name email",
+          },
+        })
+        .lean();
 
-    return NextResponse.json({ isFavorited: !!favorite }, { status: 200 });
+      const decks = favorites
+        .filter((fav) => fav.deckId && typeof fav.deckId === "object") // guard
+        .map((fav: any) => ({
+          _id: fav.deckId._id,
+          title: fav.deckId.title,
+          description: fav.deckId.description,
+          isPublic: fav.deckId.isPublic,
+          flashcards: fav.deckId.flashcards,
+          createdAt: fav.deckId.createdAt,
+          updatedAt: fav.deckId.updatedAt,
+          user: fav.deckId.user
+            ? {
+                _id: fav.deckId.user._id,
+                name: fav.deckId.user.name,
+                email: fav.deckId.user.email,
+              }
+            : null,
+        }));
+
+      return NextResponse.json(decks, { status: 200 });
+    }
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
+
+

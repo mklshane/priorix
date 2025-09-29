@@ -18,6 +18,14 @@ const fetchDecks = async (userId: string): Promise<Deck[]> => {
   return res.json();
 };
 
+const fetchFavoriteDecks = async (userId: string): Promise<Deck[]> => {
+  const res = await fetch(`/api/favorites?userId=${userId}`);
+  if (!res.ok) throw new Error("Failed to fetch favorite decks");
+  return res.json();
+};
+
+
+
 const DecksPage: React.FC = () => {
   const [isAddDeckModalOpen, setIsAddDeckModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -36,6 +44,17 @@ const DecksPage: React.FC = () => {
     queryFn: () => fetchDecks(session?.user?.id!),
     enabled: !!session?.user?.id,
   });
+
+  const {
+    data: favoriteDecks = [],
+    isLoading: isLoadingFavorites,
+    error: favoriteError,
+  } = useQuery<Deck[]>({
+    queryKey: ["favoriteDecks", session?.user?.id],
+    queryFn: () => fetchFavoriteDecks(session?.user?.id!),
+    enabled: !!session?.user?.id,
+  });
+
 
   const addDeckMutation = useMutation({
     mutationFn: (newDeckData: CreateDeckRequest) =>
@@ -216,6 +235,46 @@ const DecksPage: React.FC = () => {
               Create Your First Deck
             </Button>
           </div>
+        )}
+      </div>
+
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold font-sora text-foreground mb-4">
+          Favorites
+        </h2>
+
+        {isLoadingFavorites ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div
+                key={index}
+                className="animate-pulse bg-muted rounded-lg p-4 h-32"
+              >
+                <div className="h-4 bg-muted-foreground/20 rounded mb-2"></div>
+                <div className="h-3 bg-muted-foreground/20 rounded w-3/4"></div>
+              </div>
+            ))}
+          </div>
+        ) : favoriteError ? (
+          <p className="text-center text-red-500 text-sm">
+            Error loading favorite decks: {favoriteError.message}
+          </p>
+        ) : favoriteDecks.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {favoriteDecks.map((deck: Deck, i: number) => (
+              <DeckCard
+                key={deck._id}
+                deck={deck}
+                index={i}
+                onDeleteClick={handleDeleteClick}
+                onEditClick={handleEditDeck}
+              />
+            ))}
+          </div>
+        ) : (
+          <p className="text-muted-foreground">
+            You haven’t favorited any decks yet.
+          </p>
         )}
       </div>
 
