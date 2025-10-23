@@ -26,6 +26,7 @@ Rules for generating flashcards:
 - Use the EXACT wording from the material for each definition. Do not rephrase or summarize.
 - If a term has multiple definitions or explanations, create MULTIPLE flashcards for that term, one per definition.
 - Ensure every flashcard has a clear "term" and "definition".
+- DO NOT include the term in the definition. Either leave it out or add _________.
 - DO NOT create duplicate flashcards. Each flashcard must be unique.
 - For terms with multiple definitions, ensure each definition is distinct and not repetitive.
 
