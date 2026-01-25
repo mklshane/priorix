@@ -150,7 +150,7 @@ const AddFlashcardForm = ({
                   disabled={
                     isSubmitting || !newTerm.trim() || !newDefinition.trim()
                   }
-                  className="order-1 sm:order-2"
+                  className="order-1 sm:order-2 bg-purple dark:bg-darkcard dark:border-darkborder text-foreground border-2 border-primary"
                 >
                   <Plus className="h-4 w-4 mr-1" />
                   {isSubmitting ? "Adding..." : "Add Card"}

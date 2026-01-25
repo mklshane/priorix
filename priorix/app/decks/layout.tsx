@@ -46,7 +46,7 @@ export default function DeckLayout({ children }: DeckLayoutProps) {
 
         <div className="w-full h-full flex flex-col overflow-hidden">
           <AppNav onToggleSidebar={toggleSidebar} />
-          <main className="flex-1 overflow-y-auto p-6">{children}</main>
+          <main className="flex-1 overflow-y-auto p-2 md:p-6">{children}</main>
         </div>
 
         <Toaster
