@@ -28,10 +28,16 @@ const DeckDetailPage = () => {
   const { data: session } = useSession();
   const queryClient = useQueryClient();
 
-  const { deck, isLoading: isDeckLoading, error: deckError } = useDeck(deckId);
+  const {
+    deck,
+    isLoading: isDeckLoading,
+    isFetching: isDeckFetching,
+    error: deckError,
+  } = useDeck(deckId);
   const {
     flashcards,
     isLoading: isFlashcardsLoading,
+    isFetching: isFlashcardsFetching,
     error: flashcardsError,
     addFlashcard,
     updateFlashcard,
@@ -162,11 +168,19 @@ const DeckDetailPage = () => {
     }
   };
 
-  if (isDeckLoading || isFlashcardsLoading) {
+  const isPending =
+    isDeckLoading ||
+    isFlashcardsLoading ||
+    isDeckFetching ||
+    isFlashcardsFetching;
+
+  if (isPending) {
     return <LoadingState />;
   }
 
-  if (deckError && flashcardsError && !deck && flashcards.length === 0) {
+  const bothFailed = deckError && flashcardsError;
+
+  if (!isPending && bothFailed && !deck && flashcards.length === 0) {
     const errorMessage = deckError || flashcardsError || "Failed to load data";
     return (
       <ErrorState
