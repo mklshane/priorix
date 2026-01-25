@@ -184,7 +184,7 @@ const DecksPage = () => {
     description?: string;
     children: ReactNode;
   }) => (
-    <div className="rounded-2xl border-2 border-black dark:border-accent bg-yellow/10 backdrop-blur-sm shadow-sm p-4 md:p-6">
+    <div className="rounded-2xl border-2 border-black dark:border-accent bg-card backdrop-blur-sm shadow-sm p-4 md:p-6">
       <div className="flex flex-col gap-1 mb-4">
         <h2 className="text-xl md:text-2xl font-semibold text-foreground font-sora">
           {title}
