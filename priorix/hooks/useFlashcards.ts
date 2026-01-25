@@ -20,11 +20,14 @@ export const useFlashcards = (deckId: string) => {
   const {
     data: flashcards = [],
     isLoading,
+    isFetching,
     error,
   } = useQuery<IFlashcard[]>({
     queryKey: ["flashcards", deckId, session?.user?.id],
     queryFn: () => fetchFlashcards(deckId, session?.user?.id!),
     enabled: !!deckId && !!session?.user?.id,
+    retry: 2,
+    staleTime: 30_000,
   });
 
   const addFlashcard = useMutation({
@@ -170,6 +173,7 @@ export const useFlashcards = (deckId: string) => {
   return {
     flashcards,
     isLoading,
+    isFetching,
     error: error?.message || null,
     addFlashcard: addFlashcard.mutateAsync,
     updateFlashcard: updateFlashcard.mutateAsync,

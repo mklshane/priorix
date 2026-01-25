@@ -41,10 +41,16 @@ const StudyPage = () => {
   const deckId = params.deckId as string;
   const { showToast, dismissToast } = useToast();
   const { currentCardIndex, saveCardIndex } = useCardPersistence(deckId);
-  const { deck, isLoading: isDeckLoading, error: deckError } = useDeck(deckId);
+  const {
+    deck,
+    isLoading: isDeckLoading,
+    isFetching: isDeckFetching,
+    error: deckError,
+  } = useDeck(deckId);
   const {
     flashcards,
     isLoading: isFlashcardsLoading,
+    isFetching: isFlashcardsFetching,
     error: flashcardsError,
     updateFlashcard,
     deleteFlashcard,
@@ -342,11 +348,18 @@ const StudyPage = () => {
     ));
   };
 
-  if (isDeckLoading || isFlashcardsLoading || !isInitialized) {
+  const isPending =
+    isDeckLoading ||
+    isFlashcardsLoading ||
+    isDeckFetching ||
+    isFlashcardsFetching ||
+    !isInitialized;
+
+  if (isPending) {
     return <LoadingState />;
   }
 
-  if ((deckError && !deck) || (flashcardsError && flashcards.length === 0)) {
+  if (!isPending && ((deckError && !deck) || (flashcardsError && flashcards.length === 0))) {
     const errorMessage = deckError || flashcardsError || "Failed to load data";
     return (
       <div className="container mx-auto p-4">

@@ -17,12 +17,20 @@ export const useDeck = (deckId: string) => {
   const {
     data: deck,
     isLoading,
+    isFetching,
     error,
   } = useQuery({
     queryKey: ["deck", deckId, session?.user?.id],
     queryFn: () => fetchDeck(deckId, session?.user?.id!),
     enabled: !!deckId && !!session?.user?.id,
+    retry: 2,
+    staleTime: 30_000,
   });
 
-  return { deck, isLoading, error: error?.message || null };
+  return {
+    deck,
+    isLoading,
+    isFetching,
+    error: error?.message || null,
+  };
 };

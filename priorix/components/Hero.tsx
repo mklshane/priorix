@@ -38,147 +38,56 @@ const Hero = () => {
         </div>
 
        
-        <div className="lg:w-1/2 flex justify-center w-full max-w-md lg:max-w-lg mt-8 lg:mt-0">
-          <div className="relative w-64 h-64 sm:w-72 sm:h-72 md:w-80 md:h-80 lg:w-96 lg:h-96">
-       
-            <div className="absolute -inset-3 sm:-inset-4 md:-inset-5 bg-gradient-to-r from-purple to-pink blur-lg opacity-20 dark:opacity-30 rounded-3xl"></div>
+        <div className="lg:w-1/2 flex justify-center w-full max-w-xl lg:max-w-2xl mt-8 lg:mt-0">
+          <div className="relative w-full max-w-2xl aspect-video">
+            <div className="absolute -inset-3 sm:-inset-4 bg-gradient-to-r from-purple to-pink blur-2xl opacity-25 dark:opacity-30 rounded-3xl"></div>
 
-         
             <div
-              className="relative w-full h-full"
+              className="relative h-full w-full"
               onMouseEnter={() => setIsStackHovered(true)}
               onMouseLeave={() => setIsStackHovered(false)}
             >
-            
               <div
-                className={`absolute w-full h-full bg-gradient-to-br from-violet/10 to-purple/10 rounded-xl border border-violet/15 shadow-sm transition-all duration-500 ${
-                  isStackHovered
-                    ? "-translate-x-6 -translate-y-4 -rotate-6"
-                    : "-bottom-2 -right-2 rotate-2"
+                className={`absolute inset-0 rounded-2xl border border-violet/20 bg-gradient-to-br from-violet/15 to-purple/15 shadow-xl transition-all duration-500 ${
+                  isStackHovered ? "-rotate-2 translate-x-2" : "rotate-1"
                 }`}
               ></div>
 
-            
               <div
-                className={`absolute w-full h-full bg-gradient-to-br from-violet/15 to-purple/15 rounded-xl border border-violet/20 shadow-md transition-all duration-500 ${
-                  isStackHovered
-                    ? "-translate-x-4 -translate-y-3 -rotate-3"
-                    : "-bottom-1 -right-1 rotate-1"
+                className={`absolute inset-3 rounded-2xl bg-white dark:bg-gray-900 border border-violet/25 shadow-2xl overflow-hidden transition-all duration-500 ${
+                  isStackHovered ? "translate-y-1" : "-translate-y-1"
                 }`}
               >
-                <div className="p-4 h-full flex flex-col opacity-80">
-                  <div className="text-center mb-2">
-                    <div className="w-6 h-6 md:w-8 md:h-8 mx-auto rounded-full bg-violet/20 flex items-center justify-center">
-                      <span className="text-violet text-sm md:text-lg font-bold">
-                        ∫
-                      </span>
-                    </div>
+                <div className="flex items-center justify-between px-4 py-2 bg-violet/10 border-b border-violet/15">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-pink/70"></span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-amber-400/80"></span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-green"></span>
                   </div>
-                  <div className="flex-1 flex items-center justify-center">
-                    <div className="text-center">
-                      <div className="text-xs md:text-sm text-violet mb-1">
-                        CALCULUS
-                      </div>
-                      <div className="h-2 md:h-3 bg-violet/20 rounded-full w-20 md:w-24 mx-auto mb-2"></div>
-                      <div className="h-1 md:h-2 bg-violet/15 rounded-full w-16 md:w-20 mx-auto"></div>
-                    </div>
-                  </div>
-                  <div className="h-1 md:h-2 bg-violet/10 rounded-full w-full"></div>
+                  <div className="text-xs font-medium text-muted-foreground">Science</div>
+                  <div className="h-2 w-6 bg-violet/20 rounded-full" />
                 </div>
-              </div>
 
-            
-              <div
-                className={`absolute w-full h-full bg-gradient-to-br from-violet/20 to-purple/20 rounded-xl border border-violet/25 shadow-md transition-all duration-500 ${
-                  isStackHovered
-                    ? "-translate-x-2 -translate-y-1"
-                    : "bottom-0 right-0"
-                }`}
-              >
-                <div className="p-4 h-full flex flex-col opacity-85">
-                  <div className="text-center mb-2">
-                    <div className="w-6 h-6 md:w-8 md:h-8 mx-auto rounded-full bg-pink/20 flex items-center justify-center">
-                      <span className="text-pink text-sm md:text-lg font-bold">
-                        🏛
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex-1 flex items-center justify-center">
-                    <div className="text-center">
-                      <div className="text-xs md:text-sm text-pink mb-1">
-                        HISTORY
+                <div className="h-full flex flex-col  p-5 bg-gradient-to-b from-white to-violet/5 dark:from-gray-900 dark:to-gray-950">
+                  <div>
+                    <div className="text-xs font-semibold text-violet">TERM</div>
+                    <div className="mt-3 space-y-2">
+                      <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white leading-tight">
+                        Photosynthesis
                       </div>
-                      <div className="h-2 md:h-3 bg-pink/20 rounded-full w-24 md:w-28 mx-auto mb-2"></div>
-                      <div className="h-1 md:h-2 bg-pink/15 rounded-full w-12 md:w-16 mx-auto"></div>
-                    </div>
-                  </div>
-                  <div className="h-1 md:h-2 bg-pink/10 rounded-full w-full"></div>
-                </div>
-              </div>
-
-              
-              <div
-                className={`absolute w-full h-full bg-gradient-to-br from-pink/25 to-purple/25 rounded-xl border border-pink/30 shadow-lg transition-all duration-500 ${
-                  isStackHovered
-                    ? "-translate-x-1 translate-y-1 rotate-2"
-                    : "top-1 left-1 -rotate-1"
-                }`}
-              >
-                <div className="p-4 h-full flex flex-col">
-                  <div className="text-center mb-2">
-                    <div className="w-6 h-6 md:w-8 md:h-8 mx-auto rounded-full bg-green/20 flex items-center justify-center">
-                      <span className="text-green text-sm md:text-lg font-bold">
-                        🔤
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex-1 flex items-center justify-center">
-                    <div className="text-center">
-                      <div className="text-xs md:text-sm text-green mb-1">
-                        LANGUAGE
+                      <div className="text-sm text-muted-foreground">
+                        How plants convert light into chemical energy.
                       </div>
-                      <div className="h-2 md:h-3 bg-green/20 rounded-full w-28 md:w-32 mx-auto mb-2"></div>
-                      <div className="h-1 md:h-2 bg-green/15 rounded-full w-20 md:w-24 mx-auto"></div>
-                    </div>
-                  </div>
-                  <div className="h-1 md:h-2 bg-green/10 rounded-full w-full"></div>
-                </div>
-              </div>
-
-              
-              <div
-                className={`absolute w-full h-full bg-white dark:bg-gray-800 rounded-xl border border-violet/30 shadow-xl transition-all duration-500 ${
-                  isStackHovered
-                    ? "translate-x-1 translate-y-2 rotate-3"
-                    : "top-2 left-2 -rotate-2"
-                }`}
-              >
-                <div className="p-4 md:p-5 h-full flex flex-col">
-                  <div className="flex items-center justify-between mb-3 md:mb-4">
-                    <div className="text-xs md:text-sm text-muted-foreground">
-                      12 cards
                     </div>
                   </div>
 
-                  <div className="flex-1 space-y-4 md:space-y-6">
-                    <div className="flex items-center justify-center">
-                     
-                    </div>
-
-                    <div className="space-y-1 md:space-y-2">
-                      <div className="h-2 md:h-3 bg-violet/10 rounded-full w-full"></div>
-                      <div className="h-2 md:h-3 bg-violet/10 rounded-full w-3/4 mx-auto"></div>
-                      <div className="h-2 md:h-3 bg-violet/10 rounded-full w-1/2 mx-auto"></div>
-                    </div>
-
-                    <div className="bg-violet/5 p-2 md:p-3 rounded-lg border border-violet/10">
-                      <div className="flex justify-between items-center mb-1 md:mb-2">
-                        <div className="h-1 md:h-2 bg-violet/20 rounded-full w-1/4"></div>
-                        <div className="h-1 md:h-2 bg-green/20 rounded-full w-1/6"></div>
-                      </div>
-                      <div className="h-1 md:h-2 bg-violet/20 rounded-full w-full mb-1 md:mb-2"></div>
-                      <div className="h-1 md:h-2 bg-green/20 rounded-full w-3/4"></div>
-                    </div>
+                  <div className="mt-15 flex items-center justify-end gap-3">
+                    <button className="h-10 w-10 rounded-lg bg-white/70 dark:bg-gray-800 border border-violet/15 flex items-center justify-center text-violet text-base font-semibold shadow-sm transition hover:shadow-md">
+                      ←
+                    </button>
+                    <button className="h-10 w-10 rounded-lg bg-violet text-white flex items-center justify-center text-base font-semibold shadow-md transition hover:-translate-y-0.5">
+                      →
+                    </button>
                   </div>
                 </div>
               </div>

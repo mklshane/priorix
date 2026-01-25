@@ -4,14 +4,49 @@ import { useEffect, useState } from "react";
 import DeckCard from "@/components/DeckCard";
 import { Deck } from "@/types/deck";
 import { useSession } from "next-auth/react";
+import { useQueryClient } from "@tanstack/react-query";
 
-export default function RecentDecks() {
+interface RecentDecksProps {
+  onDeleteClick?: (deckId: string) => void;
+  onEditClick?: (
+    deckId: string,
+    title: string,
+    description: string,
+    isPublic: boolean
+  ) => void;
+  showMenu?: boolean;
+}
+
+export default function RecentDecks({
+  onDeleteClick,
+  onEditClick,
+  showMenu = true,
+}: RecentDecksProps) {
   const [recentDecks, setRecentDecks] = useState<
     (Deck & { lastStudied?: string })[]
   >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { data: session } = useSession();
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const custom = event as CustomEvent<{ deckId: string }>;
+      if (custom.detail?.deckId) {
+        setRecentDecks((prev) => prev.filter((deck) => deck._id !== custom.detail.deckId));
+      }
+    };
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("deck-deleted", handler);
+    }
+    return () => {
+      if (typeof window !== "undefined") {
+        window.removeEventListener("deck-deleted", handler);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const fetchRecentDecks = async () => {
@@ -82,7 +117,17 @@ export default function RecentDecks() {
           return null;
         }
 
-        return <DeckCard key={deck._id} deck={deck} index={index} />;
+        return (
+          <DeckCard
+            key={deck._id}
+            deck={deck}
+            index={index}
+            onDeleteClick={onDeleteClick}
+            onEditClick={onEditClick}
+            showMenu={showMenu}
+            queryClient={queryClient}
+          />
+        );
       })}
 
       {Array.from({ length: 4 - recentDecks.length }).map((_, index) => (
