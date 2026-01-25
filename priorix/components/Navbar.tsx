@@ -21,7 +21,7 @@ const Navbar: React.FC = () => {
         </Link>
         <Link href={"/signup"}>
           <button className="btn-base btn-hover btn-active btn-green btn-size-md ">
-            Get Started
+           Sign Up
           </button>
         </Link>
       </div>
