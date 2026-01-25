@@ -8,11 +8,11 @@ import RecentDecks from "@/components/dashboard/RecentDeck";
 import TodoList from "@/components/dashboard/TodoList";
 import QuickActions from "@/components/dashboard/QuickActions";
 import Calendar from "@/components/dashboard/Calendar";
-import { useRouter } from "next/navigation";
 import AddDeckModal from "@/components/Deck/AddDeckModal";
 import { useState } from "react";
 import { CreateDeckRequest } from "@/types/deck";
 import { useToast } from "@/hooks/useToast";
+import { useRouter } from "next/navigation";
 
 export default function DashboardPage() {
   const { data: session } = useSession();
@@ -36,11 +36,17 @@ export default function DashboardPage() {
 
       if (!res.ok) throw new Error("Failed to create deck");
 
+      const created = await res.json();
+
       dismissToast();
       showToast("Deck created successfully!", "success");
 
       setIsAddDeckModalOpen(false);
-      window.location.reload();
+      if (created?._id) {
+        router.push(`/decks/${created._id}`);
+      } else {
+        window.location.reload();
+      }
     } catch (err) {
       console.error("Error creating deck:", err);
       dismissToast();
