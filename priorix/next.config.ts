@@ -1,17 +1,17 @@
 import type { NextConfig } from "next";
 
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  experimental: {
-    serverComponentsExternalPackages: ['mongoose'],
-  },
-  // Temporary compatibility flag
+const nextConfig: NextConfig = {
+  // Next.js 15 stable config
+  serverExternalPackages: ["mongoose"],
+
+  // TEMPORARY: only while stabilizing the project
   typescript: {
-    ignoreBuildErrors: true, 
+    ignoreBuildErrors: true,
   },
+
   eslint: {
     ignoreDuringBuilds: true,
   },
 };
 
-module.exports = nextConfig;
+export default nextConfig;
