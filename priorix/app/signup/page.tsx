@@ -73,7 +73,7 @@ const SignUp = () => {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="px-4 py-3 rounded-2xl border-2 border-black focus:ring-2 focus:ring-input focus:border-transparent outline-none transition"
+                className="px-4 py-3 rounded-2xl border-2 bg-amber-50 border-black focus:ring-2 focus:ring-input focus:border-transparent outline-none transition"
                 placeholder="Your full name"
                 required
               />
@@ -89,7 +89,7 @@ const SignUp = () => {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="px-4 py-3 rounded-2xl border-2 border-black focus:ring-2 focus:ring-input focus:border-transparent outline-none transition"
+                className="px-4 py-3 rounded-2xl border-2 bg-amber-50 border-black focus:ring-2 focus:ring-input focus:border-transparent outline-none transition"
                 placeholder="your.email@example.com"
                 required
               />
@@ -108,7 +108,7 @@ const SignUp = () => {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="px-4 py-3 rounded-2xl border-2 border-black focus:ring-2 focus:ring-input focus:border-transparent outline-none transition"
+                className="px-4 py-3 rounded-2xl border-2 bg-amber-50 border-black focus:ring-2 focus:ring-input focus:border-transparent outline-none transition"
                 placeholder="••••••••"
                 required
               />
@@ -127,7 +127,7 @@ const SignUp = () => {
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="px-4 py-3 rounded-2xl border-2 border-black focus:ring-2 focus:ring-input focus:border-transparent outline-none transition"
+                className="px-4 py-3 rounded-2xl border-2 bg-amber-50 border-black focus:ring-2 focus:ring-input focus:border-transparent outline-none transition"
                 placeholder="••••••••"
                 required
               />
