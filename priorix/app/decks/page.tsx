@@ -409,7 +409,7 @@ const DecksPageContent = () => {
     : "All decks";
 
   const renderSkeletonGrid = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 p-4">
       {Array.from({ length: 6 }).map((_, index) => (
         <div
           key={index}
@@ -589,7 +589,7 @@ const DecksPageContent = () => {
             )}
 
             {combinedItems.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 p-4">
                 {combinedItems.map((item, i) => {
                   if (item.type === "folder") {
                     return (
@@ -693,7 +693,7 @@ const DecksPageContent = () => {
             Error loading favorite decks: {favoriteError.message}
           </p>
         ) : filteredFavorites.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 p-4">
             {filteredFavorites.map((deck: Deck, i: number) => (
               <motion.div
                 key={deck._id}
@@ -767,7 +767,7 @@ const DecksPageContent = () => {
       />
 
       <div className="flex flex-col gap-2 mb-2">
-        <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="hidden md:flex items-center justify-between gap-3 flex-wrap">
           <div>
             <p className="text-sm text-muted-foreground mb-1">Overview</p>
             <h1 className="text-2xl md:text-3xl font-bold text-foreground">

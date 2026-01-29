@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { IFlashcard } from "@/types/flashcard";
@@ -27,7 +28,7 @@ export const useSrsStudy = (deckId: string, sessionSize: number) => {
   ];
 
   const {
-    data: dueCards = [],
+    data: dueCardsRaw,
     isLoading,
     isFetching,
     refetch,
@@ -40,6 +41,9 @@ export const useSrsStudy = (deckId: string, sessionSize: number) => {
     staleTime: 15_000,
     retry: 2,
   });
+
+  // Stable fallback prevents effects from firing endlessly when data is undefined
+  const dueCards = useMemo(() => dueCardsRaw ?? [], [dueCardsRaw]);
 
   const reviewMutation = useMutation({
     mutationFn: ({
