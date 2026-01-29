@@ -12,7 +12,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import type { Deck } from "@/types/deck";
 
 const fetchPublicDecks = async (): Promise<Deck[]> => {
-  const res = await fetch("/api/deck", { cache: "no-store" });
+  const baseUrl = (() => {
+    if (typeof window !== "undefined") return "";
+    if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL;
+    if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+    return "http://localhost:3000";
+  })();
+
+  const res = await fetch(`${baseUrl}/api/deck`, { cache: "no-store" });
   if (!res.ok) {
     throw new Error("Failed to fetch public decks");
   }
