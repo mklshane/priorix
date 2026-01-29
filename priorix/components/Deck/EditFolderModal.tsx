@@ -12,6 +12,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { FolderCog } from "lucide-react";
 
 interface EditFolderModalProps {
   open: boolean;
@@ -29,6 +30,9 @@ const EditFolderModal: React.FC<EditFolderModalProps> = ({
   const [name, setName] = useState(initialName);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const fieldStyles =
+    "rounded-lg border border-border/60 bg-background/80 px-3 py-2 shadow-inner focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/30 disabled:opacity-60";
 
   useEffect(() => {
     setName(initialName);
@@ -56,12 +60,18 @@ const EditFolderModal: React.FC<EditFolderModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[420px]">
-        <DialogHeader>
-          <DialogTitle>Rename Folder</DialogTitle>
-          <DialogDescription>Update this folder's name.</DialogDescription>
+      <DialogContent className="modal-surface sm:max-w-[460px] p-0">
+        <DialogHeader className="flex flex-row items-start gap-3 border-b border-border/60 bg-gradient-to-r from-primary/10 via-muted/40 to-transparent px-6 py-5">
+          <div className="flex size-12 items-center justify-center rounded-lg bg-primary/15 text-primary shadow-inner ring-1 ring-primary/20">
+            <FolderCog className="h-5 w-5" />
+          </div>
+          <div className="space-y-1 text-left">
+            <DialogTitle className="text-xl">Rename Folder</DialogTitle>
+            <DialogDescription>Give this folder a clearer label.</DialogDescription>
+          </div>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+
+        <form onSubmit={handleSubmit} className="space-y-5 px-6 py-5">
           <div className="grid gap-2">
             <Label htmlFor="folder-name">Folder name</Label>
             <Input
@@ -70,13 +80,32 @@ const EditFolderModal: React.FC<EditFolderModalProps> = ({
               onChange={(e) => setName(e.target.value)}
               disabled={isLoading}
               required
+              className={fieldStyles}
             />
           </div>
-          {error && <p className="text-sm text-red-500">{error}</p>}
-          <DialogFooter>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Saving..." : "Save"}
-            </Button>
+          {error && (
+            <p className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              {error}
+            </p>
+          )}
+          <DialogFooter className="border-t border-border/60 bg-background/40 px-1 pt-4">
+            <div className="flex w-full items-center justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                disabled={isLoading}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="shadow-[0_12px_30px_rgba(139,92,246,0.35)]"
+              >
+                {isLoading ? "Saving..." : "Save"}
+              </Button>
+            </div>
           </DialogFooter>
         </form>
       </DialogContent>
