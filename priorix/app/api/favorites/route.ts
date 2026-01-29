@@ -3,6 +3,11 @@ import { ConnectDB } from "@/lib/config/db";
 import Favorite from "@/lib/models/Favorites";
 import mongoose from "mongoose";
 
+// Ensure related models are registered before populate is used in cold starts
+// on serverless (prevents MissingSchemaError in production).
+import "@/lib/models/Deck";
+import "@/lib/models/User";
+
 export async function POST(req: Request) {
   await ConnectDB();
 
