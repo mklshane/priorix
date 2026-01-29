@@ -260,7 +260,26 @@ const StudySrsPage = () => {
     setLastRatings({});
   };
 
+  const exitToChooser = useCallback(() => {
+    setQueue([]);
+    setRoundTotal(0);
+    setCompletedCount(0);
+    setCurrentIndex(0);
+    setIsRevealed(false);
+    setCompletionOpen(false);
+    setHasStartedRound(false);
+    setStats({ ...defaultStats });
+    setRoundCards(dueCards);
+    setPendingCards(dueCards);
+    setSeenCardIds(new Set());
+    setLastRatings({});
+  }, [dueCards]);
+
   const handleBackToDeck = () => {
+    if (hasStartedRound) {
+      exitToChooser();
+      return;
+    }
     router.push(`/decks/${deckId}`);
   };
 
@@ -454,7 +473,6 @@ const StudySrsPage = () => {
                 </div>
               </div>
 
-              {/* UPDATED: Use preRoundSummary instead of roundSummary */}
               <div className="rounded-lg border p-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-center bg-muted/30">
                 <div className="p-2">
                   <div className="text-sm text-muted-foreground">Not Yet</div>
@@ -753,7 +771,7 @@ const StudySrsPage = () => {
           </DialogHeader>
 
           <div className="space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-2 gap-3">
               <div className="p-3 rounded-lg border bg-muted/40">
                 <div className="text-xs text-muted-foreground">
                   Not Yet Studied
@@ -774,7 +792,7 @@ const StudySrsPage = () => {
               </div>
               <div className="p-3 rounded-lg border bg-yellow/20 dark:bg-violet/20">
                 <div className="text-xs text-muted-foreground">
-                  Learning / Relearning
+                  Learning 
                 </div>
                 <div className="text-xl font-bold">
                   {roundSummary.learning}
