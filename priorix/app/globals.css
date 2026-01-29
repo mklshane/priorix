@@ -212,6 +212,48 @@ body {
   }
 }
 
+@layer components {
+  .modal-surface {
+    position: relative;
+    overflow: hidden;
+    background: radial-gradient(circle at 12% 18%, rgba(142, 71, 185, 0.14), transparent 40%),
+      radial-gradient(circle at 82% 10%, rgba(202, 224, 68, 0.12), transparent 35%),
+      linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(255, 249, 245, 0.94));
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.16), 0 0 0 1px rgba(139, 92, 246, 0.15);
+    backdrop-filter: blur(14px);
+  }
+
+  .dark .modal-surface {
+    background: radial-gradient(circle at 12% 18%, rgba(139, 92, 246, 0.18), transparent 40%),
+      radial-gradient(circle at 82% 6%, rgba(57, 203, 183, 0.14), transparent 36%),
+      linear-gradient(145deg, rgba(30, 27, 43, 0.95), rgba(18, 16, 32, 0.98));
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 28px 85px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(139, 92, 246, 0.24);
+  }
+
+  .modal-surface::before {
+    content: "";
+    position: absolute;
+    inset: -35% -15% auto;
+    height: 60%;
+    background: radial-gradient(circle, rgba(199, 210, 254, 0.35), transparent 60%);
+    opacity: 0.55;
+    filter: blur(10px);
+    pointer-events: none;
+  }
+
+  .modal-surface::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, rgba(139, 92, 246, 0.22), rgba(201, 224, 68, 0.12), rgba(255, 182, 251, 0.14));
+    opacity: 0.65;
+    mix-blend-mode: screen;
+    pointer-events: none;
+  }
+}
+
 /* ===== GRADIENT UTILITIES ===== */
 .bg-gradient-main {
   background: linear-gradient(

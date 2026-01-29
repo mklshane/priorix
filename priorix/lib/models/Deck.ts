@@ -1,4 +1,3 @@
-// lib/models/Deck.ts
 import mongoose, { Schema, Document, Model } from "mongoose";
 import { IFlashcard } from "./Flashcard";
 
@@ -7,6 +6,7 @@ export interface IDeck extends Document {
   description?: string;
   user: mongoose.Types.ObjectId; // owner of the deck
   userName?: string; // Store the user's name for easier access
+  folder?: mongoose.Types.ObjectId | null; // optional folder container
   flashcards: mongoose.Types.ObjectId[] | IFlashcard[];
   isPublic: boolean; // whether the deck is public
   sharedWith?: mongoose.Types.ObjectId[]; // users who can access the deck
@@ -20,6 +20,7 @@ const DeckSchema: Schema<IDeck> = new Schema(
     description: { type: String, trim: true },
     user: { type: Schema.Types.ObjectId, ref: "User", required: true },
     userName: { type: String, trim: true }, // Store user's name
+    folder: { type: Schema.Types.ObjectId, ref: "Folder", default: null },
     flashcards: [{ type: Schema.Types.ObjectId, ref: "Flashcard" }],
     isPublic: { type: Boolean, default: false },
     sharedWith: [{ type: Schema.Types.ObjectId, ref: "User" }],

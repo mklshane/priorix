@@ -4,6 +4,7 @@ import { ConnectDB } from "@/lib/config/db";
 import UserDeckActivity from "@/lib/models/UserDeckActivity";
 import { Flashcard } from "@/lib/models";
 import mongoose from "mongoose";
+import * as deckController from "../controller";
 
 
 export async function GET(
@@ -17,7 +18,9 @@ export async function GET(
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get("userId") || undefined;
 
-    const deck = await Deck.findById(deckId).populate("flashcards");
+    const deck = await Deck.findById(deckId)
+      .populate("flashcards")
+      .populate("folder", "name");
     if (!deck) {
       return NextResponse.json({ message: "Deck not found" }, { status: 404 });
     }
@@ -71,6 +74,25 @@ export async function DELETE(
   } catch (error) {
     return NextResponse.json(
       { message: "Error deleting deck", error },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(
+  req: Request,
+  { params }: { params: { deckId: string } }
+) {
+  await ConnectDB();
+  const { deckId } = await params;
+
+  try {
+    const body = await req.json();
+    const result = await deckController.updateDeck({ ...body, deckId });
+    return NextResponse.json(result);
+  } catch (error: any) {
+    return NextResponse.json(
+      { message: "Error updating deck", error: error?.message || error },
       { status: 500 }
     );
   }

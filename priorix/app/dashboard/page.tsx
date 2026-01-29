@@ -121,6 +121,7 @@ export default function DashboardPage() {
         open={isAddDeckModalOpen}
         onOpenChange={setIsAddDeckModalOpen}
         onAddDeck={handleAddDeck}
+        folders={[]}
       />
     </div>
   );

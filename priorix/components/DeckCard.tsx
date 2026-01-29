@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Deck } from "@/types/deck";
+import type { Deck, Folder } from "@/types/deck";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -83,11 +83,13 @@ interface DeckCardProps {
     deckId: string,
     title: string,
     description: string,
-    isPublic: boolean
+    isPublic: boolean,
+    folderId: string | null
   ) => void;
   index?: number;
   showMenu?: boolean;
   queryClient?: ReturnType<typeof useQueryClient>;
+  folders?: Folder[];
 }
 
 const colors = ["bg-pink", "bg-green", "bg-yellow", "bg-purple"];
@@ -100,12 +102,14 @@ const DeckCard: React.FC<DeckCardProps> = ({
   index = 0,
   showMenu = true,
   queryClient,
+  folders = [],
 }) => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editIsPublic, setEditIsPublic] = useState(true);
+  const [editFolderId, setEditFolderId] = useState<string | "" | null>("");
   const [isClicked, setIsClicked] = useState(false);
   const router = useRouter();
   const { data: session } = useSession();
@@ -162,6 +166,15 @@ const DeckCard: React.FC<DeckCardProps> = ({
   const handleShareDeck = async (e: React.MouseEvent, deckId: string) => {
     e.stopPropagation();
     setShareDialogOpen(true);
+  };
+
+  const resolveFolderId = (folderValue: Deck["folder"]) => {
+    if (!folderValue) return "";
+    if (typeof folderValue === "string") return folderValue;
+    if (typeof folderValue === "object" && "_id" in folderValue) {
+      return (folderValue as { _id: string })._id;
+    }
+    return "";
   };
 
   const copyToClipboard = async (deckId: string) => {
@@ -269,40 +282,45 @@ const DeckCard: React.FC<DeckCardProps> = ({
   return (
     <>
       <Card
-        className={cn(
-          `border-0 overflow-hidden ${
-            colors[index % colors.length]
-          } shadow-md border-2 border-primary cursor-pointer dark:border-[#9057cc]
-          transition-all duration-200 ease-out dark:bg-card2
-          hover:shadow-lg hover:-translate-y-1.5
-          active:translate-y-0 active:shadow-md`,
-          isClicked && "translate-y-0",
-          className
-        )}
         onClick={() => handleDeckClick(deck._id)}
+        className={cn(
+          `
+    relative cursor-pointer overflow-hidden
+    ${colors[index % colors.length]}
+    border border-black/10 dark:border-white/10
+    rounded-xl
+    shadow-sm
+    transition-all duration-200 ease-out
+    hover:-translate-y-1 hover:shadow-lg
+    active:translate-y-0
+    `,
+          isClicked && "translate-y-0",
+          className,
+        )}
       >
-        <CardContent className="py-3 px-7 flex flex-col h-full">
+        <div className="absolute inset-x-0 top-0 h-[6px] bg-black/5 dark:bg-white/5" />
+
+        <CardContent className="pt-4 pb-4 px-4 flex flex-col h-full">
           {/* Header */}
-          <div className="flex justify-between items-start mb-2">
-            <h3 className="text-lg font-semibold font-sora line-clamp-2 text-foreground">
+          <div className="flex justify-between items-start mb-1">
+            <h3 className="text-md font-semibold font-sora line-clamp-1">
               {deck.title}
             </h3>
 
-            {/* Show menu if enabled */}
             {showMenu && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 -mt-1 -mr-2 transition-all duration-200 hover:bg-white/20"
+                    className="h-8 w-8 -mt-1 -mr-2 hover:bg-black/10 dark:hover:bg-white/10"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <MoreVertical className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
+
                 <DropdownMenuContent align="end">
-                  {/* Owner-specific options */}
                   {isOwner && (
                     <>
                       <DropdownMenuItem
@@ -311,41 +329,41 @@ const DeckCard: React.FC<DeckCardProps> = ({
                           setEditTitle(deck.title);
                           setEditDescription(deck.description || "");
                           setEditIsPublic(deck.isPublic || true);
+                          setEditFolderId(resolveFolderId(deck.folder));
                           setEditDialogOpen(true);
                         }}
-                        className="transition-colors duration-150 hover:bg-accent"
                       >
                         <Edit className="h-4 w-4 mr-2" /> Edit
                       </DropdownMenuItem>
+
                       <DropdownMenuItem
                         onClick={(e) => {
                           e.stopPropagation();
                           onDeleteClick?.(deck._id);
                         }}
-                        className="text-red-600 transition-colors duration-150 hover:bg-red-50 hover:text-red-700"
+                        className="text-red-600"
                       >
                         <Trash2 className="h-4 w-4 mr-2" /> Delete
                       </DropdownMenuItem>
+
                       <DropdownMenuSeparator />
                     </>
                   )}
 
-                  {/* Options for all users (owner and non-owner) */}
                   <DropdownMenuItem
                     onClick={(e) => handleToggleFavorite(e, deck._id)}
-                    className="transition-colors duration-150 hover:bg-accent"
                   >
                     <Star
-                      className={`h-4 w-4 mr-2 ${
-                        isFavorited ? "text-yellow-500 fill-yellow-500" : ""
-                      }`}
+                      className={cn(
+                        "h-4 w-4 mr-2",
+                        isFavorited && "fill-yellow-400 text-yellow-400",
+                      )}
                     />
                     {isFavorited ? "Remove from Favorites" : "Add to Favorites"}
                   </DropdownMenuItem>
 
                   <DropdownMenuItem
                     onClick={(e) => handleShareDeck(e, deck._id)}
-                    className="transition-colors duration-150 hover:bg-accent"
                   >
                     <Share className="h-4 w-4 mr-2" /> Share
                   </DropdownMenuItem>
@@ -354,28 +372,23 @@ const DeckCard: React.FC<DeckCardProps> = ({
             )}
           </div>
 
-          {/* Description */}
-          <div className="mb-10 flex-grow">
-            {deck.description && (
-              <p className="text-sm text-foreground line-clamp-2">
-                {deck.description}
-              </p>
+          {/* Body */}
+          <div className="flex-grow mb-6">
+            {deck.description ? (
+              <p className="text-xs line-clamp-3">{deck.description}</p>
+            ) : (
+              <p className="text-xs opacity-60 italic">No description</p>
             )}
           </div>
 
-          {/* Stats */}
-          <div className="mt-auto">
-            <div className="flex justify-between items-center text-sm mb-3">
-              <span className="font-semibold font-sora text-foreground">
-                {deckLength} cards
-              </span>
-              <div className="flex items-center text-foreground text-xs">
-                {getDisplayName()}
-                {!isOwner && (
-                  <span className="ml-2 text-muted-foreground">• Shared</span>
-                )}
-              </div>
-            </div>
+          {/* Footer */}
+          <div className="mt-auto flex items-center justify-between text-xs">
+            <span className="font-semibold">{deckLength} cards</span>
+
+            <span className="opacity-80">
+              {getDisplayName()}
+              {!isOwner && <span className="ml-1">• Shared</span>}
+            </span>
           </div>
         </CardContent>
       </Card>
@@ -462,14 +475,22 @@ const DeckCard: React.FC<DeckCardProps> = ({
         <EditDeckDialog
           open={editDialogOpen}
           onOpenChange={setEditDialogOpen}
-          onEditSubmit={async (title, description, isPublic) => {
+          onEditSubmit={async (title, description, isPublic, folderId) => {
             if (deck._id) {
-              await onEditClick?.(deck._id, title, description, isPublic);
+              await onEditClick?.(
+                deck._id,
+                title,
+                description,
+                isPublic,
+                folderId,
+              );
             }
           }}
           initialTitle={editTitle}
           initialDescription={editDescription}
           initialIsPublic={editIsPublic}
+          initialFolderId={editFolderId || null}
+          folders={folders}
         />
       )}
     </>

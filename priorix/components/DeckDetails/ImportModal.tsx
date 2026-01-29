@@ -1,7 +1,16 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { CloudUpload, FileDown, Wand2 } from "lucide-react";
 
 interface ImportModalProps {
   isOpen: boolean;
@@ -20,6 +29,14 @@ const ImportModal: React.FC<ImportModalProps> = ({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isImporting, setIsImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setSelectedFile(null);
+      setIsDragging(false);
+      setIsImporting(false);
+    }
+  }, [isOpen]);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -62,131 +79,121 @@ const ImportModal: React.FC<ImportModalProps> = ({
       }
     }
   };
-
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md">
-        <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
-          Import PDF to Create Flashcards
-        </h2>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) {
+          onClose();
+        }
+      }}
+    >
+      <DialogContent className="modal-surface sm:max-w-[540px] p-0">
+        <DialogHeader className="flex flex-row items-start gap-3 border-b border-border/60 bg-gradient-to-r from-primary/10 via-muted/40 to-transparent px-6 py-5">
+          <div className="flex size-12 items-center justify-center rounded-lg bg-primary/15 text-primary shadow-inner ring-1 ring-primary/20">
+            <Wand2 className="h-5 w-5" />
+          </div>
+          <div className="space-y-1 text-left">
+            <DialogTitle className="text-xl">Import PDF to Create Flashcards</DialogTitle>
+            <DialogDescription>
+              Drop a PDF and generate cards with AI extraction.
+            </DialogDescription>
+          </div>
+        </DialogHeader>
 
-        <div
-          className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-            isDragging
-              ? "border-violet bg-violet/10"
-              : selectedFile
-              ? "border-green bg-green/10"
-              : "border-gray-300 dark:border-gray-600 hover:border-violet"
-          }`}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          onClick={() => fileInputRef.current?.click()}
-        >
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileSelect}
-            accept=".pdf"
-            className="hidden"
-          />
-
-          {selectedFile ? (
-            <div className="text-primary dark:text-green/80">
-              <svg
-                className="w-12 h-12 mx-auto mb-3"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                ></path>
-              </svg>
-              <p className="font-medium">{selectedFile.name}</p>
-              <p className="text-sm mt-1">Click to select a different file</p>
-            </div>
-          ) : (
-            <div className="text-gray-500 dark:text-gray-400">
-              <svg
-                className="w-12 h-12 mx-auto mb-3"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                ></path>
-              </svg>
-              <p className="font-medium">Drag & drop your PDF here</p>
-              <p className="text-sm mt-1">or click to browse files</p>
-            </div>
-          )}
-        </div>
-
-        <div className="flex justify-end gap-3 mt-6">
-          <Button
-            onClick={onClose}
-            variant="outline"
-            className="border-gray-300 dark:border-gray-600"
-            disabled={isImporting}
+        <div className="px-6 py-5 space-y-5">
+          <div
+            className={`relative flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border/70 bg-background/70 px-6 py-10 text-center shadow-inner transition-all duration-200 ${
+              isDragging
+                ? "border-primary/70 bg-primary/5"
+                : selectedFile
+                ? "border-green-400/70 bg-green-400/5"
+                : "hover:border-primary/60"
+            }`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
           >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleGenerate}
-            disabled={!selectedFile || isImporting}
-            className="bg-purple text-primary border-2 border-primary disabled:opacity-50 hover:bg-purple/50"
-          >
-            {isImporting ? (
-              <>
-                <svg
-                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-                Generating...
-              </>
-            ) : (
-              "Generate Flashcards"
-            )}
-          </Button>
+            <div className="flex size-12 items-center justify-center rounded-full bg-primary/15 text-primary ring-1 ring-primary/20">
+              {selectedFile ? (
+                <FileDown className="h-5 w-5" />
+              ) : (
+                <CloudUpload className="h-5 w-5" />
+              )}
+            </div>
+            <div className="space-y-1">
+              <p className="font-semibold">
+                {selectedFile ? selectedFile.name : "Drag & drop your PDF"}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {selectedFile ? "Click to choose another file" : "or click to browse"}
+              </p>
+            </div>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileSelect}
+              accept=".pdf"
+              className="hidden"
+            />
+            <div className="absolute inset-x-6 bottom-4 text-xs text-muted-foreground">
+              PDF only • We keep your files private
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-border/60 bg-background/60 px-4 py-3 text-sm text-muted-foreground shadow-inner">
+            <p>• Larger PDFs may take a bit longer to analyze.</p>
+            <p>• We extract key terms and auto-create flashcards.</p>
+          </div>
         </div>
 
-        {/* Additional info */}
-        <div className="mt-4 text-xs text-gray-500 dark:text-gray-400">
-          <p>• This may take a few moments depending on the PDF size</p>
-          <p>
-            • The AI will extract key terms and create flashcards automatically
-          </p>
-        </div>
-      </div>
-    </div>
+        <DialogFooter className="border-t border-border/60 bg-background/40 px-6 py-4">
+          <div className="flex w-full items-center justify-end gap-2">
+            <Button
+              onClick={onClose}
+              variant="outline"
+              disabled={isImporting}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleGenerate}
+              disabled={!selectedFile || isImporting}
+              className="shadow-[0_12px_30px_rgba(139,92,246,0.35)]"
+            >
+              {isImporting ? (
+                <>
+                  <svg
+                    className="animate-spin -ml-1 mr-2 h-4 w-4"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Generating...
+                </>
+              ) : (
+                "Generate Flashcards"
+              )}
+            </Button>
+          </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 
