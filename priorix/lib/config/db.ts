@@ -1,9 +1,11 @@
 import mongoose from "mongoose";
 
-const MONGO_URI = process.env.MONGO_URI;
+// Support both env var names so production deployments do not 500 when only
+// MONGODB_URI is provided (common on Vercel/Atlas).
+const MONGO_URI = process.env.MONGO_URI || process.env.MONGODB_URI;
 
 if (!MONGO_URI) {
-  throw new Error("Please define the MONGO_URI environment variable");
+  throw new Error("Please define the MONGO_URI or MONGODB_URI environment variable");
 }
 
 interface MongooseCache {
