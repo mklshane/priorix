@@ -9,6 +9,8 @@ export const srsConfig = {
   goodMultiplier: 2.5,
   easyMultiplier: 3.5,
   minIntervalDays: 1,
+  // Minimum delay (minutes) before a reviewed card can be selected again, as a safety net.
+  minNextReviewMinutes: 10,
 };
 
 export const srsSessionSizes = [10, 20, 30, 40, 50] as const;

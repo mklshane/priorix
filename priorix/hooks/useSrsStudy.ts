@@ -62,6 +62,12 @@ export const useSrsStudy = (deckId: string, sessionSize: number) => {
     onSuccess: () => {
       // Keep session smooth without per-card toasts; allow manual refetch between rounds.
       queryClient.invalidateQueries({ queryKey, exact: true });
+      if (session?.user?.id) {
+        queryClient.invalidateQueries({
+          queryKey: ["flashcards", deckId, session.user.id],
+          exact: true,
+        });
+      }
     },
   });
 

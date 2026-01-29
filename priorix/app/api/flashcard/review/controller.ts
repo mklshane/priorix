@@ -25,6 +25,8 @@ export const getDueFlashcards = async (
 ) => {
   await ConnectDB();
   const now = new Date();
+  const cooldownMs = (srsConfig.minNextReviewMinutes || 0) * 60 * 1000;
+  const recentCutoff = new Date(now.getTime() - cooldownMs);
   const query = {
     deck: deckId,
     $or: [
@@ -34,9 +36,15 @@ export const getDueFlashcards = async (
     ],
   };
 
-  const cards = await Flashcard.find(query)
-    .sort({ nextReviewAt: 1, createdAt: 1 })
-    .limit(limit);
+  const candidates = await Flashcard.find(query).sort({ nextReviewAt: 1, createdAt: 1 });
+
+  const eligible = candidates.filter(
+    (card) => !card.lastReviewedAt || card.lastReviewedAt < recentCutoff,
+  );
+
+  // Shuffle to avoid always pulling the same top items when many are due at the same time
+  const shuffled = eligible.sort(() => Math.random() - 0.5);
+  const cards = shuffled.slice(0, limit);
 
   cards.forEach(initCardIfNeeded);
   return cards;
@@ -103,7 +111,11 @@ export const reviewFlashcard = async (data: {
   card.intervalDays = interval;
   card.easeFactor = ease;
   card.lastReviewedAt = now;
-  card.nextReviewAt = addDays(now, interval);
+  const scheduled = addDays(now, interval);
+  const minNext = new Date(
+    now.getTime() + (srsConfig.minNextReviewMinutes || 0) * 60 * 1000,
+  );
+  card.nextReviewAt = scheduled > minNext ? scheduled : minNext;
   card.reviewCount = (card.reviewCount || 0) + 1;
 
   if (typeof data.responseTimeMs === "number") {

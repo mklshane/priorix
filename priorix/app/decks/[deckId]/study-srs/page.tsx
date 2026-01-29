@@ -31,6 +31,7 @@ import { useDeck } from "@/hooks/useDeck";
 import { useToast } from "@/hooks/useToast";
 import { IFlashcard } from "@/types/flashcard";
 import LoadingState from "@/components/DeckDetails/LoadingState";
+import { useFlashcards } from "@/hooks/useFlashcards";
 
 const sessionSizeStorageKey = (deckId: string) => `srs-session-size-${deckId}`;
 type RoundStats = Record<SrsRating, number>;
@@ -96,8 +97,21 @@ const StudySrsPage = () => {
   const [isFlipping, setIsFlipping] = useState(false);
   const [roundTotal, setRoundTotal] = useState(0);
   const [completedCount, setCompletedCount] = useState(0);
+  const [roundCards, setRoundCards] = useState<IFlashcard[]>([]);
+  const [seenCardIds, setSeenCardIds] = useState<Set<string>>(new Set());
+  const [cardUpdates, setCardUpdates] = useState<Record<string, IFlashcard>>(
+    {},
+  );
+  const [lastRatings, setLastRatings] = useState<
+    Record<string, SrsRating | undefined>
+  >({});
 
   const { deck, isLoading: isDeckLoading, error: deckError } = useDeck(deckId);
+  const {
+    flashcards: deckCards,
+    isLoading: isFlashcardsLoading,
+    isFetching: isFlashcardsFetching,
+  } = useFlashcards(deckId);
 
   const {
     dueCards,
@@ -126,12 +140,15 @@ const StudySrsPage = () => {
       setStats({ ...defaultStats });
       setRoundTotal(0);
       setCompletedCount(0);
+      setRoundCards(dueCards);
+      setSeenCardIds(new Set());
     }
   }, [dueCards, hasStartedRound]);
 
   const currentCard = queue[currentIndex];
   const isPending =
     isDeckLoading ||
+    isFlashcardsLoading ||
     (isDueLoading &&
       !dueCards.length &&
       !pendingCards.length &&
@@ -158,12 +175,23 @@ const StudySrsPage = () => {
     setCompletionOpen(false);
     setStats({ ...defaultStats });
     setHasStartedRound(true);
+    setRoundCards(shuffled);
+    setSeenCardIds(new Set());
   };
 
   const handleRating = async (rating: SrsRating) => {
     if (!currentCard) return;
     try {
-      await review({ cardId: currentCard._id, rating });
+      const updatedCard = await review({ cardId: currentCard._id, rating });
+      setSeenCardIds((prev) => {
+        const next = new Set(prev);
+        next.add(currentCard._id);
+        return next;
+      });
+      setLastRatings((prev) => ({ ...prev, [currentCard._id]: rating }));
+      if (updatedCard) {
+        setCardUpdates((prev) => ({ ...prev, [updatedCard._id]: updatedCard }));
+      }
       setStats((prev) => ({ ...prev, [rating]: prev[rating] + 1 }));
       setCompletedCount((prev) => prev + 1);
 
@@ -218,6 +246,8 @@ const StudySrsPage = () => {
     setCompletionOpen(false);
     setStats({ ...defaultStats });
     setHasStartedRound(nextCards.length > 0);
+    setRoundCards(nextCards);
+    setSeenCardIds(new Set());
   };
 
   const handleBackToDeck = () => {
@@ -231,6 +261,64 @@ const StudySrsPage = () => {
   const cardPosition = currentCard
     ? Math.min(completedCount + 1, roundTotal)
     : roundTotal;
+
+  const classifyCard = (card: IFlashcard, lastRating?: SrsRating) => {
+    const ease = card.easeFactor ?? 2.5;
+    const interval = card.intervalDays ?? 0;
+    const reps = card.reviewCount ?? 0;
+    const lapses = card.againCount ?? 0;
+    const state = card.currentState ?? "learning";
+
+    // If we've seen a rating this session, treat it as studied.
+    if ((lastRating && reps === 0) || state === "new") {
+      if (lastRating === "again") return "learning" as const;
+      if (lastRating === "hard") return "hard" as const;
+      if (lastRating === "good" || lastRating === "easy") return "good" as const;
+      return "notYet" as const;
+    }
+
+    if (reps === 0) return "notYet" as const;
+
+    const mastered =
+      state === "review" && interval >= 21 && reps >= 3 && ease >= 2.3 && lapses <= 2;
+    if (mastered) return "mastered" as const;
+
+    if (
+      state === "learning" ||
+      state === "relearning" ||
+      lastRating === "again" ||
+      interval < 1.5
+    ) {
+      return "learning" as const;
+    }
+
+    if (lastRating === "hard" || ease < 2.1 || interval < 7) {
+      return "hard" as const;
+    }
+
+    return "good" as const;
+  };
+
+  const baseCards =
+    deckCards && deckCards.length > 0 ? deckCards : roundCards.length > 0 ? roundCards : dueCards;
+
+  const mergedDeckCards = baseCards.map((card) => cardUpdates[card._id] ?? card);
+
+  const roundSummary = mergedDeckCards.reduce(
+    (acc, card) => {
+      const lastRating = lastRatings[card._id];
+      const bucket = classifyCard(card, lastRating);
+      acc[bucket] += 1;
+      return acc;
+    },
+    {
+      notYet: 0,
+      learning: 0,
+      hard: 0,
+      good: 0,
+      mastered: 0,
+    },
+  );
 
   const renderPreRound = () => (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 p-4">
@@ -571,80 +659,48 @@ const StudySrsPage = () => {
       <Dialog open={completionOpen} onOpenChange={setCompletionOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <div className="flex items-center justify-center w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-green-500 to-emerald-600">
-              <Check className="h-8 w-8 text-white" />
-            </div>
-            <DialogTitle className="text-center text-2xl pt-4">
-              Session Complete! 🎉
+            <DialogTitle className="text-center text-2xl ">
+              Round Summary
             </DialogTitle>
-            <DialogDescription className="text-center">
-              You reviewed {totalReviews} cards in this session
-            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-3">
-              {srsRatings.map((rating) => {
-                const config = ratingConfig[rating];
-                return (
-                  <div
-                    key={rating}
-                    className={cn(
-                      "p-3 rounded-lg flex items-center justify-between",
-                      config.bgColor,
-                      config.borderColor,
-                      "border",
-                    )}
-                  >
-                    <span className={cn("font-medium", config.color)}>
-                      {config.label}
-                    </span>
-                    <span className={cn("text-xl font-bold", config.color)}>
-                      {stats[rating]}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="space-y-3">
-              <p className="text-sm font-medium">Next Session Size</p>
-              <div className="flex flex-wrap gap-2">
-                {srsSessionSizes.map((size) => (
-                  <Button
-                    key={size}
-                    variant={sessionSize === size ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSessionSize(size)}
-                    disabled={isReviewing}
-                  >
-                    {size}
-                  </Button>
-                ))}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="p-3 rounded-lg border bg-muted/40">
+                <div className="text-sm text-muted-foreground">Not Yet Studied</div>
+                <div className="text-2xl font-bold">{roundSummary.notYet}</div>
+              </div>
+              <div className="p-3 rounded-lg border bg-yellow/20 dark:bg-violet/20">
+                <div className="text-sm text-muted-foreground">Learning / Relearning</div>
+                <div className="text-2xl font-bold">{roundSummary.learning}</div>
+              </div>
+              <div className="p-3 rounded-lg border bg-orange-50 dark:bg-orange-950/30">
+                <div className="text-sm text-muted-foreground">Hard (unstable)</div>
+                <div className="text-2xl font-bold">{roundSummary.hard}</div>
+              </div>
+              <div className="p-3 rounded-lg border bg-blue-50 dark:bg-blue-950/30">
+                <div className="text-sm text-muted-foreground">Good (not mastered)</div>
+                <div className="text-2xl font-bold">{roundSummary.good}</div>
+              </div>
+              <div className="p-3 rounded-lg border bg-green-50 dark:bg-green-950/30 sm:col-span-2">
+                <div className="text-sm text-muted-foreground">Mastered (stable)</div>
+                <div className="text-2xl font-bold">{roundSummary.mastered}</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Marked mastered when interval ≥ 21 days, reps ≥ 3, ease ≥ 2.3, and few lapses.
+                </p>
               </div>
             </div>
+
+           
 
             <div className="rounded-lg bg-muted/50 p-4 space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Session Duration</span>
-                <span className="font-medium">
-                  ~{Math.ceil(totalReviews * 0.5)} min
-                </span>
+                <span className="text-muted-foreground">Cards seen this round</span>
+                <span className="font-medium">{roundCards.length - roundSummary.notYet}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Cards Reviewed</span>
-                <span className="font-medium">{totalReviews}</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Mastery Rate</span>
-                <span className="font-medium text-green-600">
-                  {stats.good + stats.easy > 0
-                    ? Math.round(
-                        ((stats.good + stats.easy) / Math.max(totalReviews, 1)) * 100,
-                      )
-                    : 0}
-                  %
-                </span>
+                <span className="text-muted-foreground">Total due sampled</span>
+                <span className="font-medium">{roundCards.length}</span>
               </div>
             </div>
           </div>
