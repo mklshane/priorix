@@ -767,7 +767,7 @@ const DecksPageContent = () => {
       />
 
       <div className="flex flex-col gap-2 mb-2">
-        <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="hidden md:flex items-center justify-between gap-3 flex-wrap">
           <div>
             <p className="text-sm text-muted-foreground mb-1">Overview</p>
             <h1 className="text-2xl md:text-3xl font-bold text-foreground">
