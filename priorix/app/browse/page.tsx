@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Compass, Loader2, Search } from "lucide-react";
@@ -14,7 +14,8 @@ import type { Deck } from "@/types/deck";
 const fetchPublicDecks = async (): Promise<Deck[]> => {
   const baseUrl = (() => {
     if (typeof window !== "undefined") return "";
-    if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL;
+    if (process.env.NEXT_PUBLIC_SITE_URL)
+      return process.env.NEXT_PUBLIC_SITE_URL;
     if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
     return "http://localhost:3000";
   })();
@@ -28,7 +29,7 @@ const fetchPublicDecks = async (): Promise<Deck[]> => {
 
 const PAGE_SIZE = 12;
 
-export default function BrowsePage() {
+function BrowseContent() {
   const [search, setSearch] = useState("");
   const router = useRouter();
   const pathname = usePathname();
@@ -56,7 +57,8 @@ export default function BrowsePage() {
       : decks;
 
     return [...scoped].sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     );
   }, [decks, search]);
 
@@ -134,9 +136,9 @@ export default function BrowsePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-secondary/10">
-      <div className="mx-auto max-w-6xl ">
+      <div className="mx-auto max-w-6xl p-6">
         {/* Header Section */}
-        <div className="mb-4 space-y-2">
+        <div className="mb-8 space-y-2">
           <div className="flex items-center gap-2">
             <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary">
               <Compass className="h-4 w-4" />
@@ -152,12 +154,10 @@ export default function BrowsePage() {
               Discover and study decks created by learners worldwide
             </p>
           </div>
-
-          
         </div>
 
         {/* Search Section */}
-        <div className="mb-4 space-y-4">
+        <div className="mb-8 space-y-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="relative w-full sm:max-w-xl">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -170,6 +170,12 @@ export default function BrowsePage() {
             </div>
 
             <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto sm:justify-end">
+              <Badge variant="outline" className="px-3 py-1.5">
+                {filteredDecks.length} decks
+              </Badge>
+              <Badge variant="outline" className="px-3 py-1.5">
+                {totalCards} cards
+              </Badge>
               <span className="text-sm text-muted-foreground">
                 Showing {paginatedDecks.length} of {filteredDecks.length} decks
               </span>
@@ -324,5 +330,20 @@ export default function BrowsePage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function BrowsePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center p-6 text-muted-foreground">
+          <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
+          <span className="ml-2 text-sm">Loading browse…</span>
+        </div>
+      }
+    >
+      <BrowseContent />
+    </Suspense>
   );
 }
