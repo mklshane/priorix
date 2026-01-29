@@ -15,7 +15,6 @@ import LoadingState from "@/components/DeckDetails/LoadingState";
 import ErrorState from "@/components/DeckDetails/ErrorState";
 import NotFoundState from "@/components/DeckDetails/NotFoundState";
 import ImportModal from "@/components/DeckDetails/ImportModal";
-import { importPDF } from "@/utils/pdfImporter";
 import { useDeckContext } from "@/contexts/DeckContext";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -80,18 +79,31 @@ const DeckDetailPage = () => {
     setShowImportModal(false);
   };
 
-  const handleImportGeneratePDF = async (file: File, importDeckId: string) => {
+  const handleImportGenerate = async (text: string, importDeckId: string) => {
     if (!isOwner) {
       showToast("Only deck owners can import cards", "error");
       return;
     }
 
+    const boundedText = text.length > 45000 ? text.slice(0, 45000) : text;
+
     setIsImporting(true);
     setError(null);
-    const toastId = showToast("Importing flashcards...", "loading"); // Show loading toast
+    const toastId = showToast("Importing flashcards...", "loading");
 
     try {
-      const newFlashcards = await importPDF(file, importDeckId);
+      const response = await fetch("/api/ai/generate-and-save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: boundedText, deckId: importDeckId }),
+      });
+
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData?.error || "Failed to generate flashcards");
+      }
+
+      const newFlashcards = await response.json();
 
       // Update client-side cache
       queryClient.setQueryData<IFlashcard[]>(
@@ -104,7 +116,7 @@ const DeckDetailPage = () => {
       setShowImportModal(false);
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : "Failed to import PDF";
+        err instanceof Error ? err.message : "Failed to import content";
       setError(errorMessage);
       dismissToast();
       showToast(errorMessage, "error");
@@ -202,7 +214,7 @@ const DeckDetailPage = () => {
       <ImportModal
         isOpen={showImportModal}
         onClose={handleCloseImportModal}
-        onImport={handleImportGeneratePDF}
+        onImport={handleImportGenerate}
         deckId={deckId}
       />
 
@@ -215,7 +227,7 @@ const DeckDetailPage = () => {
 
       {isImporting && (
         <div className="mb-4 p-3 bg-blue-100 text-blue-800 rounded-md">
-          Importing PDF... This may take a moment.
+          Importing content... This may take a moment.
         </div>
       )}
 
