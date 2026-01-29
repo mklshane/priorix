@@ -10,6 +10,7 @@ interface DeckHeaderProps {
   deck: Deck;
   flashcards: IFlashcard[];
   onStudyDeck: () => void;
+  onStudySrs?: () => void;
   onImportPDF?: () => void;
 }
 
@@ -17,6 +18,7 @@ const DeckHeader = ({
   deck,
   flashcards,
   onStudyDeck,
+  onStudySrs,
   onImportPDF,
 }: DeckHeaderProps) => {
   const { isOwner } = useDeckContext();
@@ -98,6 +100,17 @@ const DeckHeader = ({
                   className="flex items-center gap-1 md:gap-2 bg-pink text-primary border-2 border-primary hover:bg-pink/70 text-xs md:text-sm btn-hover btn-active dark:text-yellow"
                 >
                   Study Now
+                </Button>
+              )}
+
+              {flashcards.length > 0 && onStudySrs && (
+                <Button
+                  size="sm"
+                  onClick={onStudySrs}
+                  variant="outline"
+                  className="flex items-center gap-1 md:gap-2 border-2 border-primary text-primary hover:bg-primary/10 text-xs md:text-sm btn-hover btn-active"
+                >
+                  Spaced Repetition
                 </Button>
               )}
             </div>

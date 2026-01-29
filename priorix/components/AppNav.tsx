@@ -36,9 +36,10 @@ export default function AppNav({ onToggleSidebar }: AppNavProps) {
 
   const isOnDeckPage = pathname.match(/^\/decks\/([^\/]+)$/) !== null;
   const isOnStudyPage = pathname.match(/^\/decks\/([^\/]+)\/study$/) !== null;
+  const isOnSrsPage = pathname.match(/^\/decks\/([^\/]+)\/study-srs$/) !== null;
 
   const handleBack = () => {
-    if (isOnStudyPage) {
+    if (isOnStudyPage || isOnSrsPage) {
       const deckId = getDeckId();
       console.log("Study page - deckId:", deckId);
 
@@ -115,6 +116,11 @@ export default function AppNav({ onToggleSidebar }: AppNavProps) {
       return studyMatch[1];
     }
 
+    const srsMatch = pathname.match(/^\/decks\/([^\/]+)\/study-srs$/);
+    if (srsMatch && srsMatch[1]) {
+      return srsMatch[1];
+    }
+
     const deckMatch = pathname.match(/^\/decks\/([^\/]+)$/);
     if (deckMatch && deckMatch[1]) {
       return deckMatch[1];
@@ -147,13 +153,13 @@ export default function AppNav({ onToggleSidebar }: AppNavProps) {
   // Show back button in these cases:
   // 1. Always show on study pages (to go back to deck details)
   // 2. Always show on deck pages (to go back to appropriate location)
-  const shouldShowBackButton = isOnStudyPage || isOnDeckPage;
+  const shouldShowBackButton = isOnStudyPage || isOnSrsPage || isOnDeckPage;
 
   // Show hamburger menu when:
   // 1. On dashboard page
   // 2. On other pages that aren't deck/study pages (like /decks, /todo, /notes)
   const shouldShowHamburgerMenu =
-    pathname === "/dashboard" || (!isOnDeckPage && !isOnStudyPage);
+    pathname === "/dashboard" || (!isOnDeckPage && !isOnStudyPage && !isOnSrsPage);
 
   const pageNames: Record<string, string> = {
     "/dashboard": "Priorix",
@@ -163,7 +169,7 @@ export default function AppNav({ onToggleSidebar }: AppNavProps) {
   };
 
   const getCurrentPage = () => {
-    if (isOnStudyPage) {
+    if (isOnStudyPage || isOnSrsPage) {
       return deckName || "Study";
     }
 
