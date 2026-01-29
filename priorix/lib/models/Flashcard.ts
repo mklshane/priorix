@@ -15,6 +15,8 @@ export interface IFlashcard extends Document {
   easyCount?: number;
   averageResponseTime?: number;
   currentState?: "new" | "learning" | "review" | "relearning";
+  learningStepIndex?: number;
+  lapseCount?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -34,6 +36,8 @@ const FlashcardSchema: Schema<IFlashcard> = new Schema(
     goodCount: { type: Number, default: 0 },
     easyCount: { type: Number, default: 0 },
     averageResponseTime: { type: Number, default: 0 },
+    learningStepIndex: { type: Number, default: 0 },
+    lapseCount: { type: Number, default: 0 },
     currentState: {
       type: String,
       enum: ["new", "learning", "review", "relearning"],

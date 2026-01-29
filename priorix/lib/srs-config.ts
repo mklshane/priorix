@@ -9,6 +9,11 @@ export const srsConfig = {
   goodMultiplier: 2.5,
   easyMultiplier: 3.5,
   minIntervalDays: 1,
+  learningStepsMinutes: [10, 60 * 24],
+  relearningStepsMinutes: [10, 60 * 24],
+  initialReviewIntervalDays: 4,
+  easyGraduatingIntervalDays: 6,
+  lapseIntervalDays: 1,
   // Minimum delay (minutes) before a reviewed card can be selected again, as a safety net.
   minNextReviewMinutes: 10,
 };

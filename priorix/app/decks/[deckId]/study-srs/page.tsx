@@ -1,19 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  ArrowLeft,
-  BarChart3,
-  Check,
-  Clock,
-  RotateCcw,
-  Target,
-  Zap,
-} from "lucide-react";
+import { BarChart3, Check, Clock, RotateCcw, Target, Zap } from "lucide-react";
+
+import LoadingState from "@/components/DeckDetails/LoadingState";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -22,19 +16,27 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { cn } from "@/lib/utils";
-import { srsRatings, srsSessionSizes, SrsRating } from "@/lib/srs-config";
-import { useSrsStudy } from "@/hooks/useSrsStudy";
 import { useDeck } from "@/hooks/useDeck";
-import { useToast } from "@/hooks/useToast";
-import { IFlashcard } from "@/types/flashcard";
-import LoadingState from "@/components/DeckDetails/LoadingState";
 import { useFlashcards } from "@/hooks/useFlashcards";
+import { useSrsStudy } from "@/hooks/useSrsStudy";
+import { useToast } from "@/hooks/useToast";
+import { SrsRating, srsRatings, srsSessionSizes } from "@/lib/srs-config";
+import { cn } from "@/lib/utils";
+import { IFlashcard } from "@/types/flashcard";
 
 const sessionSizeStorageKey = (deckId: string) => `srs-session-size-${deckId}`;
+
 type RoundStats = Record<SrsRating, number>;
+
+type SummaryBuckets = {
+  notYet: number;
+  forgotten: number;
+  learning: number;
+  hard: number;
+  good: number;
+  mastered: number;
+};
 
 const defaultStats: RoundStats = {
   again: 0,
@@ -42,6 +44,17 @@ const defaultStats: RoundStats = {
   good: 0,
   easy: 0,
 };
+
+const defaultSummary: SummaryBuckets = {
+  notYet: 0,
+  forgotten: 0,
+  learning: 0,
+  hard: 0,
+  good: 0,
+  mastered: 0,
+};
+
+const FORGOTTEN_THRESHOLD_MS = 14 * 24 * 60 * 60 * 1000;
 
 const ratingConfig = {
   again: {
@@ -102,17 +115,11 @@ const StudySrsPage = () => {
   const [cardUpdates, setCardUpdates] = useState<Record<string, IFlashcard>>(
     {},
   );
-  const [lastRatings, setLastRatings] = useState<
-    Record<string, SrsRating | undefined>
-  >({});
+  const [lastRatings, setLastRatings] = useState<Record<string, SrsRating>>({});
 
   const { deck, isLoading: isDeckLoading, error: deckError } = useDeck(deckId);
-  const {
-    flashcards: deckCards,
-    isLoading: isFlashcardsLoading,
-    isFetching: isFlashcardsFetching,
-  } = useFlashcards(deckId);
-
+  const { flashcards: deckCards, isLoading: isFlashcardsLoading } =
+    useFlashcards(deckId);
   const {
     dueCards,
     isLoading: isDueLoading,
@@ -142,6 +149,7 @@ const StudySrsPage = () => {
       setCompletedCount(0);
       setRoundCards(dueCards);
       setSeenCardIds(new Set());
+      setLastRatings({});
     }
   }, [dueCards, hasStartedRound]);
 
@@ -177,6 +185,7 @@ const StudySrsPage = () => {
     setHasStartedRound(true);
     setRoundCards(shuffled);
     setSeenCardIds(new Set());
+    setLastRatings({});
   };
 
   const handleRating = async (rating: SrsRating) => {
@@ -217,12 +226,12 @@ const StudySrsPage = () => {
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (!roundActive || !currentCard) return;
-      const active = document.activeElement;
+      const active = document.activeElement as HTMLElement | null;
       const isInput =
         active &&
         (active.tagName === "INPUT" ||
           active.tagName === "TEXTAREA" ||
-          (active as HTMLElement).isContentEditable);
+          active.isContentEditable);
       if (isInput) return;
       if (e.code === "Space") {
         e.preventDefault();
@@ -248,6 +257,7 @@ const StudySrsPage = () => {
     setHasStartedRound(nextCards.length > 0);
     setRoundCards(nextCards);
     setSeenCardIds(new Set());
+    setLastRatings({});
   };
 
   const handleBackToDeck = () => {
@@ -256,68 +266,110 @@ const StudySrsPage = () => {
 
   const progress =
     roundTotal > 0 ? Math.min((completedCount / roundTotal) * 100, 100) : 0;
-  const totalReviews = Object.values(stats).reduce((a, b) => a + b, 0);
   const cardsRemaining = Math.max(roundTotal - completedCount, 0);
   const cardPosition = currentCard
     ? Math.min(completedCount + 1, roundTotal)
     : roundTotal;
 
-  const classifyCard = (card: IFlashcard, lastRating?: SrsRating) => {
-    const ease = card.easeFactor ?? 2.5;
-    const interval = card.intervalDays ?? 0;
-    const reps = card.reviewCount ?? 0;
-    const lapses = card.againCount ?? 0;
-    const state = card.currentState ?? "learning";
+ const classifyCard = useCallback(
+   (card: IFlashcard): Exclude<keyof SummaryBuckets, "notYet" | "forgotten"> => {
+     // Ensure all fields have defaults
+     const ease = card.easeFactor ?? 2.5;
+     const interval = card.intervalDays ?? 0;
+     const reps = card.reviewCount ?? 0;
+     const lapses = card.lapseCount ?? card.againCount ?? 0;
+     const state = card.currentState ?? "new";
+     const lastRating = lastRatings[card._id];
 
-    // If we've seen a rating this session, treat it as studied.
-    if ((lastRating && reps === 0) || state === "new") {
-      if (lastRating === "again") return "learning" as const;
-      if (lastRating === "hard") return "hard" as const;
-      if (lastRating === "good" || lastRating === "easy") return "good" as const;
-      return "notYet" as const;
-    }
+     // REMOVED: The reps === 0 check since computeSummary handles it
+     // Cards in learning or relearning state, OR just rated "Again"
+     const inLearningState =
+       state === "new" || state === "learning" || state === "relearning";
+     if (inLearningState || lastRating === "again") {
+       return "learning";
+     }
 
-    if (reps === 0) return "notYet" as const;
+     // Mastered criteria: stable, long-term retention
+     // Anki-style: interval ≥ 21 days, reps ≥ 5, good ease, few lapses
+     const isMastered =
+       interval >= 21 && reps >= 5 && ease >= 2.3 && lapses <= 2;
+     if (isMastered) {
+       return "mastered";
+     }
 
-    const mastered =
-      state === "review" && interval >= 21 && reps >= 3 && ease >= 2.3 && lapses <= 2;
-    if (mastered) return "mastered" as const;
+     // Hard cards: either rated "Hard" recently OR showing unstable signs
+     const isHard =
+       interval < 7 || ease < 2.1 || lapses > 2 || lastRating === "hard";
+     if (isHard) {
+       return "hard";
+     }
 
-    if (
-      state === "learning" ||
-      state === "relearning" ||
-      lastRating === "again" ||
-      interval < 1.5
-    ) {
-      return "learning" as const;
-    }
+     // Good cards: graduated but not yet mastered
+     return "good";
+   },
+   [lastRatings],
+ );
 
-    if (lastRating === "hard" || ease < 2.1 || interval < 7) {
-      return "hard" as const;
-    }
+  const summarySourceCards = useMemo(() => {
+    if (deckCards && deckCards.length > 0) return deckCards;
+    if (roundCards.length > 0) return roundCards;
+    if (pendingCards.length > 0) return pendingCards;
+    return dueCards;
+  }, [deckCards, roundCards, pendingCards, dueCards]);
 
-    return "good" as const;
-  };
+  const deckCardsWithUpdates = useMemo(() => {
+    const source = summarySourceCards;
+    const merged = new Map<string, IFlashcard>();
+    source.forEach((card) => merged.set(card._id, card));
+    Object.values(cardUpdates).forEach((card) => merged.set(card._id, card));
+    return Array.from(merged.values());
+  }, [cardUpdates, summarySourceCards]);
 
-  const baseCards =
-    deckCards && deckCards.length > 0 ? deckCards : roundCards.length > 0 ? roundCards : dueCards;
+  const computeSummary = useCallback(
+    (cards: IFlashcard[]) => {
+      return cards.reduce<SummaryBuckets>(
+        (acc, card) => {
+          const reps = card.reviewCount ?? 0;
+          const lastReviewed = card.lastReviewedAt
+            ? new Date(card.lastReviewedAt)
+            : null;
+          const hasBeenReviewed = lastReviewed != null;
 
-  const mergedDeckCards = baseCards.map((card) => cardUpdates[card._id] ?? card);
+          // Never touched
+          if (reps === 0 && !hasBeenReviewed) {
+            acc.notYet += 1;
+            return acc;
+          }
 
-  const roundSummary = mergedDeckCards.reduce(
-    (acc, card) => {
-      const lastRating = lastRatings[card._id];
-      const bucket = classifyCard(card, lastRating);
-      acc[bucket] += 1;
-      return acc;
+          // Forgotten: no review in the last 14 days (or missing timestamp)
+          const isForgotten = !lastReviewed
+            ? true
+            : Date.now() - lastReviewed.getTime() >= FORGOTTEN_THRESHOLD_MS;
+          if (isForgotten) {
+            acc.forgotten += 1;
+            return acc;
+          }
+
+          // Otherwise classify by SRS state
+          const bucket = classifyCard(card);
+          acc[bucket] += 1;
+          return acc;
+        },
+        { ...defaultSummary },
+      );
     },
-    {
-      notYet: 0,
-      learning: 0,
-      hard: 0,
-      good: 0,
-      mastered: 0,
-    },
+    [classifyCard],
+  );
+
+  const roundSummary = useMemo(
+    () => computeSummary(deckCardsWithUpdates),
+    [computeSummary, deckCardsWithUpdates],
+  );
+
+  // UPDATED: Also compute summary for pre-round display (should be the same logic)
+  const preRoundSummary = useMemo(
+    () => computeSummary(deckCardsWithUpdates),
+    [computeSummary, deckCardsWithUpdates],
   );
 
   const renderPreRound = () => (
@@ -328,17 +380,6 @@ const StudySrsPage = () => {
           animate={{ opacity: 1, y: 0 }}
           className="space-y-6"
         >
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-3">
-           
-              <div>
-                <h1 className="text-2xl font-semibold">Spaced Repetition</h1>
-              
-              </div>
-            </div>
-           
-          </div>
-
           <Card className="border shadow-sm overflow-hidden">
             <CardContent className="p-6 space-y-6">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
@@ -376,9 +417,12 @@ const StudySrsPage = () => {
 
               <div className="rounded-lg border p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
-                  <p className="text-sm text-muted-foreground">Ready to study</p>
+                  <p className="text-sm text-muted-foreground">
+                    Ready to study
+                  </p>
                   <p className="text-base font-semibold">
-                    {pendingCards.length} card{pendingCards.length === 1 ? "" : "s"} queued
+                    {pendingCards.length} card
+                    {pendingCards.length === 1 ? "" : "s"} queued
                   </p>
                 </div>
                 <div className="flex gap-3">
@@ -409,6 +453,46 @@ const StudySrsPage = () => {
                   )}
                 </div>
               </div>
+
+              {/* UPDATED: Use preRoundSummary instead of roundSummary */}
+              <div className="rounded-lg border p-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-center bg-muted/30">
+                <div className="p-2">
+                  <div className="text-sm text-muted-foreground">Not Yet</div>
+                  <div className="text-xl font-semibold">
+                    {preRoundSummary.notYet}
+                  </div>
+                </div>
+                <div className="p-2">
+                  <div className="text-sm text-muted-foreground">Forgotten</div>
+                  <div className="text-xl font-semibold">
+                    {preRoundSummary.forgotten}
+                  </div>
+                </div>
+                <div className="p-2">
+                  <div className="text-sm text-muted-foreground">Learning</div>
+                  <div className="text-xl font-semibold">
+                    {preRoundSummary.learning}
+                  </div>
+                </div>
+                <div className="p-2">
+                  <div className="text-sm text-muted-foreground">Hard</div>
+                  <div className="text-xl font-semibold">
+                    {preRoundSummary.hard}
+                  </div>
+                </div>
+                <div className="p-2">
+                  <div className="text-sm text-muted-foreground">Good</div>
+                  <div className="text-xl font-semibold">
+                    {preRoundSummary.good}
+                  </div>
+                </div>
+                <div className="p-2">
+                  <div className="text-sm text-muted-foreground">Mastered</div>
+                  <div className="text-xl font-semibold">
+                    {preRoundSummary.mastered}
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </motion.div>
@@ -416,9 +500,7 @@ const StudySrsPage = () => {
     </div>
   );
 
-  if (isPending) {
-    return <LoadingState />;
-  }
+  if (isPending) return <LoadingState />;
 
   if (deckError || dueError) {
     return (
@@ -463,24 +545,20 @@ const StudySrsPage = () => {
     );
   }
 
-  if (!hasStartedRound) {
-    return renderPreRound();
-  }
+  if (!hasStartedRound) return renderPreRound();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 p-4">
       <div className="max-w-4xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <div className="flex items-center justify-between flex-wrap ">
-            <div className="flex items-center ">
-              
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-3">
               <div>
-                <div className="flex items-center text-sm text-muted-foreground">
-                  
+                <div className="flex items-center gap-4 text-sm text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <Clock className="h-3 w-3" />
                     {roundTotal > 0 && currentCard
@@ -526,9 +604,7 @@ const StudySrsPage = () => {
                 isFlipping && "transform-gpu",
               )}
             >
-              
-
-              <CardContent className="p-2 md:p-4 px-4 md:px-8">
+              <CardContent className="p-4 md:p-8">
                 {currentCard ? (
                   <>
                     <div className="min-h-64 flex flex-col items-center justify-center text-center">
@@ -569,7 +645,7 @@ const StudySrsPage = () => {
                           animate={{ opacity: 1, y: 0 }}
                           className="space-y-4"
                         >
-                          <div className="grid grid-cols-4 gap-1.5">
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                             {srsRatings.map((rating) => {
                               const config = ratingConfig[rating];
                               const Icon = config.icon;
@@ -586,15 +662,22 @@ const StudySrsPage = () => {
                                     variant="outline"
                                     disabled={isReviewing}
                                     className={cn(
-                                      "h-15 w-full flex flex-col gap-1 border-2 text-left bg-white dark:bg-card",
+                                      "h-18 w-full flex flex-col gap-1 border-2 text-left bg-white dark:bg-card",
                                       config.bgColor,
                                       config.borderColor,
                                       config.color,
                                       "hover:shadow-md transition-all",
                                     )}
                                   >
-                                    <Icon className={cn("h-5 w-5", config.color)} />
-                                    <div className={cn("font-semibold text-sm", config.color)}>
+                                    <Icon
+                                      className={cn("h-5 w-5", config.color)}
+                                    />
+                                    <div
+                                      className={cn(
+                                        "font-semibold text-sm",
+                                        config.color,
+                                      )}
+                                    >
                                       {config.label}
                                     </div>
                                   </Button>
@@ -610,7 +693,9 @@ const StudySrsPage = () => {
                   <div className="min-h-64 flex flex-col items-center justify-center text-center space-y-3 text-muted-foreground">
                     <BarChart3 className="h-8 w-8" />
                     <p className="font-semibold">Round complete</p>
-                    <p className="text-sm">Open the summary to continue or adjust session size.</p>
+                    <p className="text-sm">
+                      Open the summary to continue or adjust session size.
+                    </p>
                   </div>
                 )}
               </CardContent>
@@ -659,48 +744,90 @@ const StudySrsPage = () => {
       <Dialog open={completionOpen} onOpenChange={setCompletionOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-center text-2xl ">
-              Round Summary
+            <DialogTitle className="text-center text-2xl">
+              Learning Progress
             </DialogTitle>
+            <DialogDescription className="text-center text-xs">
+              Overall deck status after this study session
+            </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-6">
+          <div className="space-y-3">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="p-3 rounded-lg border bg-muted/40">
-                <div className="text-sm text-muted-foreground">Not Yet Studied</div>
-                <div className="text-2xl font-bold">{roundSummary.notYet}</div>
+                <div className="text-xs text-muted-foreground">
+                  Not Yet Studied
+                </div>
+                <div className="text-xl font-bold">{roundSummary.notYet}</div>
+                <p className="text-[9px] text-muted-foreground mt-1">
+                  Never reviewed
+                </p>
+              </div>
+              <div className="p-3 rounded-lg border bg-slate-50 dark:bg-slate-900/40">
+                <div className="text-xs text-muted-foreground">Forgotten</div>
+                <div className="text-xl font-bold">
+                  {roundSummary.forgotten}
+                </div>
+                <p className="text-[9px] text-muted-foreground mt-1">
+                  No review in the last 14 days
+                </p>
               </div>
               <div className="p-3 rounded-lg border bg-yellow/20 dark:bg-violet/20">
-                <div className="text-sm text-muted-foreground">Learning / Relearning</div>
-                <div className="text-2xl font-bold">{roundSummary.learning}</div>
+                <div className="text-xs text-muted-foreground">
+                  Learning / Relearning
+                </div>
+                <div className="text-xl font-bold">
+                  {roundSummary.learning}
+                </div>
+                <p className="text-[9px] text-muted-foreground mt-1">
+                  In learning steps or rated Again
+                </p>
               </div>
               <div className="p-3 rounded-lg border bg-orange-50 dark:bg-orange-950/30">
-                <div className="text-sm text-muted-foreground">Hard (unstable)</div>
-                <div className="text-2xl font-bold">{roundSummary.hard}</div>
+                <div className="text-xs text-muted-foreground">
+                  Hard (unstable)
+                </div>
+                <div className="text-xl font-bold">{roundSummary.hard}</div>
+                <p className="text-[9px] text-muted-foreground mt-1">
+                  Rated Hard or interval &lt; 7 days
+                </p>
               </div>
               <div className="p-3 rounded-lg border bg-blue-50 dark:bg-blue-950/30">
-                <div className="text-sm text-muted-foreground">Good (not mastered)</div>
-                <div className="text-2xl font-bold">{roundSummary.good}</div>
+                <div className="text-xs text-muted-foreground">
+                  Good (progressing)
+                </div>
+                <div className="text-xl font-bold">{roundSummary.good}</div>
+                <p className="text-[9px] text-muted-foreground mt-1">
+                  Rated Good but not yet mastered
+                </p>
               </div>
-              <div className="p-3 rounded-lg border bg-green-50 dark:bg-green-950/30 sm:col-span-2">
-                <div className="text-sm text-muted-foreground">Mastered (stable)</div>
-                <div className="text-2xl font-bold">{roundSummary.mastered}</div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Marked mastered when interval ≥ 21 days, reps ≥ 3, ease ≥ 2.3, and few lapses.
+              <div className="p-3 rounded-lg border bg-green-50 dark:bg-green-950/30">
+                <div className="text-xs text-muted-foreground">
+                  Mastered (stable)
+                </div>
+                <div className="text-xl font-bold">
+                  {roundSummary.mastered}
+                </div>
+                <p className="text-[9px] text-muted-foreground mt-1">
+                  Interval ≥ 21 days, reps ≥ 5, ease ≥ 2.3
                 </p>
               </div>
             </div>
 
-           
-
             <div className="rounded-lg bg-muted/50 p-4 space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Cards seen this round</span>
-                <span className="font-medium">{roundCards.length - roundSummary.notYet}</span>
+                <span className="text-muted-foreground">
+                  Cards reviewed this round
+                </span>
+                <span className="font-medium">{seenCardIds.size}</span>
               </div>
+              
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Total due sampled</span>
-                <span className="font-medium">{roundCards.length}</span>
+                <span className="text-muted-foreground">Learning progress</span>
+                <span className="font-medium">
+                  {deckCardsWithUpdates.length - roundSummary.notYet} /{" "}
+                  {deckCardsWithUpdates.length}
+                </span>
               </div>
             </div>
           </div>
@@ -711,7 +838,7 @@ const StudySrsPage = () => {
               onClick={handleBackToDeck}
               className="gap-2"
             >
-              <ArrowLeft className="h-4 w-4" />
+              <RotateCcw className="h-4 w-4" />
               Back to Deck
             </Button>
             <Button

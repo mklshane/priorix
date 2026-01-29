@@ -14,6 +14,9 @@ export interface IFlashcard {
   easyCount?: number;
   averageResponseTime?: number;
   currentState?: "new" | "learning" | "review" | "relearning";
+  learningStepIndex?: number;
+  lapseCount?: number;
   createdAt?: string;
   updatedAt?: string;
+  stalenessStatus?: "notYet" | "forgotten" | "recent";
 }
