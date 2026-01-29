@@ -3,6 +3,9 @@ import Deck from "@/lib/models/Deck";
 import UserDeckActivity from "@/lib/models/UserDeckActivity";
 import { ConnectDB } from "@/lib/config/db";
 
+// Ensure referenced models are registered for populate on cold starts
+import "@/lib/models/User";
+
 export const getDecks = async (params: {
   deckId?: string;
   userId?: string;
