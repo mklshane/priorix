@@ -409,7 +409,7 @@ const DecksPageContent = () => {
     : "All decks";
 
   const renderSkeletonGrid = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 p-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 px-4">
       {Array.from({ length: 6 }).map((_, index) => (
         <div
           key={index}
@@ -589,7 +589,7 @@ const DecksPageContent = () => {
             )}
 
             {combinedItems.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 p-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 px-4">
                 {combinedItems.map((item, i) => {
                   if (item.type === "folder") {
                     return (
@@ -693,7 +693,7 @@ const DecksPageContent = () => {
             Error loading favorite decks: {favoriteError.message}
           </p>
         ) : filteredFavorites.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 p-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 px-4">
             {filteredFavorites.map((deck: Deck, i: number) => (
               <motion.div
                 key={deck._id}
