@@ -6,8 +6,10 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const deckId = searchParams.get("id") || undefined;
     const userId = searchParams.get("userId") || undefined;
+    const folderParam = searchParams.get("folderId");
+    const folderId = folderParam === null ? undefined : folderParam === "null" ? null : folderParam;
 
-    const result = await deckController.getDecks({ deckId, userId });
+    const result = await deckController.getDecks({ deckId, userId, folderId });
     return NextResponse.json(result);
   } catch (err: any) {
     console.error("Error in GET /api/deck:", err);

@@ -1,20 +1,41 @@
 "use client";
 
-import { useState, useCallback, ReactNode } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useCallback, useEffect, ReactNode } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import DeckCard from "@/components/DeckCard";
 import AddDeckModal from "@/components/Deck/AddDeckModal";
+import AddFolderModal from "@/components/Deck/AddFolderModal";
+import EditFolderModal from "@/components/Deck/EditFolderModal";
+import FolderCard from "@/components/Deck/FolderCard";
 import RecentDecks from "@/components/dashboard/RecentDeck";
 import ConfirmDeleteModal from "@/components/ConfirmDeleteModal";
 import { Deck, CreateDeckRequest } from "@/types/deck";
 import { useSession } from "next-auth/react";
 import { useToast } from "@/hooks/useToast";
+import { useFolders } from "@/hooks/useFolders";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
-const fetchDecks = async (userId: string): Promise<Deck[]> => {
-  const res = await fetch(`/api/deck?userId=${userId}`);
+const fetchDecks = async (
+  userId: string,
+  folderId?: string | null
+): Promise<Deck[]> => {
+  const params = new URLSearchParams({ userId });
+  if (folderId === null) {
+    params.append("folderId", "null");
+  } else if (folderId) {
+    params.append("folderId", folderId);
+  }
+
+  const res = await fetch(`/api/deck?${params.toString()}`);
   if (!res.ok) throw new Error("Failed to fetch decks");
   return res.json();
 };
@@ -27,12 +48,36 @@ const fetchFavoriteDecks = async (userId: string): Promise<Deck[]> => {
 
 const DecksPage = () => {
   const [isAddDeckModalOpen, setIsAddDeckModalOpen] = useState(false);
+  const [isAddFolderModalOpen, setIsAddFolderModalOpen] = useState(false);
+  const [isEditFolderModalOpen, setIsEditFolderModalOpen] = useState(false);
+  const [folderToEdit, setFolderToEdit] = useState<{ id: string; name: string } | null>(null);
+  const [isCreateChooserOpen, setIsCreateChooserOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deckToDelete, setDeckToDelete] = useState<string | null>(null);
+  const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const { data: session } = useSession();
   const { showToast, dismissToast } = useToast();
   const queryClient = useQueryClient();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const {
+    folders = [],
+    isLoading: isLoadingFolders,
+    createFolder,
+    deleteFolder,
+    renameFolder,
+  } = useFolders(session?.user?.id);
+
+  // Sync folder state with URL query (?folderId=...)
+  useEffect(() => {
+    const folderFromQuery = searchParams?.get("folderId");
+    if (folderFromQuery === null) {
+      setCurrentFolderId(null);
+    } else if (folderFromQuery) {
+      setCurrentFolderId(folderFromQuery);
+    }
+  }, [searchParams]);
 
   const {
     data: decks = [],
@@ -40,8 +85,8 @@ const DecksPage = () => {
     isFetching,
     error,
   } = useQuery<Deck[]>({
-    queryKey: ["decks", session?.user?.id],
-    queryFn: () => fetchDecks(session?.user?.id!),
+    queryKey: ["decks", session?.user?.id, currentFolderId ?? "root"],
+    queryFn: () => fetchDecks(session?.user?.id!, currentFolderId),
     enabled: !!session?.user?.id,
   });
 
@@ -58,16 +103,26 @@ const DecksPage = () => {
 
   const createDeckMutation = useMutation<Deck, Error, CreateDeckRequest>({
     mutationFn: async (newDeck: CreateDeckRequest) => {
+      const payload = {
+        ...newDeck,
+        folderId:
+          newDeck.folderId !== undefined
+            ? newDeck.folderId
+            : currentFolderId ?? null,
+        userId: session?.user?.id,
+      };
       const res = await fetch("/api/deck", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...newDeck, userId: session?.user?.id }),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error("Failed to create deck");
       return res.json();
     },
     onSuccess: (createdDeck) => {
-      queryClient.invalidateQueries({ queryKey: ["decks", session?.user?.id] });
+      queryClient.invalidateQueries({
+        queryKey: ["decks", session?.user?.id, currentFolderId ?? "root"],
+      });
       setIsAddDeckModalOpen(false);
       dismissToast();
       showToast("Deck created successfully");
@@ -106,22 +161,26 @@ const DecksPage = () => {
       title,
       description,
       isPublic,
+      folderId,
     }: {
       deckId: string;
       title: string;
       description: string;
       isPublic: boolean;
+      folderId: string | null;
     }) => {
       const res = await fetch(`/api/deck/${deckId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, description, isPublic }),
+        body: JSON.stringify({ title, description, isPublic, folderId }),
       });
       if (!res.ok) throw new Error("Failed to update deck");
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["decks", session?.user?.id] });
+      queryClient.invalidateQueries({
+        queryKey: ["decks", session?.user?.id, currentFolderId ?? "root"],
+      });
       queryClient.invalidateQueries({ queryKey: ["favoriteDecks", session?.user?.id] });
       showToast("Deck updated");
     },
@@ -152,14 +211,64 @@ const DecksPage = () => {
   }, []);
 
   const handleEditDeck = useCallback(
-    (deckId: string, title: string, description: string, isPublic: boolean) => {
-      editDeckMutation.mutate({ deckId, title, description, isPublic });
+    (
+      deckId: string,
+      title: string,
+      description: string,
+      isPublic: boolean,
+      folderId: string | null
+    ) => {
+      editDeckMutation.mutate({ deckId, title, description, isPublic, folderId });
     },
     [editDeckMutation]
   );
 
+  const handleCreateFolder = useCallback(
+    async (name: string) => {
+      return new Promise<void>((resolve, reject) => {
+        createFolder.mutate(name, {
+          onSuccess: () => {
+            showToast("Folder created");
+            // After creating, stay at root
+            setCurrentFolderId(null);
+            router.push("/decks");
+            resolve();
+          },
+          onError: (err: any) => {
+            const message = err?.message || "Failed to create folder";
+            showToast(message, "error");
+            reject(new Error(message));
+          },
+        });
+      });
+    },
+    [createFolder, showToast, router]
+  );
+
+  const handleRenameFolder = useCallback(
+    (folderId: string, currentName: string) => {
+      setFolderToEdit({ id: folderId, name: currentName });
+      setIsEditFolderModalOpen(true);
+    },
+    []
+  );
+
+  const handleDeleteFolder = useCallback(
+    (folderId: string) => {
+      deleteFolder.mutate(folderId, {
+        onSuccess: () => showToast("Folder deleted"),
+        onError: (err: any) =>
+          showToast(err?.message || "Failed to delete folder", "error"),
+      });
+    },
+    [deleteFolder, showToast]
+  );
+
   const showLoadingState = isLoading || isFetching;
   const showFavoritesLoading = isLoadingFavorites || isFetchingFavorites;
+  const currentFolderName = currentFolderId
+    ? folders.find((f) => f._id === currentFolderId)?.name || "Folder"
+    : "All decks";
 
   const renderSkeletonGrid = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
@@ -197,6 +306,25 @@ const DecksPage = () => {
     </div>
   );
 
+  // Build combined grid items: folders first (only at root), then decks
+  const combinedItems = [
+    ...(currentFolderId === null
+      ? folders.map((folder) => ({ type: "folder" as const, folder }))
+      : []),
+    ...decks.map((deck) => ({ type: "deck" as const, deck })),
+  ];
+
+  const handleFolderNavigate = (folderId: string | null) => {
+    setCurrentFolderId(folderId);
+    const params = new URLSearchParams();
+    if (folderId) {
+      params.set("folderId", folderId);
+      router.push(`/decks?${params.toString()}`);
+    } else {
+      router.push(`/decks`);
+    }
+  };
+
   return (
     <div className="relative max-w-7xl w-full mx-auto px-3 sm:px-5 lg:px-8 pb-16 space-y-5">
       <ConfirmDeleteModal
@@ -214,93 +342,142 @@ const DecksPage = () => {
             <p className="text-sm text-muted-foreground mb-1">Overview</p>
             <h1 className="text-2xl md:text-3xl font-bold text-foreground">Decks</h1>
           </div>
-          <div className="gap-2 hidden md:flex">
-            <Button className="bg-yellow text-foreground border-2 border-foreground"  onClick={() => setIsAddDeckModalOpen(true)}>
-              <Plus className="h-4 w-4 mr-2 text-foreground" /> New Deck
-            </Button>
-          </div>
+            <div className="gap-2 hidden md:flex">
+              <Button
+                className="bg-yellow text-foreground border-2 border-foreground"
+                onClick={() =>
+                  currentFolderId ? setIsAddDeckModalOpen(true) : setIsCreateChooserOpen(true)
+                }
+              >
+                <Plus className="h-4 w-4 mr-2 text-foreground" /> Add
+              </Button>
+            </div>
         </div>
+        {currentFolderId && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-fit px-0 text-muted-foreground"
+            onClick={() => handleFolderNavigate(null)}
+          >
+            ← Back to Decks
+          </Button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-6">
         <div className="space-y-6">
           <Section
-            title="Your Decks"
-            description="All decks you own. Edit, delete, or study."
+            title={currentFolderName}
+            description={
+              currentFolderId
+                ? "Decks inside this folder."
+                : "Folders and decks you own."
+            }
           >
-            {showLoadingState ? (
+            {showLoadingState || isLoadingFolders ? (
               renderSkeletonGrid()
             ) : error ? (
               <p className="text-center text-red-500 text-sm">
                 Error loading your decks: {error.message}
               </p>
-            ) : decks.length > 0 ? (
+            ) : combinedItems.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-                {decks.map((deck: Deck, i: number) => (
-                  <DeckCard
-                    key={deck._id}
-                    deck={deck}
-                    index={i}
-                    onDeleteClick={handleDeleteClick}
-                    onEditClick={handleEditDeck}
-                    queryClient={queryClient}
-                  />
-                ))}
+                {combinedItems.map((item, i) => {
+                  if (item.type === "folder") {
+                    return (
+                      <FolderCard
+                        key={`folder-${item.folder._id}`}
+                        folder={item.folder}
+                        isActive={currentFolderId === item.folder._id}
+                        onClick={() => handleFolderNavigate(item.folder._id)}
+                        deckCount={item.folder.deckCount}
+                        onEdit={() => handleRenameFolder(item.folder._id, item.folder.name)}
+                        onDelete={item.folder.deckCount === 0 ? () => handleDeleteFolder(item.folder._id) : undefined}
+                      />
+                    );
+                  }
+
+                  return (
+                    <DeckCard
+                      key={`deck-${item.deck._id}`}
+                      deck={item.deck}
+                      index={i}
+                      onDeleteClick={handleDeleteClick}
+                      onEditClick={handleEditDeck}
+                      queryClient={queryClient}
+                      folders={folders}
+                    />
+                  );
+                })}
               </div>
             ) : (
               <div className="text-center py-10">
                 <p className="text-muted-foreground mb-4">
-                  You don't have any decks yet. Create your first one!
+                  {currentFolderId
+                    ? "No decks in this folder yet."
+                    : "You don't have any decks or folders yet."}
                 </p>
-                <Button onClick={() => setIsAddDeckModalOpen(true)}>
+                <Button
+                  onClick={() =>
+                    currentFolderId
+                      ? setIsAddDeckModalOpen(true)
+                      : setIsCreateChooserOpen(true)
+                  }
+                >
                   <Plus className="h-4 w-4 mr-2" />
-                  Create Your First Deck
+                  Create your first item
                 </Button>
               </div>
             )}
           </Section>
 
-          <Section
-            title="Favorites"
-            description="Decks you've starred for quick access."
-          >
-            {showFavoritesLoading ? (
-              renderSkeletonGrid()
-            ) : favoriteError ? (
-              <p className="text-center text-red-500 text-sm">
-                Error loading favorite decks: {favoriteError.message}
-              </p>
-            ) : favoriteDecks.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-                {favoriteDecks.map((deck: Deck, i: number) => (
-                  <DeckCard
-                    key={deck._id}
-                    deck={deck}
-                    index={i}
-                    onDeleteClick={handleDeleteClick}
-                    onEditClick={handleEditDeck}
-                    queryClient={queryClient}
-                  />
-                ))}
-              </div>
-            ) : (
-              <p className="text-muted-foreground">You haven’t favorited any decks yet.</p>
-            )}
-          </Section>
+          {currentFolderId === null && (
+            <Section
+              title="Favorites"
+              description="Decks you've starred for quick access."
+            >
+              {showFavoritesLoading ? (
+                renderSkeletonGrid()
+              ) : favoriteError ? (
+                <p className="text-center text-red-500 text-sm">
+                  Error loading favorite decks: {favoriteError.message}
+                </p>
+              ) : favoriteDecks.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+                  {favoriteDecks.map((deck: Deck, i: number) => (
+                    <DeckCard
+                      key={deck._id}
+                      deck={deck}
+                      index={i}
+                      onDeleteClick={handleDeleteClick}
+                      onEditClick={handleEditDeck}
+                      queryClient={queryClient}
+                      folders={folders}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted-foreground">You haven’t favorited any decks yet.</p>
+              )}
+            </Section>
+          )}
         </div>
 
-        <div className="space-y-6">
-          <Section
-            title="Recently Accessed"
-            description="Jump back into the decks you opened most recently."
-          >
-            <RecentDecks
-              onDeleteClick={handleDeleteClick}
-              onEditClick={handleEditDeck}
-              showMenu
-            />
-          </Section>
-        </div>
+        {currentFolderId === null && (
+          <div className="space-y-6">
+            <Section
+              title="Recently Accessed"
+              description="Jump back into the decks you opened most recently."
+            >
+              <RecentDecks
+                onDeleteClick={handleDeleteClick}
+                onEditClick={handleEditDeck}
+                showMenu
+              />
+            </Section>
+          </div>
+        )}
       </div>
 
      
@@ -309,7 +486,9 @@ const DecksPage = () => {
         <Button
           size="lg"
           className="rounded-full w-14 h-14 shadow-lg"
-          onClick={() => setIsAddDeckModalOpen(true)}
+          onClick={() =>
+            currentFolderId ? setIsAddDeckModalOpen(true) : setIsCreateChooserOpen(true)
+          }
         >
           <Plus className="h-6 w-6" />
         </Button>
@@ -319,7 +498,69 @@ const DecksPage = () => {
         open={isAddDeckModalOpen}
         onOpenChange={setIsAddDeckModalOpen}
         onAddDeck={handleAddDeck}
+        folders={folders}
+        defaultFolderId={currentFolderId}
       />
+
+      <AddFolderModal
+        open={isAddFolderModalOpen}
+        onOpenChange={setIsAddFolderModalOpen}
+        onCreate={handleCreateFolder}
+      />
+
+      {folderToEdit && (
+        <EditFolderModal
+          open={isEditFolderModalOpen}
+          onOpenChange={setIsEditFolderModalOpen}
+          initialName={folderToEdit.name}
+          onSubmit={(name) => {
+            setFolderToEdit((prev) => (prev ? { ...prev, name } : prev));
+            renameFolder.mutate(
+              { folderId: folderToEdit.id, name },
+              {
+                onSuccess: () => {
+                  showToast("Folder renamed");
+                  setIsEditFolderModalOpen(false);
+                  setFolderToEdit(null);
+                },
+                onError: (err: any) =>
+                  showToast(err?.message || "Failed to rename folder", "error"),
+              }
+            );
+          }}
+        />
+      )}
+
+      <Dialog open={isCreateChooserOpen} onOpenChange={setIsCreateChooserOpen}>
+        <DialogContent className="sm:max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle>Create</DialogTitle>
+            <DialogDescription>
+              Choose what you want to add.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Button
+              variant="default"
+              onClick={() => {
+                setIsCreateChooserOpen(false);
+                setIsAddDeckModalOpen(true);
+              }}
+            >
+              New Deck
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsCreateChooserOpen(false);
+                setIsAddFolderModalOpen(true);
+              }}
+            >
+              New Folder
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
@@ -12,26 +12,37 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog";
-import { CreateDeckRequest } from "@/types/deck";
+import { CreateDeckRequest, Folder } from "@/types/deck";
 import { useSession } from "next-auth/react";
 
 interface AddDeckModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAddDeck: (deck: CreateDeckRequest) => void;
+  folders?: Folder[];
+  defaultFolderId?: string | null;
 }
 
 const AddDeckModal: React.FC<AddDeckModalProps> = ({
   open,
   onOpenChange,
   onAddDeck,
+  folders = [],
+  defaultFolderId = null,
 }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [isPublic, setIsPublic] = useState(true);
+  const [selectedFolderId, setSelectedFolderId] = useState<string | "" | null>(
+    defaultFolderId ?? ""
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const { data: session } = useSession();
+
+  useEffect(() => {
+    setSelectedFolderId(defaultFolderId ?? "");
+  }, [defaultFolderId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,12 +62,17 @@ const AddDeckModal: React.FC<AddDeckModalProps> = ({
         title: title.trim(),
         description: description.trim(),
         isPublic: isPublic,
+        folderId:
+          selectedFolderId === "" || selectedFolderId === undefined
+            ? null
+            : selectedFolderId,
       });
 
       // Reset form and close modal
       setTitle("");
       setDescription("");
       setIsPublic(true);
+      setSelectedFolderId(defaultFolderId ?? "");
       onOpenChange(false);
     } catch (error) {
       console.error("Error creating deck:", error);
@@ -102,6 +118,23 @@ const AddDeckModal: React.FC<AddDeckModalProps> = ({
                 rows={3}
                 disabled={isLoading}
               />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="folder">Folder (optional)</Label>
+              <select
+                id="folder"
+                className="border rounded-md px-3 py-2 bg-background text-foreground"
+                value={selectedFolderId ?? ""}
+                onChange={(e) => setSelectedFolderId(e.target.value)}
+                disabled={isLoading}
+              >
+                <option value="">No folder</option>
+                {folders.map((folder) => (
+                  <option key={folder._id} value={folder._id}>
+                    {folder.name}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="flex items-center gap-2">
               <Switch

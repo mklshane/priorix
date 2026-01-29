@@ -12,7 +12,8 @@ interface RecentDecksProps {
     deckId: string,
     title: string,
     description: string,
-    isPublic: boolean
+    isPublic: boolean,
+    folderId: string | null
   ) => void;
   showMenu?: boolean;
 }

@@ -15,14 +15,22 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Folder } from "@/types/deck";
 
 interface EditDeckDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onEditSubmit: (title: string, description: string, isPublic: boolean) => void;
+  onEditSubmit: (
+    title: string,
+    description: string,
+    isPublic: boolean,
+    folderId: string | null
+  ) => void;
   initialTitle: string;
   initialDescription: string;
   initialIsPublic: boolean;
+  initialFolderId?: string | null;
+  folders?: Folder[];
 }
 
 const EditDeckDialog: React.FC<EditDeckDialogProps> = ({
@@ -32,10 +40,15 @@ const EditDeckDialog: React.FC<EditDeckDialogProps> = ({
   initialTitle,
   initialDescription,
   initialIsPublic,
+  initialFolderId = null,
+  folders = [],
 }) => {
   const [title, setTitle] = useState(initialTitle);
   const [description, setDescription] = useState(initialDescription);
   const [isPublic, setIsPublic] = useState(initialIsPublic);
+  const [selectedFolderId, setSelectedFolderId] = useState<string | "" | null>(
+    initialFolderId ?? ""
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -44,6 +57,7 @@ const EditDeckDialog: React.FC<EditDeckDialogProps> = ({
     setTitle(initialTitle);
     setDescription(initialDescription);
     setIsPublic(initialIsPublic);
+    setSelectedFolderId(initialFolderId ?? "");
   }, [initialTitle, initialDescription, initialIsPublic]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -57,7 +71,14 @@ const EditDeckDialog: React.FC<EditDeckDialogProps> = ({
     setError("");
 
     try {
-      await onEditSubmit(title.trim(), description.trim(), isPublic);
+      await onEditSubmit(
+        title.trim(),
+        description.trim(),
+        isPublic,
+        selectedFolderId === "" || selectedFolderId === undefined
+          ? null
+          : selectedFolderId
+      );
       onOpenChange(false);
     } catch (error) {
       console.error("Error updating deck:", error);
@@ -112,6 +133,23 @@ const EditDeckDialog: React.FC<EditDeckDialogProps> = ({
                 disabled={isLoading}
               />
               <Label htmlFor="edit-isPublic">Make this deck public</Label>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-folder">Folder</Label>
+              <select
+                id="edit-folder"
+                className="border rounded-md px-3 py-2 bg-background text-foreground"
+                value={selectedFolderId ?? ""}
+                onChange={(e) => setSelectedFolderId(e.target.value)}
+                disabled={isLoading}
+              >
+                <option value="">No folder</option>
+                {folders.map((folder) => (
+                  <option key={folder._id} value={folder._id}>
+                    {folder.name}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
           {error && <div className="text-red-500 text-sm mb-4">{error}</div>}

@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Deck } from "@/types/deck";
+import type { Deck, Folder } from "@/types/deck";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -83,11 +83,13 @@ interface DeckCardProps {
     deckId: string,
     title: string,
     description: string,
-    isPublic: boolean
+    isPublic: boolean,
+    folderId: string | null
   ) => void;
   index?: number;
   showMenu?: boolean;
   queryClient?: ReturnType<typeof useQueryClient>;
+  folders?: Folder[];
 }
 
 const colors = ["bg-pink", "bg-green", "bg-yellow", "bg-purple"];
@@ -100,12 +102,14 @@ const DeckCard: React.FC<DeckCardProps> = ({
   index = 0,
   showMenu = true,
   queryClient,
+  folders = [],
 }) => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editIsPublic, setEditIsPublic] = useState(true);
+  const [editFolderId, setEditFolderId] = useState<string | "" | null>("");
   const [isClicked, setIsClicked] = useState(false);
   const router = useRouter();
   const { data: session } = useSession();
@@ -162,6 +166,15 @@ const DeckCard: React.FC<DeckCardProps> = ({
   const handleShareDeck = async (e: React.MouseEvent, deckId: string) => {
     e.stopPropagation();
     setShareDialogOpen(true);
+  };
+
+  const resolveFolderId = (folderValue: Deck["folder"]) => {
+    if (!folderValue) return "";
+    if (typeof folderValue === "string") return folderValue;
+    if (typeof folderValue === "object" && "_id" in folderValue) {
+      return (folderValue as { _id: string })._id;
+    }
+    return "";
   };
 
   const copyToClipboard = async (deckId: string) => {
@@ -311,6 +324,7 @@ const DeckCard: React.FC<DeckCardProps> = ({
                           setEditTitle(deck.title);
                           setEditDescription(deck.description || "");
                           setEditIsPublic(deck.isPublic || true);
+                          setEditFolderId(resolveFolderId(deck.folder));
                           setEditDialogOpen(true);
                         }}
                         className="transition-colors duration-150 hover:bg-accent"
@@ -462,14 +476,16 @@ const DeckCard: React.FC<DeckCardProps> = ({
         <EditDeckDialog
           open={editDialogOpen}
           onOpenChange={setEditDialogOpen}
-          onEditSubmit={async (title, description, isPublic) => {
+          onEditSubmit={async (title, description, isPublic, folderId) => {
             if (deck._id) {
-              await onEditClick?.(deck._id, title, description, isPublic);
+              await onEditClick?.(deck._id, title, description, isPublic, folderId);
             }
           }}
           initialTitle={editTitle}
           initialDescription={editDescription}
           initialIsPublic={editIsPublic}
+          initialFolderId={editFolderId || null}
+          folders={folders}
         />
       )}
     </>

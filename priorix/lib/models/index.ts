@@ -1,6 +1,7 @@
 import Deck from "./Deck";
 import Flashcard from "./Flashcard";
 import UserDeckActivity from "./UserDeckActivity";
+import Folder from "./Folder";
 
 // Export all models to ensure they're registered
-export { Deck, Flashcard, UserDeckActivity };
+export { Deck, Flashcard, UserDeckActivity, Folder };
