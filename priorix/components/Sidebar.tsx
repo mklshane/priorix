@@ -7,6 +7,7 @@ import {
   FileText,
   Settings,
   X,
+  Compass,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter, usePathname } from "next/navigation";
@@ -14,6 +15,7 @@ import { useRouter, usePathname } from "next/navigation";
 const navigation = [
   { name: "Home", href: "/dashboard", icon: Home },
   { name: "Decks", href: "/decks", icon: BookOpen },
+  { name: "Browse", href: "/browse", icon: Compass },
   { name: "Todo", href: "/todo", icon: CheckSquare },
   { name: "Notes", href: "/notes", icon: FileText },
 ];

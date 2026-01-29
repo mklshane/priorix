@@ -164,6 +164,7 @@ export default function AppNav({ onToggleSidebar }: AppNavProps) {
   const pageNames: Record<string, string> = {
     "/dashboard": "Priorix",
     "/decks": "Decks",
+    "/browse": "Browse",
     "/todo": "Tasks",
     "/notes": "Notes",
   };
