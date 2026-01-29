@@ -67,6 +67,10 @@ const DeckDetailPage = () => {
     router.push(`/decks/${deckId}/study`);
   };
 
+  const handleStudySrs = () => {
+    router.push(`/decks/${deckId}/study-srs`);
+  };
+
   const handleOpenImportModal = () => {
     if (!isOwner) {
       showToast("Only deck owners can import cards", "error");
@@ -222,6 +226,7 @@ const DeckDetailPage = () => {
         deck={deck}
         flashcards={flashcards}
         onStudyDeck={handleStudyDeck}
+        onStudySrs={handleStudySrs}
         onImportPDF={isOwner ? handleOpenImportModal : undefined}
       />
 
