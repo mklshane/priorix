@@ -26,7 +26,7 @@ import {
 
 const fetchDecks = async (
   userId: string,
-  folderId?: string | null
+  folderId?: string | null,
 ): Promise<Deck[]> => {
   const params = new URLSearchParams({ userId });
   if (folderId === null) {
@@ -46,15 +46,21 @@ const fetchFavoriteDecks = async (userId: string): Promise<Deck[]> => {
   return res.json();
 };
 
+type DeckTab = "workspace" | "favorites" | "recent";
+
 const DecksPage = () => {
   const [isAddDeckModalOpen, setIsAddDeckModalOpen] = useState(false);
   const [isAddFolderModalOpen, setIsAddFolderModalOpen] = useState(false);
   const [isEditFolderModalOpen, setIsEditFolderModalOpen] = useState(false);
-  const [folderToEdit, setFolderToEdit] = useState<{ id: string; name: string } | null>(null);
+  const [folderToEdit, setFolderToEdit] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
   const [isCreateChooserOpen, setIsCreateChooserOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deckToDelete, setDeckToDelete] = useState<string | null>(null);
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<DeckTab>("workspace");
   const { data: session } = useSession();
   const { showToast, dismissToast } = useToast();
   const queryClient = useQueryClient();
@@ -108,7 +114,7 @@ const DecksPage = () => {
         folderId:
           newDeck.folderId !== undefined
             ? newDeck.folderId
-            : currentFolderId ?? null,
+            : (currentFolderId ?? null),
         userId: session?.user?.id,
       };
       const res = await fetch("/api/deck", {
@@ -144,8 +150,12 @@ const DecksPage = () => {
     },
     onSuccess: (_, deckId) => {
       queryClient.invalidateQueries({ queryKey: ["decks", session?.user?.id] });
-      queryClient.invalidateQueries({ queryKey: ["favoriteDecks", session?.user?.id] });
-      window.dispatchEvent(new CustomEvent("deck-deleted", { detail: { deckId } }));
+      queryClient.invalidateQueries({
+        queryKey: ["favoriteDecks", session?.user?.id],
+      });
+      window.dispatchEvent(
+        new CustomEvent("deck-deleted", { detail: { deckId } }),
+      );
       setDeleteModalOpen(false);
       setDeckToDelete(null);
       showToast("Deck deleted");
@@ -181,7 +191,9 @@ const DecksPage = () => {
       queryClient.invalidateQueries({
         queryKey: ["decks", session?.user?.id, currentFolderId ?? "root"],
       });
-      queryClient.invalidateQueries({ queryKey: ["favoriteDecks", session?.user?.id] });
+      queryClient.invalidateQueries({
+        queryKey: ["favoriteDecks", session?.user?.id],
+      });
       showToast("Deck updated");
     },
     onError: () => {
@@ -193,7 +205,7 @@ const DecksPage = () => {
     (deckData: CreateDeckRequest) => {
       createDeckMutation.mutate(deckData);
     },
-    [createDeckMutation]
+    [createDeckMutation],
   );
 
   const handleDeleteClick = useCallback((deckId: string) => {
@@ -216,11 +228,17 @@ const DecksPage = () => {
       title: string,
       description: string,
       isPublic: boolean,
-      folderId: string | null
+      folderId: string | null,
     ) => {
-      editDeckMutation.mutate({ deckId, title, description, isPublic, folderId });
+      editDeckMutation.mutate({
+        deckId,
+        title,
+        description,
+        isPublic,
+        folderId,
+      });
     },
-    [editDeckMutation]
+    [editDeckMutation],
   );
 
   const handleCreateFolder = useCallback(
@@ -242,7 +260,7 @@ const DecksPage = () => {
         });
       });
     },
-    [createFolder, showToast, router]
+    [createFolder, showToast, router],
   );
 
   const handleRenameFolder = useCallback(
@@ -250,7 +268,7 @@ const DecksPage = () => {
       setFolderToEdit({ id: folderId, name: currentName });
       setIsEditFolderModalOpen(true);
     },
-    []
+    [],
   );
 
   const handleDeleteFolder = useCallback(
@@ -261,7 +279,7 @@ const DecksPage = () => {
           showToast(err?.message || "Failed to delete folder", "error"),
       });
     },
-    [deleteFolder, showToast]
+    [deleteFolder, showToast],
   );
 
   const showLoadingState = isLoading || isFetching;
@@ -284,28 +302,6 @@ const DecksPage = () => {
     </div>
   );
 
-  const Section = ({
-    title,
-    description,
-    children,
-  }: {
-    title: string;
-    description?: string;
-    children: ReactNode;
-  }) => (
-    <div className="rounded-2xl border-2 border-black dark:border-accent bg-card backdrop-blur-sm shadow-sm p-4 md:p-6">
-      <div className="flex flex-col gap-1 mb-4">
-        <h2 className="text-xl md:text-2xl font-semibold text-foreground font-sora">
-          {title}
-        </h2>
-        {description && (
-          <p className="text-sm text-muted-foreground">{description}</p>
-        )}
-      </div>
-      {children}
-    </div>
-  );
-
   // Build combined grid items: folders first (only at root), then decks
   const combinedItems = [
     ...(currentFolderId === null
@@ -325,6 +321,118 @@ const DecksPage = () => {
     }
   };
 
+  const renderWorkspaceTab = () => (
+    <div className="space-y-4">
+      {showLoadingState || isLoadingFolders ? (
+        renderSkeletonGrid()
+      ) : error ? (
+        <p className="text-center text-red-500 text-sm">
+          Error loading your decks: {error.message}
+        </p>
+      ) : combinedItems.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+          {combinedItems.map((item, i) => {
+            if (item.type === "folder") {
+              return (
+                <FolderCard
+                  key={`folder-${item.folder._id}`}
+                  folder={item.folder}
+                  isActive={currentFolderId === item.folder._id}
+                  onClick={() => handleFolderNavigate(item.folder._id)}
+                  deckCount={item.folder.deckCount}
+                  onEdit={() =>
+                    handleRenameFolder(item.folder._id, item.folder.name)
+                  }
+                  onDelete={
+                    item.folder.deckCount === 0
+                      ? () => handleDeleteFolder(item.folder._id)
+                      : undefined
+                  }
+                />
+              );
+            }
+
+            return (
+              <DeckCard
+                key={`deck-${item.deck._id}`}
+                deck={item.deck}
+                index={i}
+                onDeleteClick={handleDeleteClick}
+                onEditClick={handleEditDeck}
+                queryClient={queryClient}
+                folders={folders}
+              />
+            );
+          })}
+        </div>
+      ) : (
+        <div className="text-center py-10">
+          <p className="text-muted-foreground mb-4">
+            {currentFolderId
+              ? "No decks in this folder yet."
+              : "You don't have any decks or folders yet."}
+          </p>
+          <Button
+            onClick={() =>
+              currentFolderId
+                ? setIsAddDeckModalOpen(true)
+                : setIsCreateChooserOpen(true)
+            }
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Create your first item
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+
+  const renderFavoritesTab = () => (
+    <div className="space-y-4">
+      {showFavoritesLoading ? (
+        renderSkeletonGrid()
+      ) : favoriteError ? (
+        <p className="text-center text-red-500 text-sm">
+          Error loading favorite decks: {favoriteError.message}
+        </p>
+      ) : favoriteDecks.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+          {favoriteDecks.map((deck: Deck, i: number) => (
+            <DeckCard
+              key={deck._id}
+              deck={deck}
+              index={i}
+              onDeleteClick={handleDeleteClick}
+              onEditClick={handleEditDeck}
+              queryClient={queryClient}
+              folders={folders}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-10">
+          <p className="text-muted-foreground mb-4">
+            You haven't favorited any decks yet.
+          </p>
+          <Button onClick={() => setIsCreateChooserOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Create your first deck
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+
+  const renderRecentTab = () => (
+    <div className="space-y-4">
+      <RecentDecks
+        onDeleteClick={handleDeleteClick}
+        onEditClick={handleEditDeck}
+        showMenu
+      />
+    </div>
+  );
+
   return (
     <div className="relative max-w-7xl w-full mx-auto px-3 sm:px-5 lg:px-8 pb-16 space-y-5">
       <ConfirmDeleteModal
@@ -340,18 +448,22 @@ const DecksPage = () => {
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div>
             <p className="text-sm text-muted-foreground mb-1">Overview</p>
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground">Decks</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+              Decks
+            </h1>
           </div>
-            <div className="gap-2 hidden md:flex">
-              <Button
-                className="bg-yellow text-foreground border-2 border-foreground"
-                onClick={() =>
-                  currentFolderId ? setIsAddDeckModalOpen(true) : setIsCreateChooserOpen(true)
-                }
-              >
-                <Plus className="h-4 w-4 mr-2 text-foreground" /> Add
-              </Button>
-            </div>
+          <div className="gap-2 hidden md:flex">
+            <Button
+              className="bg-yellow text-foreground border-2 border-foreground"
+              onClick={() =>
+                currentFolderId
+                  ? setIsAddDeckModalOpen(true)
+                  : setIsCreateChooserOpen(true)
+              }
+            >
+              <Plus className="h-4 w-4 mr-2 text-foreground" /> Add
+            </Button>
+          </div>
         </div>
         {currentFolderId && (
           <Button
@@ -365,129 +477,58 @@ const DecksPage = () => {
         )}
       </div>
 
-      <div className="grid grid-cols-1 gap-6">
-        <div className="space-y-6">
-          <Section
-            title={currentFolderName}
-            description={
-              currentFolderId
-                ? "Decks inside this folder."
-                : "Folders and decks you own."
-            }
+      {/* Tab Navigation */}
+      <div className="flex gap-2 overflow-x-auto pb-2 border-b border-border/50">
+        {[
+          { key: "workspace" as DeckTab, label: "Workspace" },
+          { key: "favorites" as DeckTab, label: "Favorites" },
+          { key: "recent" as DeckTab, label: "Recent" },
+        ].map((tab) => (
+          <Button
+            key={tab.key}
+            variant={activeTab === tab.key ? "default" : "ghost"}
+            size="sm"
+            className="shrink-0 rounded-full px-4"
+            onClick={() => setActiveTab(tab.key)}
           >
-            {showLoadingState || isLoadingFolders ? (
-              renderSkeletonGrid()
-            ) : error ? (
-              <p className="text-center text-red-500 text-sm">
-                Error loading your decks: {error.message}
-              </p>
-            ) : combinedItems.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-                {combinedItems.map((item, i) => {
-                  if (item.type === "folder") {
-                    return (
-                      <FolderCard
-                        key={`folder-${item.folder._id}`}
-                        folder={item.folder}
-                        isActive={currentFolderId === item.folder._id}
-                        onClick={() => handleFolderNavigate(item.folder._id)}
-                        deckCount={item.folder.deckCount}
-                        onEdit={() => handleRenameFolder(item.folder._id, item.folder.name)}
-                        onDelete={item.folder.deckCount === 0 ? () => handleDeleteFolder(item.folder._id) : undefined}
-                      />
-                    );
-                  }
-
-                  return (
-                    <DeckCard
-                      key={`deck-${item.deck._id}`}
-                      deck={item.deck}
-                      index={i}
-                      onDeleteClick={handleDeleteClick}
-                      onEditClick={handleEditDeck}
-                      queryClient={queryClient}
-                      folders={folders}
-                    />
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="text-center py-10">
-                <p className="text-muted-foreground mb-4">
-                  {currentFolderId
-                    ? "No decks in this folder yet."
-                    : "You don't have any decks or folders yet."}
-                </p>
-                <Button
-                  onClick={() =>
-                    currentFolderId
-                      ? setIsAddDeckModalOpen(true)
-                      : setIsCreateChooserOpen(true)
-                  }
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create your first item
-                </Button>
-              </div>
-            )}
-          </Section>
-
-          {currentFolderId === null && (
-            <Section
-              title="Favorites"
-              description="Decks you've starred for quick access."
-            >
-              {showFavoritesLoading ? (
-                renderSkeletonGrid()
-              ) : favoriteError ? (
-                <p className="text-center text-red-500 text-sm">
-                  Error loading favorite decks: {favoriteError.message}
-                </p>
-              ) : favoriteDecks.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-                  {favoriteDecks.map((deck: Deck, i: number) => (
-                    <DeckCard
-                      key={deck._id}
-                      deck={deck}
-                      index={i}
-                      onDeleteClick={handleDeleteClick}
-                      onEditClick={handleEditDeck}
-                      queryClient={queryClient}
-                      folders={folders}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <p className="text-muted-foreground">You haven’t favorited any decks yet.</p>
-              )}
-            </Section>
-          )}
-        </div>
-
-        {currentFolderId === null && (
-          <div className="space-y-6">
-            <Section
-              title="Recently Accessed"
-              description="Jump back into the decks you opened most recently."
-            >
-              <RecentDecks
-                onDeleteClick={handleDeleteClick}
-                onEditClick={handleEditDeck}
-                showMenu
-              />
-            </Section>
-          </div>
-        )}
+            {tab.label}
+          </Button>
+        ))}
       </div>
 
-     
+      {/* Tab Content */}
+      <div className="rounded-2xl border-2 border-black dark:border-accent bg-card backdrop-blur-sm shadow-sm p-4 md:p-6">
+        <div className="flex flex-col gap-1 mb-4">
+          <h2 className="text-xl md:text-2xl font-semibold text-foreground font-sora">
+            {activeTab === "workspace" && currentFolderName}
+            {activeTab === "favorites" && "Favorites"}
+            {activeTab === "recent" && "Recently Accessed"}
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            {activeTab === "workspace" &&
+              (currentFolderId
+                ? "Decks inside this folder."
+                : "Folders and decks you own.")}
+            {activeTab === "favorites" &&
+              "Decks you've starred for quick access."}
+            {activeTab === "recent" &&
+              "Jump back into the decks you opened most recently."}
+          </p>
+        </div>
+
+        {activeTab === "workspace" && renderWorkspaceTab()}
+        {activeTab === "favorites" && renderFavoritesTab()}
+        {activeTab === "recent" && renderRecentTab()}
+      </div>
 
       <div className="fixed bottom-6 right-6 md:hidden">
         <Button
           size="lg"
           className="rounded-full w-14 h-14 shadow-lg"
           onClick={() =>
-            currentFolderId ? setIsAddDeckModalOpen(true) : setIsCreateChooserOpen(true)
+            currentFolderId
+              ? setIsAddDeckModalOpen(true)
+              : setIsCreateChooserOpen(true)
           }
         >
           <Plus className="h-6 w-6" />
@@ -525,7 +566,7 @@ const DecksPage = () => {
                 },
                 onError: (err: any) =>
                   showToast(err?.message || "Failed to rename folder", "error"),
-              }
+              },
             );
           }}
         />
@@ -538,7 +579,9 @@ const DecksPage = () => {
               <Plus className="h-5 w-5" />
             </div>
             <div className="space-y-1 text-left">
-              <DialogTitle className="text-xl">Create something new</DialogTitle>
+              <DialogTitle className="text-xl">
+                Create something new
+              </DialogTitle>
               <DialogDescription>
                 Pick what to add to your workspace.
               </DialogDescription>
@@ -557,7 +600,9 @@ const DecksPage = () => {
               >
                 <div className="flex flex-col items-start text-left gap-1">
                   <span className="font-semibold">New Deck</span>
-                  <span className="text-xs text-foreground/80">Create flashcards fast.</span>
+                  <span className="text-xs text-foreground/80">
+                    Create flashcards fast.
+                  </span>
                 </div>
                 <Plus className="h-4 w-4" />
               </Button>
@@ -571,7 +616,9 @@ const DecksPage = () => {
               >
                 <div className="flex flex-col items-start text-left gap-1">
                   <span className="font-semibold">New Folder</span>
-                  <span className="text-xs text-foreground/80">Group decks by topic.</span>
+                  <span className="text-xs text-foreground/80">
+                    Group decks by topic.
+                  </span>
                 </div>
                 <Plus className="h-4 w-4" />
               </Button>
