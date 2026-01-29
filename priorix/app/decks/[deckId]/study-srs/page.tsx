@@ -385,134 +385,308 @@ const StudySrsPage = () => {
     [computeSummary, deckCardsWithUpdates],
   );
 
-  // UPDATED: Also compute summary for pre-round display (should be the same logic)
   const preRoundSummary = useMemo(
     () => computeSummary(deckCardsWithUpdates),
     [computeSummary, deckCardsWithUpdates],
   );
 
   const renderPreRound = () => (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 p-4">
+    <div className="min-h-screen bg-gradient-to-b from-background via-background to-secondary/5 p-2">
       <div className="max-w-4xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="space-y-6"
+          transition={{ duration: 0.4 }}
+          className="space-y-2 md:space-y-4"
         >
-          <Card className="border shadow-sm overflow-hidden">
-            <CardContent className="p-6 space-y-6">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                <div>
-                  <h2 className="text-lg font-semibold">Session size</h2>
-                  <p className="text-sm text-muted-foreground">
-                    {pendingCards.length} cards due now
-                  </p>
+          {/* Header Section */}
+          <div className="space-y-1">
+            
+            <div className="hidden md:block bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-4 border">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                    <Zap className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Ready to study</p>
+                    <p className="text-2xl font-bold">
+                      {pendingCards.length}
+                   
+                    </p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Clock className="h-4 w-4" />
-                  <span>Pick how many to study</span>
-                </div>
+                <Button
+                  onClick={startRound}
+                  disabled={isReviewing || pendingCards.length === 0}
+                  size="lg"
+                  className="gap-2 shadow-lg"
+                >
+                  <Zap className="h-5 w-5" />
+                   Study
+                </Button>
               </div>
+            </div>
+          </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
-                {srsSessionSizes.map((size) => (
-                  <motion.div
-                    key={size}
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
-                  >
-                    <Button
-                      variant={sessionSize === size ? "default" : "outline"}
-                      onClick={() => setSessionSize(size)}
-                      disabled={roundActive || isReviewing}
-                      className="w-full h-16 flex flex-col gap-1"
-                    >
-                      <span className="text-xl font-bold">{size}</span>
-                      <span className="text-xs opacity-80">cards</span>
-                    </Button>
-                  </motion.div>
-                ))}
-              </div>
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left Column: Session Settings */}
+            <div className="lg:col-span-2 space-y-6">
+              <Card className="border-2">
+                <CardContent>
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h2 className="text-lg md:text-xl font-semibold flex items-center gap-2">
+                          <Target className="h-5 w-5 text-primary" />
+                          Session Size
+                        </h2>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <Clock className="h-4 w-4" />
+                          <span>Pick your goal</span>
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Choose how many cards you want to study in this session
+                      </p>
+                    </div>
 
-              <div className="rounded-lg border p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    Ready to study
-                  </p>
-                  <p className="text-base font-semibold">
-                    {pendingCards.length} card
-                    {pendingCards.length === 1 ? "" : "s"} queued
-                  </p>
-                </div>
-                <div className="flex gap-3">
-                  {pendingCards.length === 0 ? (
-                    <>
-                      <Button
-                        onClick={() => refetchDue()}
-                        variant="outline"
-                        className="gap-2"
-                        disabled={isReviewing}
-                      >
-                        <RotateCcw className="h-4 w-4" />
-                        Refresh
-                      </Button>
-                      <Button onClick={handleBackToDeck} variant="ghost">
-                        Back to Deck
-                      </Button>
-                    </>
-                  ) : (
-                    <Button
-                      onClick={startRound}
-                      disabled={isReviewing}
-                      className="gap-2"
-                    >
-                      <Zap className="h-4 w-4" />
-                      Start ({sessionSize})
-                    </Button>
-                  )}
-                </div>
-              </div>
+                    <div className="grid grid-cols-4 sm:grid-cols-4 gap-3">
+                      {srsSessionSizes.map((size) => (
+                        <motion.div
+                          key={size}
+                          whileHover={{ scale: 1.03 }}
+                          whileTap={{ scale: 0.97 }}
+                          className="relative"
+                        >
+                          <Button
+                            variant={
+                              sessionSize === size ? "default" : "outline"
+                            }
+                            onClick={() => setSessionSize(size)}
+                            disabled={roundActive || isReviewing}
+                            className={cn(
+                              "w-full h-15 flex flex-col gap-0 transition-all duration-200",
+                              sessionSize === size
+                                ? "shadow-lg shadow-primary/20 bg-yellow text-primary"
+                                : "hover:border-primary/50",
+                            )}
+                          >
+                            <span className="text-xl md:text-2xl font-bold">{size}</span>
+                            <span className="text-xs opacity-90">cards</span>
+                            {sessionSize === size && (
+                              <div className="absolute -top-1 -right-1 w-5 h-5 bg-primary rounded-full flex items-center justify-center">
+                                <Check className="h-3 w-3 text-white" />
+                              </div>
+                            )}
+                          </Button>
+                        </motion.div>
+                      ))}
+                    </div>
 
-              <div className="rounded-lg border p-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 text-center bg-muted/30">
-                <div className="p-2">
-                  <div className="text-sm text-muted-foreground">Not Yet</div>
-                  <div className="text-xl font-semibold">
-                    {preRoundSummary.notYet}
+                    
                   </div>
-                </div>
-                <div className="p-2">
-                  <div className="text-sm text-muted-foreground">Forgotten</div>
-                  <div className="text-xl font-semibold">
-                    {preRoundSummary.forgotten}
+                </CardContent>
+              </Card>
+
+              {/* Progress Stats */}
+              <Card className="border-2">
+                <CardContent>
+                  <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5 text-primary" />
+                    Learning Progress
+                  </h2>
+
+                  <div className="space-y-4">
+                    {/* Progress Bar */}
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="font-medium">Overall Mastery</span>
+                        <span className="font-bold">
+                          {Math.round(
+                            ((deckCardsWithUpdates.length -
+                              preRoundSummary.notYet) /
+                              deckCardsWithUpdates.length) *
+                              100,
+                          )}
+                          %
+                        </span>
+                      </div>
+                      <div className="h-2 bg-muted rounded-full overflow-hidden">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{
+                            width: `${((deckCardsWithUpdates.length - preRoundSummary.notYet) / deckCardsWithUpdates.length) * 100}%`,
+                          }}
+                          transition={{ duration: 0.8, ease: "easeOut" }}
+                          className="h-full bg-yellow rounded-full"
+                        />
+                      </div>
+                      <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>{preRoundSummary.notYet} not studied</span>
+                        <span>
+                          {deckCardsWithUpdates.length - preRoundSummary.notYet}{" "}
+                          in progress
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Quick Stats */}
+                    <div className="grid grid-cols-3 gap-4 pt-1">
+                      <div className="bg-muted/50 rounded-lg p-4 text-center">
+                        <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                          {preRoundSummary.learning}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          Learning
+                        </div>
+                      </div>
+                      <div className="bg-muted/50 rounded-lg p-4 text-center">
+                        <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                          {preRoundSummary.mastered}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          Mastered
+                        </div>
+                      </div>
+                      <div className="bg-muted/50 rounded-lg p-4 text-center">
+                        <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                          {preRoundSummary.hard}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          Hard
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="p-2">
-                  <div className="text-sm text-muted-foreground">Learning</div>
-                  <div className="text-xl font-semibold">
-                    {preRoundSummary.learning}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Right Column: Status Overview */}
+            <div className="space-y-6 mb-15">
+              <Card className="border-2 h-full">
+                <CardContent className=" h-full">
+                  <div className="space-y-2 h-full flex flex-col">
+                    <div>
+                      <h2 className="text-xl font-semibold flex items-center gap-2">
+                        <Check className="h-5 w-5 text-primary" />
+                        Status Overview
+                      </h2>
+                    </div>
+
+                    <div className="space-y-2 flex-1">
+                      {/* Not Yet Studied */}
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
+                            <Clock className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                          <div>
+                            <p className="font-medium">Not Yet</p>
+                            <p className="text-xs text-muted-foreground">
+                              Never reviewed
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-2xl font-bold">
+                          {preRoundSummary.notYet}
+                        </div>
+                      </div>
+
+                      {/* Learning */}
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-yellow-100 dark:bg-yellow-900 flex items-center justify-center">
+                            <RotateCcw className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                          </div>
+                          <div>
+                            <p className="font-medium">Learning</p>
+                            <p className="text-xs text-muted-foreground">
+                              In learning steps
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+                          {preRoundSummary.learning}
+                        </div>
+                      </div>
+
+                      {/* Hard */}
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900 flex items-center justify-center">
+                            <Target className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                          </div>
+                          <div>
+                            <p className="font-medium">Hard</p>
+                            <p className="text-xs text-muted-foreground">
+                              Unstable memory
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                          {preRoundSummary.hard}
+                        </div>
+                      </div>
+
+                      {/* Good */}
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                            <Check className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                          </div>
+                          <div>
+                            <p className="font-medium">Good</p>
+                            <p className="text-xs text-muted-foreground">
+                              Progressing well
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                          {preRoundSummary.good}
+                        </div>
+                      </div>
+
+                      {/* Mastered */}
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
+                            <Zap className="h-4 w-4 text-green-600 dark:text-green-400" />
+                          </div>
+                          <div>
+                            <p className="font-medium">Mastered</p>
+                            <p className="text-xs text-muted-foreground">
+                              Long-term retention
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                          {preRoundSummary.mastered}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="p-2">
-                  <div className="text-sm text-muted-foreground">Hard</div>
-                  <div className="text-xl font-semibold">
-                    {preRoundSummary.hard}
-                  </div>
-                </div>
-                <div className="p-2">
-                  <div className="text-sm text-muted-foreground">Good</div>
-                  <div className="text-xl font-semibold">
-                    {preRoundSummary.good}
-                  </div>
-                </div>
-                <div className="p-2">
-                  <div className="text-sm text-muted-foreground">Mastered</div>
-                  <div className="text-xl font-semibold">
-                    {preRoundSummary.mastered}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          {/* Mobile Action Footer */}
+          <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t p-4 sm:hidden">
+            <div className="max-w-4xl mx-auto">
+              <Button
+                onClick={startRound}
+                disabled={isReviewing || pendingCards.length === 0}
+                size="lg"
+                className="w-full gap-2 bg-green text-primary"
+              >
+                <Zap className="h-5 w-5" />
+                Start Studying {sessionSize} Cards
+              </Button>
+            </div>
+          </div>
         </motion.div>
       </div>
     </div>

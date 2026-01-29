@@ -18,7 +18,7 @@ export const srsConfig = {
   minNextReviewMinutes: 10,
 };
 
-export const srsSessionSizes = [10, 20, 30, 40, 50] as const;
+export const srsSessionSizes = [10, 20, 30, 40] as const;
 
 export const srsRatings = ["again", "hard", "good", "easy"] as const;
 export type SrsRating = (typeof srsRatings)[number];
