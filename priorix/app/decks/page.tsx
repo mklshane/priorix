@@ -532,32 +532,53 @@ const DecksPage = () => {
       )}
 
       <Dialog open={isCreateChooserOpen} onOpenChange={setIsCreateChooserOpen}>
-        <DialogContent className="sm:max-w-[420px]">
-          <DialogHeader>
-            <DialogTitle>Create</DialogTitle>
-            <DialogDescription>
-              Choose what you want to add.
-            </DialogDescription>
+        <DialogContent className="modal-surface sm:max-w-[520px] p-0">
+          <DialogHeader className="flex flex-row items-start gap-3 border-b border-border/60 bg-gradient-to-r from-primary/10 via-muted/40 to-transparent px-6 py-5">
+            <div className="flex size-12 items-center justify-center rounded-lg bg-primary/15 text-primary shadow-inner ring-1 ring-primary/20">
+              <Plus className="h-5 w-5" />
+            </div>
+            <div className="space-y-1 text-left">
+              <DialogTitle className="text-xl">Create something new</DialogTitle>
+              <DialogDescription>
+                Pick what to add to your workspace.
+              </DialogDescription>
+            </div>
           </DialogHeader>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Button
-              variant="default"
-              onClick={() => {
-                setIsCreateChooserOpen(false);
-                setIsAddDeckModalOpen(true);
-              }}
-            >
-              New Deck
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setIsCreateChooserOpen(false);
-                setIsAddFolderModalOpen(true);
-              }}
-            >
-              New Folder
-            </Button>
+
+          <div className="px-6 pb-6 pt-4 space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Button
+                variant="default"
+                className="h-full justify-between bg-yellow text-foreground border border-yellow/60 shadow-[0_12px_30px_rgba(255,215,0,0.35)] hover:scale-[1.01] hover:shadow-[0_16px_36px_rgba(255,215,0,0.4)] transition-transform"
+                onClick={() => {
+                  setIsCreateChooserOpen(false);
+                  setIsAddDeckModalOpen(true);
+                }}
+              >
+                <div className="flex flex-col items-start text-left gap-1">
+                  <span className="font-semibold">New Deck</span>
+                  <span className="text-xs text-foreground/80">Create flashcards fast.</span>
+                </div>
+                <Plus className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="secondary"
+                className="h-full justify-between bg-pink text-foreground border border-pink/60 shadow-[0_12px_30px_rgba(255,182,251,0.35)] hover:scale-[1.01] hover:shadow-[0_16px_36px_rgba(255,182,251,0.45)] transition-transform"
+                onClick={() => {
+                  setIsCreateChooserOpen(false);
+                  setIsAddFolderModalOpen(true);
+                }}
+              >
+                <div className="flex flex-col items-start text-left gap-1">
+                  <span className="font-semibold">New Folder</span>
+                  <span className="text-xs text-foreground/80">Group decks by topic.</span>
+                </div>
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              You can always rearrange decks into folders later.
+            </p>
           </div>
         </DialogContent>
       </Dialog>
