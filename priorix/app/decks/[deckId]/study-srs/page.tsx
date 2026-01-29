@@ -837,7 +837,7 @@ const StudySrsPage = () => {
                           animate={{ opacity: 1, y: 0 }}
                           className="space-y-4"
                         >
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                          <div className="grid grid-cols-4 md:grid-cols-4 gap-3">
                             {srsRatings.map((rating) => {
                               const config = ratingConfig[rating];
                               const Icon = config.icon;
