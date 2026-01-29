@@ -5,6 +5,7 @@ import { ConnectDB } from "@/lib/config/db";
 
 // Ensure referenced models are registered for populate on cold starts
 import "@/lib/models/User";
+import "@/lib/models/Flashcard";
 
 export const getDecks = async (params: {
   deckId?: string;
