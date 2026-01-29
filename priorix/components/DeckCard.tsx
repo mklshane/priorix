@@ -300,10 +300,10 @@ const DeckCard: React.FC<DeckCardProps> = ({
       >
         <div className="absolute inset-x-0 top-0 h-[6px] bg-black/5 dark:bg-white/5" />
 
-        <CardContent className="pt-6 pb-4 px-6 flex flex-col h-full">
+        <CardContent className="pt-4 pb-4 px-4 flex flex-col h-full">
           {/* Header */}
           <div className="flex justify-between items-start mb-1">
-            <h3 className="text-lg font-semibold font-sora line-clamp-2">
+            <h3 className="text-md font-semibold font-sora line-clamp-1">
               {deck.title}
             </h3>
 
