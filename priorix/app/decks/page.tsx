@@ -297,7 +297,6 @@ const DecksPageContent = () => {
       queryClient.invalidateQueries({
         queryKey: ["favoriteDecks", session?.user?.id],
       });
-      showToast("Deck moved successfully");
     },
     onError: () => {
       showToast("Failed to move deck", "error");
@@ -667,7 +666,7 @@ const DecksPageContent = () => {
                   }
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Create your first item
+                  Create your first deck or folder
                 </Button>
               </div>
             )}
