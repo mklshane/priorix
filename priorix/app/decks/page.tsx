@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, ReactNode, useRef, useMemo } from "react";
+import { Suspense, useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import DeckCard from "@/components/DeckCard";
@@ -75,7 +75,7 @@ interface DragItem {
   deckName: string;
 }
 
-const DecksPage = () => {
+const DecksPageContent = () => {
   const [isAddDeckModalOpen, setIsAddDeckModalOpen] = useState(false);
   const [isAddFolderModalOpen, setIsAddFolderModalOpen] = useState(false);
   const [isEditFolderModalOpen, setIsEditFolderModalOpen] = useState(false);
@@ -1075,5 +1075,11 @@ const DecksPage = () => {
     </div>
   );
 };
+
+const DecksPage = () => (
+  <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">Loading decks...</div>}>
+    <DecksPageContent />
+  </Suspense>
+);
 
 export default DecksPage;
