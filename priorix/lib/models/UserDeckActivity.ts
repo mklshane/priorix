@@ -1,4 +1,3 @@
-// lib/models/UserDeckActivity.ts
 import mongoose, { Schema, Document, Model } from "mongoose";
 
 export interface IUserDeckActivity extends Document {
