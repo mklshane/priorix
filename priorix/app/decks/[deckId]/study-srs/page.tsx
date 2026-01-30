@@ -812,7 +812,7 @@ const StudySrsPage = () => {
                             className={cn(
                               isRevealed
                                 ? "text-2xl md:text-3xl font-bold leading-tight"
-                                : "text-base md:text-lg font-semibold leading-relaxed",
+                                : "text-base md:text-xl font-semibold leading-relaxed",
                             )}
                           >
                             {isRevealed
