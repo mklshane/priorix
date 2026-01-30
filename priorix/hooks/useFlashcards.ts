@@ -5,9 +5,11 @@ import { IFlashcard } from "@/types/flashcard";
 
 const fetchFlashcards = async (
   deckId: string,
-  userId: string
+  userId?: string
 ): Promise<IFlashcard[]> => {
-  const res = await fetch(`/api/flashcard?deckId=${deckId}&userId=${userId}`);
+  const res = await fetch(
+    `/api/flashcard?deckId=${deckId}${userId ? `&userId=${userId}` : ""}`,
+  );
   if (!res.ok) throw new Error("Failed to fetch flashcards");
   return res.json();
 };
@@ -24,7 +26,7 @@ export const useFlashcards = (deckId: string) => {
     error,
   } = useQuery<IFlashcard[]>({
     queryKey: ["flashcards", deckId, session?.user?.id],
-    queryFn: () => fetchFlashcards(deckId, session?.user?.id!),
+    queryFn: () => fetchFlashcards(deckId, session?.user?.id),
     enabled: !!deckId && !!session?.user?.id,
     retry: 2,
     staleTime: 30_000,

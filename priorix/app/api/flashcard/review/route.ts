@@ -6,6 +6,7 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const deckId = searchParams.get("deckId");
+    const userId = searchParams.get("userId");
     const limitParam = searchParams.get("limit");
     const limit = limitParam ? parseInt(limitParam, 10) : 10;
 
@@ -13,9 +14,18 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "deckId is required" }, { status: 400 });
     }
 
-    const cards = await getDueFlashcards(deckId, Number.isNaN(limit) ? 10 : limit);
+    if (!userId) {
+      return NextResponse.json({ error: "userId is required" }, { status: 400 });
+    }
+
+    const cards = await getDueFlashcards(
+      deckId,
+      Number.isNaN(limit) ? 10 : limit,
+      userId || undefined,
+    );
     return NextResponse.json(cards);
   } catch (err: any) {
+    console.error("/api/flashcard/review GET error", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
@@ -23,20 +33,26 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { cardId, rating, responseTimeMs } = body || {};
+    const { cardId, rating, responseTimeMs, userId } = body || {};
+
     if (!cardId || !rating) {
       return NextResponse.json(
         { error: "cardId and rating are required" },
         { status: 400 }
       );
     }
+
+    if (!userId) {
+      return NextResponse.json({ error: "userId is required" }, { status: 400 });
+    }
     if (!srsRatings.includes(rating)) {
       return NextResponse.json({ error: "Invalid rating" }, { status: 400 });
     }
 
-    const updated = await reviewFlashcard({ cardId, rating, responseTimeMs });
+    const updated = await reviewFlashcard({ cardId, rating, responseTimeMs, userId });
     return NextResponse.json(updated);
   } catch (err: any) {
+    console.error("/api/flashcard/review POST error", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

@@ -11,7 +11,8 @@ export async function GET(req: NextRequest) {
         { status: 400 }
       );
 
-    const flashcards = await flashcardController.getFlashcards(deckId);
+    const userId = searchParams.get("userId") || undefined;
+    const flashcards = await flashcardController.getFlashcards(deckId, userId);
     return NextResponse.json(flashcards);
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
