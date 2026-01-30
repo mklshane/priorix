@@ -407,14 +407,10 @@ const StudySrsPage = () => {
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
                     <Zap className="h-5 w-5 text-primary" />
-                          <div
-                            className={cn(
-                              "whitespace-pre-line break-words",
-                              isRevealed
-                                ? "text-2xl md:text-3xl font-bold leading-tight"
-                                : "text-lg md:text-xl font-semibold leading-relaxed",
-                            )}
-                          >
+                  </div>
+                  <div>
+                    <p className="font-medium">Ready to study</p>
+                    <p className="text-2xl font-bold">{pendingCards.length}</p>
                   </div>
                 </div>
                 <Button
@@ -811,9 +807,10 @@ const StudySrsPage = () => {
                         >
                           <div
                             className={cn(
+                              "whitespace-pre-line break-words",
                               isRevealed
                                 ? "text-2xl md:text-3xl font-bold leading-tight"
-                                : "text-base md:text-xl font-semibold leading-relaxed",
+                                : "text-lg md:text-xl font-semibold leading-relaxed",
                             )}
                           >
                             {isRevealed
