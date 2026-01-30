@@ -796,7 +796,7 @@ const StudySrsPage = () => {
                 isFlipping && "transform-gpu",
               )}
             >
-              <CardContent className="p-4 md:p-8">
+              <CardContent className="p-4 md:p-8 md:pb-0">
                 {currentCard ? (
                   <>
                     <div className="min-h-64 flex flex-col items-center justify-center text-center">
@@ -808,7 +808,13 @@ const StudySrsPage = () => {
                           exit={{ opacity: 0, y: -20 }}
                           className="space-y-6 w-full"
                         >
-                          <div className="text-xl md:text-3xl font-bold leading-relaxed">
+                          <div
+                            className={cn(
+                              isRevealed
+                                ? "text-2xl md:text-3xl font-bold leading-tight"
+                                : "text-base md:text-lg font-semibold leading-relaxed",
+                            )}
+                          >
                             {isRevealed
                               ? currentCard?.term
                               : currentCard?.definition}
@@ -823,13 +829,7 @@ const StudySrsPage = () => {
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                         >
-                          <Button
-                            onClick={toggleReveal}
-                            variant="outline"
-                            className="w-full gap-2"
-                          >
-                            Reveal Answer (Space)
-                          </Button>
+                          
                         </motion.div>
                       ) : (
                         <motion.div
