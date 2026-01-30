@@ -548,43 +548,13 @@ const DecksPageContent = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 className="mb-6 p-4 bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-xl"
               >
-                <div className="flex items-center gap-2 text-sm text-primary mb-3">
+                <div className="flex items-center gap-2 text-sm text-primary">
                   <Move className="h-4 w-4" />
                   <span>
                     Moving: <strong>{dragItem.deckName}</strong>
                   </span>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-2 hover:bg-primary/10"
-                    onClick={() => handleDropOnFolder(null)}
-                  >
-                    <FolderOpen className="h-4 w-4" />
-                    Home
-                  </Button>
-                  {folders.map((folder) => {
-                    const deckCount = folder.deckCount ?? 0;
-                    return (
-                    <Button
-                      key={folder._id}
-                      variant="outline"
-                      size="sm"
-                      className="gap-2 hover:bg-primary/10"
-                      onClick={() => handleDropOnFolder(folder._id)}
-                    >
-                      <Folder className="h-4 w-4" />
-                      {folder.name}
-                      {deckCount > 0 && (
-                        <Badge variant="secondary" className="ml-1 text-xs">
-                          {deckCount}
-                        </Badge>
-                      )}
-                    </Button>
-                    );
-                  })}
-                </div>
+
               </motion.div>
             )}
 
