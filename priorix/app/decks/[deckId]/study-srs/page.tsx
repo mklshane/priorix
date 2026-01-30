@@ -410,10 +410,7 @@ const StudySrsPage = () => {
                   </div>
                   <div>
                     <p className="font-medium">Ready to study</p>
-                    <p className="text-2xl font-bold">
-                      {pendingCards.length}
-                   
-                    </p>
+                    <p className="text-2xl font-bold">{pendingCards.length}</p>
                   </div>
                 </div>
                 <Button
@@ -810,9 +807,10 @@ const StudySrsPage = () => {
                         >
                           <div
                             className={cn(
+                              "whitespace-pre-line break-words",
                               isRevealed
                                 ? "text-2xl md:text-3xl font-bold leading-tight"
-                                : "text-base md:text-xl font-semibold leading-relaxed",
+                                : "text-lg md:text-xl font-semibold leading-relaxed",
                             )}
                           >
                             {isRevealed
