@@ -4,6 +4,7 @@ export interface IFlashcard extends Document {
   term: string;
   definition: string;
   deck: mongoose.Types.ObjectId;
+  userId?: mongoose.Types.ObjectId;
   easeFactor?: number;
   intervalDays?: number;
   lastReviewedAt?: Date | null;
@@ -26,6 +27,7 @@ const FlashcardSchema: Schema<IFlashcard> = new Schema(
     term: { type: String, required: true, trim: true },
     definition: { type: String, required: true, trim: true },
     deck: { type: Schema.Types.ObjectId, ref: "Deck", required: true },
+    userId: { type: Schema.Types.ObjectId, ref: "User", required: false },
     easeFactor: { type: Number, default: 2.5 },
     intervalDays: { type: Number, default: 0 },
     lastReviewedAt: { type: Date, default: null },

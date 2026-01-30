@@ -3,6 +3,7 @@ export interface IFlashcard {
   term: string; 
   definition: string; 
   deck: string;
+  userId?: string;
   easeFactor?: number;
   intervalDays?: number;
   lastReviewedAt?: string | null;

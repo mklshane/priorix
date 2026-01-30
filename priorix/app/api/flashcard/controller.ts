@@ -1,4 +1,5 @@
 import Flashcard from "@/lib/models/Flashcard";
+import UserCardProgress from "@/lib/models/UserCardProgress";
 import { ConnectDB } from "@/lib/config/db";
 import Deck from "@/lib/models/Deck";
 
@@ -16,10 +17,33 @@ const withStaleness = (card: any) => {
   return { ...plain, stalenessStatus: computeStalenessStatus(plain) };
 };
 
-export const getFlashcards = async (deckId: string) => {
+export const getFlashcards = async (deckId: string, userId?: string) => {
   await ConnectDB();
   const cards = await Flashcard.find({ deck: deckId });
-  return cards.map(withStaleness);
+
+  if (!userId) return cards.map(withStaleness);
+
+  const progressMap = new Map<string, any>();
+  const progressDocs = await UserCardProgress.find({
+    userId,
+    cardId: { $in: cards.map((c) => c._id) },
+  });
+  progressDocs.forEach((p: any) => progressMap.set(String(p.cardId), p));
+
+  return cards.map((card) => {
+    const plain = card.toObject();
+    const prog = progressMap.get(String(card._id));
+    if (!prog) return withStaleness(plain);
+    const plainProg = prog.toObject();
+    return {
+      ...plain,
+      ...plainProg,
+      _id: plain._id,
+      cardId: plain._id,
+      progressId: plainProg._id,
+      stalenessStatus: computeStalenessStatus(plainProg),
+    };
+  });
 };
 
 export const createFlashcard = async (data: {
@@ -29,7 +53,11 @@ export const createFlashcard = async (data: {
 }) => {
   await ConnectDB();
 
-  const flashcard = await Flashcard.create(data);
+  const flashcard = await Flashcard.create({
+    term: data.term,
+    definition: data.definition,
+    deck: data.deck,
+  });
 
   await Deck.findByIdAndUpdate(data.deck, {
     $push: { flashcards: flashcard._id },

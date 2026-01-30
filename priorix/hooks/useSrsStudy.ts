@@ -58,7 +58,12 @@ export const useSrsStudy = (deckId: string, sessionSize: number) => {
       fetch("/api/flashcard/review", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cardId, rating, responseTimeMs }),
+        body: JSON.stringify({
+          cardId,
+          rating,
+          responseTimeMs,
+          userId: session?.user?.id,
+        }),
       }).then((res) => {
         if (!res.ok) throw new Error("Failed to submit review");
         return res.json();
