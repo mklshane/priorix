@@ -677,7 +677,7 @@ const StudySrsPage = () => {
                 onClick={startRound}
                 disabled={isReviewing || pendingCards.length === 0}
                 size="lg"
-                className="w-full gap-2 bg-green text-primary"
+                className="w-full gap-2 bg-green text-primary py-6"
               >
                 <Zap className="h-5 w-5" />
                 Start Studying {sessionSize} Cards
