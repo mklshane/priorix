@@ -204,8 +204,8 @@ function BrowseContent() {
           </Card>
         )}
 
-        {/* Loading State */}
-        {(isLoading || isFetching) && (
+        {/* Loading State - only show on initial load, not refetches */}
+        {(isLoading || isFetching) && decks.length === 0 && (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, idx) => (
               <Card key={idx} className="border animate-pulse">

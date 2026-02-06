@@ -348,11 +348,11 @@ const StudyPage = () => {
     ));
   };
 
+  // Only show loading on initial load, not on refetches
+  // If we have data or are initialized, don't show loading
   const isPending =
-    isDeckLoading ||
-    isFlashcardsLoading ||
-    isDeckFetching ||
-    isFlashcardsFetching ||
+    ((isDeckLoading || isDeckFetching) && !deck) ||
+    ((isFlashcardsLoading || isFlashcardsFetching) && flashcards.length === 0) ||
     !isInitialized;
 
   if (isPending) {

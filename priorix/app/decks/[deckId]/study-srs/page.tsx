@@ -155,12 +155,13 @@ const StudySrsPage = () => {
 
   const currentCard = queue[currentIndex];
   const isPending =
-    isDeckLoading ||
-    isFlashcardsLoading ||
+    (isDeckLoading && !deck) ||
+    (isFlashcardsLoading && deckCards.length === 0) ||
     (isDueLoading &&
       !dueCards.length &&
       !pendingCards.length &&
-      !hasStartedRound);
+      !hasStartedRound &&
+      !roundCards.length);
   const roundActive = hasStartedRound && queue.length > 0;
 
   const toggleReveal = useCallback(() => {

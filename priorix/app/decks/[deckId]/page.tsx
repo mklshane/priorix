@@ -184,11 +184,11 @@ const DeckDetailPage = () => {
     }
   };
 
+  // Only show loading on initial load, not on refetches
+  // If we have data already loaded, don't show loading state
   const isPending =
-    isDeckLoading ||
-    isFlashcardsLoading ||
-    isDeckFetching ||
-    isFlashcardsFetching;
+    ((isDeckLoading || isDeckFetching) && !deck) ||
+    ((isFlashcardsLoading || isFlashcardsFetching) && flashcards.length === 0);
 
   if (isPending) {
     return <LoadingState />;

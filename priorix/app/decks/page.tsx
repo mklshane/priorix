@@ -402,8 +402,9 @@ const DecksPageContent = () => {
   };
 
   const folderPath = getFolderPath();
-  const showLoadingState = isLoading || isFetching;
-  const showFavoritesLoading = isLoadingFavorites || isFetchingFavorites;
+  // Only show loading skeleton on initial load, not on refetches when data exists
+  const showLoadingState = (isLoading || isFetching) && decks.length === 0;
+  const showFavoritesLoading = (isLoadingFavorites || isFetchingFavorites) && favoriteDecks.length === 0;
   const currentFolderName = currentFolderId
     ? folders.find((f) => f._id === currentFolderId)?.name || "Folder"
     : "All decks";
