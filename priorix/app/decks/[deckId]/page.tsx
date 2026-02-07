@@ -15,6 +15,7 @@ import LoadingState from "@/components/DeckDetails/LoadingState";
 import ErrorState from "@/components/DeckDetails/ErrorState";
 import NotFoundState from "@/components/DeckDetails/NotFoundState";
 import ImportModal from "@/components/DeckDetails/ImportModal";
+import StudyModeModal from "@/components/DeckDetails/StudyModeModal";
 import { useDeckContext } from "@/contexts/DeckContext";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -23,6 +24,7 @@ const DeckDetailPage = () => {
   const deckId = params.deckId as string;
   const router = useRouter();
   const [showImportModal, setShowImportModal] = useState(false);
+  const [showStudyModal, setShowStudyModal] = useState(false);
   const { showToast, dismissToast } = useToast();
   const { data: session } = useSession();
   const queryClient = useQueryClient();
@@ -63,12 +65,19 @@ const DeckDetailPage = () => {
     }
   }, [deck, setDeck]);
 
-  const handleStudyDeck = () => {
-    router.push(`/decks/${deckId}/study`);
+  const handleStudyClick = () => {
+    setShowStudyModal(true);
   };
 
-  const handleStudySrs = () => {
-    router.push(`/decks/${deckId}/study-srs`);
+  const handleSelectStudyMode = (mode: "flashcards" | "srs" | "quiz") => {
+    setShowStudyModal(false);
+    if (mode === "flashcards") {
+      router.push(`/decks/${deckId}/study`);
+    } else if (mode === "srs") {
+      router.push(`/decks/${deckId}/study-srs`);
+    } else if (mode === "quiz") {
+      router.push(`/decks/${deckId}/quiz`);
+    }
   };
 
   const handleOpenImportModal = () => {
@@ -214,7 +223,7 @@ const DeckDetailPage = () => {
   }
 
   return (
-    <div className="w-[90%] mx-auto py-2" key={retryKey}>
+    <div className="min-h-screen p-4 md:p-6 lg:p-8 px-2" key={retryKey}>
       <ImportModal
         isOpen={showImportModal}
         onClose={handleCloseImportModal}
@@ -222,11 +231,17 @@ const DeckDetailPage = () => {
         deckId={deckId}
       />
 
+      <StudyModeModal
+        isOpen={showStudyModal}
+        onClose={() => setShowStudyModal(false)}
+        onSelectMode={handleSelectStudyMode}
+        hasCards={flashcards.length > 0}
+      />
+
       <DeckHeader
         deck={deck}
         flashcards={flashcards}
-        onStudyDeck={handleStudyDeck}
-        onStudySrs={handleStudySrs}
+        onStudyClick={handleStudyClick}
         onImportPDF={isOwner ? handleOpenImportModal : undefined}
       />
 

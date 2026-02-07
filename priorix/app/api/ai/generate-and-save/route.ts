@@ -3,6 +3,7 @@ import Deck from "@/lib/models/Deck";
 import Flashcard from "@/lib/models/Flashcard";
 import { ConnectDB } from "@/lib/config/db";
 import { generateFlashcardsFromText } from "@/lib/gemini";
+import { assessCardDifficultyBatch } from "@/lib/ai-difficulty";
 import { IFlashcard } from "@/types/flashcard"; 
 
 export async function POST(req: Request) {
@@ -23,12 +24,18 @@ export async function POST(req: Request) {
       deckId
     );
 
-    // Save flashcards to DB
+    // Assess difficulty for all generated cards
+    const cardsWithDifficulty = await assessCardDifficultyBatch(
+      flashcards.map((f) => ({ term: f.term, definition: f.definition }))
+    );
+
+    // Save flashcards to DB with difficulty scores
     const saved = await Flashcard.insertMany(
-      flashcards.map((f: IFlashcard) => ({
+      cardsWithDifficulty.map((f, index) => ({
         deck: deckId,
-        term: f.term,
-        definition: f.definition,
+        term: flashcards[index].term,
+        definition: flashcards[index].definition,
+        estimatedDifficulty: f.estimatedDifficulty,
       }))
     );
 

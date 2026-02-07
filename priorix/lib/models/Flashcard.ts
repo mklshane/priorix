@@ -18,6 +18,11 @@ export interface IFlashcard extends Document {
   currentState?: "new" | "learning" | "review" | "relearning";
   learningStepIndex?: number;
   lapseCount?: number;
+  // Adaptive learning fields
+  estimatedDifficulty?: number; // AI-predicted difficulty (1-10)
+  actualDifficulty?: number; // User-aggregated difficulty (1-10)
+  topicTags?: string[]; // Array of topic/category tags
+  relatedCards?: mongoose.Types.ObjectId[]; // Related flashcard IDs
   createdAt: Date;
   updatedAt: Date;
 }
@@ -45,6 +50,11 @@ const FlashcardSchema: Schema<IFlashcard> = new Schema(
       enum: ["new", "learning", "review", "relearning"],
       default: "new",
     },
+    // Adaptive learning fields
+    estimatedDifficulty: { type: Number, default: 5, min: 1, max: 10 },
+    actualDifficulty: { type: Number, default: null, min: 1, max: 10 },
+    topicTags: { type: [String], default: [] },
+    relatedCards: { type: [Schema.Types.ObjectId], ref: "Flashcard", default: [] },
   },
   { timestamps: true }
 );

@@ -362,7 +362,7 @@ const StudyPage = () => {
   if (!isPending && ((deckError && !deck) || (flashcardsError && flashcards.length === 0))) {
     const errorMessage = deckError || flashcardsError || "Failed to load data";
     return (
-      <div className="container mx-auto p-4">
+      <div className="min-h-screen p-4 md:p-6 lg:p-8 px-2 max-w-3xl">
         <Card>
           <CardContent className="p-8 text-center">
             <p>{errorMessage}</p>
@@ -381,7 +381,7 @@ const StudyPage = () => {
 
   if (!deck) {
     return (
-      <div className="container mx-auto p-4">
+      <div className="mx-auto max-w-3xl">
         <Card>
           <CardContent className="p-8 text-center">
             <p>Deck not found.</p>
@@ -393,7 +393,7 @@ const StudyPage = () => {
 
   if (flashcards.length === 0) {
     return (
-      <div className="container mx-auto p-4">
+      <div className="mx-auto max-w-3xl">
         <Card>
           <CardContent className="p-8 text-center">
             <p>No flashcards available to study.</p>
@@ -406,7 +406,7 @@ const StudyPage = () => {
   const currentCard = orderedFlashcards[currentCardIndex];
 
   return (
-    <div className="container mx-auto px-4 max-w-3xl">
+    <div className="mx-auto max-w-3xl">
       <div className="mb-4 text-center flex justify-between items-center">
         <p className="text-muted-foreground">
           Card {currentCardIndex + 1} of {orderedFlashcards.length}

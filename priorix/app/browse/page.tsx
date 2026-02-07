@@ -136,7 +136,7 @@ function BrowseContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-secondary/10">
-      <div className="mx-auto max-w-6xl p-6">
+      <div className="mx-auto max-w-6xl">
         {/* Header Section */}
         <div className="mb-8 space-y-2">
           <div className="flex items-center gap-2">

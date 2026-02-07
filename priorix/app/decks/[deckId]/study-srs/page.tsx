@@ -21,6 +21,7 @@ import { useDeck } from "@/hooks/useDeck";
 import { useFlashcards } from "@/hooks/useFlashcards";
 import { useSrsStudy } from "@/hooks/useSrsStudy";
 import { useToast } from "@/hooks/useToast";
+import { useStudySession } from "@/hooks/useStudySession";
 import { SrsRating, srsRatings, srsSessionSizes } from "@/lib/srs-config";
 import { cn } from "@/lib/utils";
 import { IFlashcard } from "@/types/flashcard";
@@ -92,6 +93,12 @@ const StudySrsPage = () => {
   const deckId = params.deckId as string;
   const router = useRouter();
   const { showToast } = useToast();
+
+  // Session tracking
+  const { recordCardReview, endSession, startSession, sessionQuality } = useStudySession({ 
+    deckId,
+    enabled: true 
+  });
 
   const [sessionSize, setSessionSize] = useState<number>(() => {
     if (typeof window === "undefined") return 10;
@@ -192,7 +199,13 @@ const StudySrsPage = () => {
   const handleRating = async (rating: SrsRating) => {
     if (!currentCard) return;
     try {
+      const reviewStartTime = Date.now();
       const updatedCard = await review({ cardId: currentCard._id, rating });
+      const responseTime = Date.now() - reviewStartTime;
+      
+      // Track in session (responseTime in milliseconds)
+      recordCardReview(rating, responseTime);
+      
       setSeenCardIds((prev) => {
         const next = new Set(prev);
         next.add(currentCard._id);
@@ -209,6 +222,8 @@ const StudySrsPage = () => {
       if (nextQueue.length === 0) {
         setQueue([]);
         setCompletionOpen(true);
+        // End session when round completes
+        await endSession();
       } else {
         setQueue(nextQueue);
         setCurrentIndex((prevIdx) =>
@@ -245,8 +260,20 @@ const StudySrsPage = () => {
   }, [roundActive, currentCard, toggleReveal]);
 
   const handleContinue = async () => {
+    // End the current session if there was one
+    if (hasStartedRound && completedCount > 0) {
+      await endSession();
+    }
+    
+    // Fetch new cards and start a new session
     const result = await refetchDue();
     const nextCards = (result.data || []) as IFlashcard[];
+    
+    // Start new session if there are cards to study
+    if (nextCards.length > 0) {
+      startSession();
+    }
+    
     setQueue(nextCards);
     setPendingCards(nextCards);
     setRoundTotal(nextCards.length);
@@ -261,7 +288,11 @@ const StudySrsPage = () => {
     setLastRatings({});
   };
 
-  const exitToChooser = useCallback(() => {
+  const exitToChooser = useCallback(async () => {
+    // End session before resetting
+    if (hasStartedRound && completedCount > 0) {
+      await endSession();
+    }
     setQueue([]);
     setRoundTotal(0);
     setCompletedCount(0);
@@ -274,11 +305,11 @@ const StudySrsPage = () => {
     setPendingCards(dueCards);
     setSeenCardIds(new Set());
     setLastRatings({});
-  }, [dueCards]);
+  }, [dueCards, hasStartedRound, completedCount, endSession]);
 
-  const handleBackToDeck = () => {
+  const handleBackToDeck = async () => {
     if (hasStartedRound) {
-      exitToChooser();
+      await exitToChooser();
       return;
     }
     router.push(`/decks/${deckId}`);
@@ -301,30 +332,32 @@ const StudySrsPage = () => {
      const state = card.currentState ?? "new";
      const lastRating = lastRatings[card._id];
 
-     // REMOVED: The reps === 0 check since computeSummary handles it
-     // Cards in learning or relearning state, OR just rated "Again"
+     // Learning: Cards still in learning phase OR just rated "Again"
      const inLearningState =
        state === "new" || state === "learning" || state === "relearning";
      if (inLearningState || lastRating === "again") {
        return "learning";
      }
 
-     // Mastered criteria: stable, long-term retention
-     // Anki-style: interval ≥ 21 days, reps ≥ 5, good ease, few lapses
+     // Mastered criteria: Long-term stable memory (more achievable)
+     // interval ≥ 14 days, reps ≥ 4, decent ease, few lapses
      const isMastered =
-       interval >= 21 && reps >= 5 && ease >= 2.3 && lapses <= 2;
+       interval >= 14 && reps >= 4 && ease >= 2.2 && lapses <= 3;
      if (isMastered) {
        return "mastered";
      }
 
-     // Hard cards: either rated "Hard" recently OR showing unstable signs
+     // Hard cards: Showing signs of difficulty
+     // Low ease OR many lapses OR just rated "Hard"
+     // Note: Removed interval check - short intervals are normal for new graduates
      const isHard =
-       interval < 7 || ease < 2.1 || lapses > 2 || lastRating === "hard";
+       ease < 2.0 || lapses >= 3 || lastRating === "hard";
      if (isHard) {
        return "hard";
      }
 
-     // Good cards: graduated but not yet mastered
+     // Good cards: Graduated and progressing well
+     // Includes cards with intervals 1-13 days that aren't struggling
      return "good";
    },
    [lastRatings],
@@ -392,7 +425,7 @@ const StudySrsPage = () => {
   );
 
   const renderPreRound = () => (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-secondary/5 p-2">
+    <div className="min-h-screen p-4 md:p-4 lg:p-8 px-2 bg-gradient-to-b from-background via-background to-secondary/5">
       <div className="max-w-4xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -694,7 +727,7 @@ const StudySrsPage = () => {
 
   if (deckError || dueError) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 flex items-center justify-center">
         <Card className="w-full max-w-md border-2 border-destructive/20">
           <CardContent className="p-8 text-center space-y-6">
             <div className="w-16 h-16 mx-auto rounded-full bg-destructive/10 flex items-center justify-center">
@@ -722,7 +755,7 @@ const StudySrsPage = () => {
 
   if (!deck) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 flex items-center justify-center">
         <Card className="w-full max-w-md">
           <CardContent className="p-8 text-center space-y-4">
             <p className="text-muted-foreground">Deck not found.</p>
@@ -738,7 +771,7 @@ const StudySrsPage = () => {
   if (!hasStartedRound) return renderPreRound();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       <div className="max-w-4xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -980,7 +1013,7 @@ const StudySrsPage = () => {
                 </div>
                 <div className="text-xl font-bold">{roundSummary.hard}</div>
                 <p className="text-[9px] text-muted-foreground mt-1">
-                  Rated Hard or interval &lt; 7 days
+                  Low ease (&lt;2.0) or 3+ lapses
                 </p>
               </div>
               <div className="p-3 rounded-lg border bg-blue-50 dark:bg-blue-950/30">
@@ -989,7 +1022,7 @@ const StudySrsPage = () => {
                 </div>
                 <div className="text-xl font-bold">{roundSummary.good}</div>
                 <p className="text-[9px] text-muted-foreground mt-1">
-                  Rated Good but not yet mastered
+                  Graduated, progressing well (1-13 days)
                 </p>
               </div>
               <div className="p-3 rounded-lg border bg-green-50 dark:bg-green-950/30">
@@ -1000,7 +1033,7 @@ const StudySrsPage = () => {
                   {roundSummary.mastered}
                 </div>
                 <p className="text-[9px] text-muted-foreground mt-1">
-                  Interval ≥ 21 days, reps ≥ 5, ease ≥ 2.3
+                  Interval ≥ 14 days, 4+ reps, ease ≥ 2.2
                 </p>
               </div>
             </div>

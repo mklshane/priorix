@@ -17,6 +17,14 @@ export interface IUserCardProgress extends Document {
   currentState: "new" | "learning" | "review" | "relearning";
   learningStepIndex: number;
   lapseCount: number;
+  // Adaptive learning fields
+  perceivedDifficulty: number; // 1-10 scale
+  retentionRate: number; // 0-100
+  forgettingCurveSlope: number;
+  confidenceLevel: number; // 1-5
+  optimalInterval: number; // calculated optimal interval in days
+  forgetProbability: number; // 0-1
+  priorityScore: number; // calculated priority for review
   createdAt: Date;
   updatedAt: Date;
 }
@@ -43,6 +51,14 @@ const UserCardProgressSchema: Schema<IUserCardProgress> = new Schema(
     },
     learningStepIndex: { type: Number, default: 0 },
     lapseCount: { type: Number, default: 0 },
+    // Adaptive learning fields
+    perceivedDifficulty: { type: Number, default: 5, min: 1, max: 10 },
+    retentionRate: { type: Number, default: 0, min: 0, max: 100 },
+    forgettingCurveSlope: { type: Number, default: 0 },
+    confidenceLevel: { type: Number, default: 3, min: 1, max: 5 },
+    optimalInterval: { type: Number, default: 0 },
+    forgetProbability: { type: Number, default: 0, min: 0, max: 1 },
+    priorityScore: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
