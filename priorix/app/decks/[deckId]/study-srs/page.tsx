@@ -425,7 +425,7 @@ const StudySrsPage = () => {
   );
 
   const renderPreRound = () => (
-    <div className="min-h-screen p-4 md:p-4 lg:p-8 px-2 bg-gradient-to-b from-background via-background to-secondary/5">
+    <div className="min-h-screen p-4 md:p-4 lg:p-8 px-2 bg-gradient-to-b from-background via-background to-primary/5">
       <div className="max-w-4xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -436,7 +436,7 @@ const StudySrsPage = () => {
           {/* Header Section */}
           <div className="space-y-1">
             
-            <div className="hidden md:block bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-4 border">
+            <div className="hidden md:block bg-yellow/30 dark:bg-violet/20 rounded-lg p-4 border-2 border-primary">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
@@ -500,7 +500,7 @@ const StudySrsPage = () => {
                             className={cn(
                               "w-full h-15 flex flex-col gap-0 transition-all duration-200",
                               sessionSize === size
-                                ? "shadow-lg shadow-primary/20 bg-yellow text-primary"
+                                ? "shadow-lg shadow-primary/20 bg-yellow/50 dark:bg-violet/30 border-2 border-primary text-black dark:text-foreground"
                                 : "hover:border-primary/50",
                             )}
                           >
@@ -551,7 +551,7 @@ const StudySrsPage = () => {
                             width: `${((deckCardsWithUpdates.length - preRoundSummary.notYet) / deckCardsWithUpdates.length) * 100}%`,
                           }}
                           transition={{ duration: 0.8, ease: "easeOut" }}
-                          className="h-full bg-yellow rounded-full"
+                          className="h-full bg-gradient-to-r from-yellow to-primary rounded-full"
                         />
                       </div>
                       <div className="flex justify-between text-xs text-muted-foreground">
@@ -565,15 +565,15 @@ const StudySrsPage = () => {
 
                     {/* Quick Stats */}
                     <div className="grid grid-cols-3 gap-4 pt-1">
-                      <div className="bg-muted/50 rounded-lg p-4 text-center">
-                        <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                      <div className="bg-yellow/20 dark:bg-violet/20 rounded-lg p-4 text-center border border-primary/20">
+                        <div className="text-2xl font-bold text-primary">
                           {preRoundSummary.learning}
                         </div>
                         <div className="text-sm text-muted-foreground">
                           Learning
                         </div>
                       </div>
-                      <div className="bg-muted/50 rounded-lg p-4 text-center">
+                      <div className="bg-green/20 dark:bg-green/30 rounded-lg p-4 text-center border border-green/40">
                         <div className="text-2xl font-bold text-green-600 dark:text-green-400">
                           {preRoundSummary.mastered}
                         </div>
@@ -581,8 +581,8 @@ const StudySrsPage = () => {
                           Mastered
                         </div>
                       </div>
-                      <div className="bg-muted/50 rounded-lg p-4 text-center">
-                        <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                      <div className="bg-red-50 dark:bg-red-950/30 rounded-lg p-4 text-center border border-red-200 dark:border-red-800">
+                        <div className="text-2xl font-bold text-red-600 dark:text-red-400">
                           {preRoundSummary.hard}
                         </div>
                         <div className="text-sm text-muted-foreground">
@@ -609,9 +609,9 @@ const StudySrsPage = () => {
 
                     <div className="space-y-2 flex-1">
                       {/* Not Yet Studied */}
-                      <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border">
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border border-muted">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
+                          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
                             <Clock className="h-4 w-4 text-muted-foreground" />
                           </div>
                           <div>
@@ -627,10 +627,10 @@ const StudySrsPage = () => {
                       </div>
 
                       {/* Learning */}
-                      <div className="flex items-center justify-between p-3 rounded-lg bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800">
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-yellow/20 dark:bg-violet/20 border-2 border-primary/30">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-yellow-100 dark:bg-yellow-900 flex items-center justify-center">
-                            <RotateCcw className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                            <RotateCcw className="h-4 w-4 text-primary" />
                           </div>
                           <div>
                             <p className="font-medium">Learning</p>
@@ -639,16 +639,16 @@ const StudySrsPage = () => {
                             </p>
                           </div>
                         </div>
-                        <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+                        <div className="text-2xl font-bold text-primary">
                           {preRoundSummary.learning}
                         </div>
                       </div>
 
                       {/* Hard */}
-                      <div className="flex items-center justify-between p-3 rounded-lg bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800">
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border-2 border-red-200 dark:border-red-800">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900 flex items-center justify-center">
-                            <Target className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                          <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900 flex items-center justify-center">
+                            <Target className="h-4 w-4 text-red-600 dark:text-red-400" />
                           </div>
                           <div>
                             <p className="font-medium">Hard</p>
@@ -657,16 +657,16 @@ const StudySrsPage = () => {
                             </p>
                           </div>
                         </div>
-                        <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                        <div className="text-2xl font-bold text-red-600 dark:text-red-400">
                           {preRoundSummary.hard}
                         </div>
                       </div>
 
                       {/* Good */}
-                      <div className="flex items-center justify-between p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800">
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-blue/20 dark:bg-blue/30 border-2 border-blue/40">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
-                            <Check className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                          <div className="w-8 h-8 rounded-full bg-blue/30 flex items-center justify-center">
+                            <Check className="h-4 w-4 text-blue" />
                           </div>
                           <div>
                             <p className="font-medium">Good</p>
@@ -675,16 +675,16 @@ const StudySrsPage = () => {
                             </p>
                           </div>
                         </div>
-                        <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                        <div className="text-2xl font-bold text-blue">
                           {preRoundSummary.good}
                         </div>
                       </div>
 
                       {/* Mastered */}
-                      <div className="flex items-center justify-between p-3 rounded-lg bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800">
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-green/20 dark:bg-green/30 border-2 border-green/40">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
-                            <Zap className="h-4 w-4 text-green-600 dark:text-green-400" />
+                          <div className="w-8 h-8 rounded-full bg-green/30 flex items-center justify-center">
+                            <Zap className="h-4 w-4 text-green" />
                           </div>
                           <div>
                             <p className="font-medium">Mastered</p>
@@ -693,7 +693,7 @@ const StudySrsPage = () => {
                             </p>
                           </div>
                         </div>
-                        <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                        <div className="text-2xl font-bold text-green">
                           {preRoundSummary.mastered}
                         </div>
                       </div>
@@ -705,13 +705,13 @@ const StudySrsPage = () => {
           </div>
 
           {/* Mobile Action Footer */}
-          <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t p-4 sm:hidden">
+          <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t-2 border-primary/20 p-4 sm:hidden">
             <div className="max-w-4xl mx-auto">
               <Button
                 onClick={startRound}
                 disabled={isReviewing || pendingCards.length === 0}
                 size="lg"
-                className="w-full gap-2 bg-green text-primary py-6"
+                className="w-full gap-2 py-6 shadow-lg"
               >
                 <Zap className="h-5 w-5" />
                 Start Studying {sessionSize} Cards
