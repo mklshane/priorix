@@ -1,8 +1,13 @@
 import { ConnectDB } from "@/lib/config/db";
 import Flashcard from "@/lib/models/Flashcard";
 import UserCardProgress from "@/lib/models/UserCardProgress";
+import UserLearningProfile from "@/lib/models/UserLearningProfile";
+import UserStudySession from "@/lib/models/UserStudySession";
 import { addDays, clampEase, srsConfig } from "@/lib/srs-config";
 import type { SrsRating } from "@/lib/srs-config";
+import { processAdaptiveReview, getContextModifier } from "@/lib/adaptive-srs";
+import { calibrateUserProfile } from "@/lib/profile-calibration";
+import { prioritizeCards } from "@/lib/review-priority";
 
 const minutesToMs = (minutes: number) => minutes * 60 * 1000;
 const forgottenThresholdMs = 14 * 24 * 60 * 60 * 1000;
@@ -93,6 +98,27 @@ const initProgressIfNeeded = async (
     updated = true;
   }
 
+  // Initialize adaptive SRS fields
+  if (progress.perceivedDifficulty === undefined) {
+    progress.perceivedDifficulty = 5; // Default medium difficulty
+    updated = true;
+  }
+
+  if (progress.retentionRate === undefined) {
+    progress.retentionRate = 0;
+    updated = true;
+  }
+
+  if (progress.optimalInterval === undefined) {
+    progress.optimalInterval = 0;
+    updated = true;
+  }
+
+  if (progress.forgetProbability === undefined) {
+    progress.forgetProbability = 1.0; // New cards start with high forget probability
+    updated = true;
+  }
+
   if (updated) {
     progress.userId = progress.userId || (userId as any);
     progress.cardId = progress.cardId || card._id;
@@ -110,17 +136,35 @@ export const getDueFlashcards = async (
 ) => {
   await ConnectDB();
   const now = new Date();
-  const cooldownMs = (srsConfig.minNextReviewMinutes || 0) * 60 * 1000;
-  const recentCutoff = new Date(now.getTime() - cooldownMs);
 
   if (!userId) throw new Error("userId is required for SRS due fetch");
 
+  // Get or create user learning profile
+  let profile = await UserLearningProfile.findOne({ userId });
+  if (!profile) {
+    profile = new UserLearningProfile({
+      userId,
+      learningSpeed: "medium",
+      personalMultipliers: {
+        again: 1.0,
+        hard: 1.2,
+        good: 2.5,
+        easy: 3.5,
+      },
+      dailyReviewGoal: 50,
+      preferredStudyTimes: [9, 10, 11, 14, 15, 16, 19, 20],
+      sessionLengthPreference: 20,
+      calibrationReviews: 0,
+      isCalibrated: false,
+      difficultyPreference: "balanced",
+    });
+    await profile.save();
+  }
+
+  // Get all cards from deck
   const cards = await Flashcard.find({ deck: deckId }).sort({ createdAt: 1 });
-  const cardIds = cards.map((c) => c._id);
 
-  const progressMap = new Map<string, any>();
-
-  // Upsert progress per card to avoid duplicate key errors under concurrency
+  // Ensure progress exists for all cards
   const ensureProgressPromises = cards.map(async (card) => {
     const prog = await UserCardProgress.findOneAndUpdate(
       { userId, cardId: card._id },
@@ -128,33 +172,41 @@ export const getDueFlashcards = async (
       { upsert: true, new: true },
     );
     await initProgressIfNeeded(prog, card, userId);
-    progressMap.set(String(card._id), prog);
+    return prog;
   });
 
-  await Promise.all(ensureProgressPromises);
+  const progressList = await Promise.all(ensureProgressPromises);
 
-  const eligible = cards
-    .map((card) => {
-      const prog = progressMap.get(String(card._id));
-      return { card, prog };
-    })
-    .filter(({ prog }) => !prog.lastReviewedAt || prog.lastReviewedAt < recentCutoff)
-    .filter(({ prog }) => !prog.nextReviewAt || prog.nextReviewAt <= now);
+  // Use priority queue to get optimal review order
+  const prioritizedCards = prioritizeCards(
+    progressList,
+    profile,
+    1.0, // deckImportance
+    limit
+  );
 
-  const shuffled = eligible.sort(() => Math.random() - 0.5).slice(0, limit);
+  // Map back to include card data
+  const cardMap = new Map(cards.map((c) => [String(c._id), c]));
 
-  return shuffled.map(({ card, prog }) => {
+  return prioritizedCards.map((prog) => {
+    const card = cardMap.get(String(prog.cardId));
+    if (!card) return null;
+
     const plainCard = card.toObject();
-    const plainProg = prog.toObject();
+    const plainProg = prog.toObject ? prog.toObject() : { ...prog };
+    
     return {
       ...plainCard,
       ...plainProg,
-      _id: plainCard._id, // ensure card id is preserved
+      _id: plainCard._id,
       cardId: plainCard._id,
       progressId: plainProg._id,
-      stalenessStatus: computeStalenessStatus(prog),
+      priorityScore: prog.priorityScore,
+      urgencyScore: prog.urgencyScore,
+      importanceScore: prog.importanceScore,
+      stalenessStatus: computeStalenessStatus(plainProg),
     };
-  });
+  }).filter(Boolean);
 };
 
 export const reviewFlashcard = async (data: {
@@ -181,193 +233,77 @@ export const reviewFlashcard = async (data: {
 
   const now = new Date();
   const rating = data.rating;
-  let ease = progress.easeFactor || srsConfig.startingEase;
-  let interval = progress.intervalDays ?? srsConfig.minIntervalDays;
-  const learningStepIndex = progress.learningStepIndex ?? 0;
 
-  const ensureCooldown = (target: Date) => {
-    const minNext = new Date(
-      now.getTime() + (srsConfig.minNextReviewMinutes || 0) * 60 * 1000,
-    );
-    return target > minNext ? target : minNext;
-  };
-
-  const scheduleLearningStep = (stepIndex: number) => {
-    const steps = srsConfig.learningStepsMinutes;
-    const idx = Math.min(Math.max(stepIndex, 0), steps.length - 1);
-    const delay = steps[idx] ?? srsConfig.minIntervalDays * 24 * 60;
-    progress.learningStepIndex = idx;
-    progress.currentState = "learning";
-    progress.intervalDays = 0;
-    progress.nextReviewAt = ensureCooldown(
-      new Date(now.getTime() + minutesToMs(delay)),
-    );
-  };
-
-  const scheduleRelearningStep = (stepIndex: number) => {
-    const steps = srsConfig.relearningStepsMinutes;
-    const idx = Math.min(Math.max(stepIndex, 0), steps.length - 1);
-    const delay = steps[idx] ?? srsConfig.minIntervalDays * 24 * 60;
-    progress.learningStepIndex = idx;
-    progress.currentState = "relearning";
-    progress.intervalDays = srsConfig.lapseIntervalDays;
-    progress.nextReviewAt = ensureCooldown(
-      new Date(now.getTime() + minutesToMs(delay)),
-    );
-  };
-
-  const graduateToReview = (baseIntervalDays: number, easeOverride?: number) => {
-    const nextInterval = Math.max(srsConfig.minIntervalDays, baseIntervalDays);
-    progress.intervalDays = nextInterval;
-    progress.currentState = "review";
-    progress.learningStepIndex = 0;
-    progress.nextReviewAt = ensureCooldown(addDays(now, nextInterval));
-    progress.easeFactor = clampEase(easeOverride ?? ease);
-  };
-
-  const state = progress.currentState || "new";
-
-  if (state === "new" || state === "learning") {
-    switch (rating) {
-      case "again": {
-        progress.againCount = (progress.againCount || 0) + 1;
-        ease = clampEase(ease - srsConfig.easeStepDownHard);
-        scheduleLearningStep(0);
-        break;
-      }
-      case "hard": {
-        progress.hardCount = (progress.hardCount || 0) + 1;
-        ease = clampEase(ease - srsConfig.easeStepDownHard / 2);
-        scheduleLearningStep(Math.max(learningStepIndex, 0));
-        break;
-      }
-      case "good": {
-        progress.goodCount = (progress.goodCount || 0) + 1;
-        const nextStep = learningStepIndex + 1;
-        if (nextStep < srsConfig.learningStepsMinutes.length) {
-          scheduleLearningStep(nextStep);
-        } else {
-          graduateToReview(srsConfig.initialReviewIntervalDays, ease);
-        }
-        break;
-      }
-      case "easy": {
-        progress.easyCount = (progress.easyCount || 0) + 1;
-        graduateToReview(
-          srsConfig.easyGraduatingIntervalDays,
-          ease + srsConfig.easeStepUpEasy,
-        );
-        break;
-      }
-      default:
-        break;
-    }
-  } else if (state === "relearning") {
-    switch (rating) {
-      case "again": {
-        progress.againCount = (progress.againCount || 0) + 1;
-        scheduleRelearningStep(0);
-        break;
-      }
-      case "hard": {
-        progress.hardCount = (progress.hardCount || 0) + 1;
-        scheduleRelearningStep(Math.max(learningStepIndex, 0));
-        break;
-      }
-      case "good": {
-        progress.goodCount = (progress.goodCount || 0) + 1;
-        const nextStep = learningStepIndex + 1;
-        if (nextStep < srsConfig.relearningStepsMinutes.length) {
-          scheduleRelearningStep(nextStep);
-        } else {
-          progress.currentState = "review";
-          progress.learningStepIndex = 0;
-          progress.intervalDays = Math.max(
-            srsConfig.minIntervalDays,
-            srsConfig.lapseIntervalDays,
-          );
-          progress.nextReviewAt = ensureCooldown(
-            addDays(now, progress.intervalDays),
-          );
-        }
-        break;
-      }
-      case "easy": {
-        progress.easyCount = (progress.easyCount || 0) + 1;
-        ease = clampEase(ease + srsConfig.easeStepUpEasy / 2);
-        interval = Math.max(
-          srsConfig.minIntervalDays,
-          Math.round((progress.intervalDays || 1) * srsConfig.goodMultiplier),
-        );
-        progress.intervalDays = interval;
-        progress.currentState = "review";
-        progress.learningStepIndex = 0;
-        progress.nextReviewAt = ensureCooldown(addDays(now, interval));
-        break;
-      }
-      default:
-        break;
-    }
-  } else {
-    switch (rating) {
-      case "again": {
-        progress.againCount = (progress.againCount || 0) + 1;
-        progress.lapseCount = (progress.lapseCount || 0) + 1;
-        ease = clampEase(ease - srsConfig.easeStepDownHard);
-        scheduleRelearningStep(0);
-        break;
-      }
-      case "hard": {
-        progress.hardCount = (progress.hardCount || 0) + 1;
-        ease = clampEase(ease - srsConfig.easeStepDownHard);
-        interval = Math.max(
-          srsConfig.minIntervalDays,
-          Math.round(interval * srsConfig.hardMultiplier),
-        );
-        progress.intervalDays = interval;
-        progress.currentState = "review";
-        progress.learningStepIndex = 0;
-        progress.nextReviewAt = ensureCooldown(addDays(now, interval));
-        break;
-      }
-      case "good": {
-        progress.goodCount = (progress.goodCount || 0) + 1;
-        interval = Math.max(
-          srsConfig.minIntervalDays,
-          Math.round(interval * srsConfig.goodMultiplier),
-        );
-        progress.intervalDays = interval;
-        progress.currentState = "review";
-        progress.learningStepIndex = 0;
-        progress.nextReviewAt = ensureCooldown(addDays(now, interval));
-        break;
-      }
-      case "easy": {
-        progress.easyCount = (progress.easyCount || 0) + 1;
-        ease = clampEase(ease + srsConfig.easeStepUpEasy);
-        interval = Math.max(
-          srsConfig.minIntervalDays,
-          Math.round(interval * srsConfig.easyMultiplier),
-        );
-        progress.intervalDays = interval;
-        progress.currentState = "review";
-        progress.learningStepIndex = 0;
-        progress.nextReviewAt = ensureCooldown(addDays(now, interval));
-        break;
-      }
-      default:
-        break;
-    }
+  // Get or create user learning profile
+  let profile = await UserLearningProfile.findOne({ userId: data.userId });
+  if (!profile) {
+    profile = new UserLearningProfile({
+      userId: data.userId,
+      learningSpeed: "medium",
+      personalMultipliers: {
+        again: 1.0,
+        hard: 1.2,
+        good: 2.5,
+        easy: 3.5,
+      },
+      dailyReviewGoal: 50,
+      preferredStudyTimes: [9, 10, 11, 14, 15, 16, 19, 20],
+      sessionLengthPreference: 20,
+      calibrationReviews: 0,
+      isCalibrated: false,
+      difficultyPreference: "balanced",
+    });
+    await profile.save();
   }
 
-  progress.easeFactor = clampEase(ease);
+  // Calculate context modifier from recent sessions
+  const recentSessions = await UserStudySession.find({ userId: data.userId })
+    .sort({ sessionStart: -1 })
+    .limit(3);
+  
+  let contextModifier = 1.0;
+  if (recentSessions.length > 0) {
+    const recentAccuracy = 
+      recentSessions.reduce((sum, s) => sum + s.averageAccuracy, 0) / recentSessions.length;
+    contextModifier = getContextModifier(recentAccuracy, profile.averageRetention || 75);
+  }
+
+  // Process review with adaptive algorithm
+  const responseTimeSeconds = (data.responseTimeMs || 0) / 1000;
+  const result = processAdaptiveReview(
+    rating,
+    progress,
+    profile,
+    responseTimeSeconds,
+    contextModifier
+  );
+
+  // Update progress with results
+  progress.easeFactor = result.easeFactor;
+  progress.intervalDays = result.intervalDays;
+  progress.nextReviewAt = result.nextReviewAt;
+  progress.currentState = result.currentState;
+  progress.learningStepIndex = result.learningStepIndex;
+  progress.lapseCount = result.lapseCount;
+  progress.perceivedDifficulty = result.perceivedDifficulty;
+  progress.retentionRate = result.retentionRate;
+  progress.optimalInterval = result.optimalInterval;
+  
+  // Guard against NaN values
+  progress.forgetProbability = isNaN(result.forgetProbability) || !isFinite(result.forgetProbability) 
+    ? 0 
+    : result.forgetProbability;
+    
   progress.lastReviewedAt = now;
   progress.reviewCount = (progress.reviewCount || 0) + 1;
 
-  if (!progress.nextReviewAt) {
-    progress.nextReviewAt = ensureCooldown(addDays(now, srsConfig.minIntervalDays));
-  }
+  // Update rating counts
+  if (rating === "again") progress.againCount = (progress.againCount || 0) + 1;
+  else if (rating === "hard") progress.hardCount = (progress.hardCount || 0) + 1;
+  else if (rating === "good") progress.goodCount = (progress.goodCount || 0) + 1;
+  else if (rating === "easy") progress.easyCount = (progress.easyCount || 0) + 1;
 
+  // Update average response time
   if (typeof data.responseTimeMs === "number") {
     const prevCount = Math.max((progress.reviewCount || 1) - 1, 0);
     const prevAvg = progress.averageResponseTime || 0;
@@ -378,7 +314,20 @@ export const reviewFlashcard = async (data: {
     progress.averageResponseTime = newAvg;
   }
 
-    await progress.save();
+  await progress.save();
+
+  // Check if profile calibration is needed (every 20 reviews)
+  profile.calibrationReviews = (profile.calibrationReviews || 0) + 1;
+  if (profile.calibrationReviews >= 20) {
+    // Trigger calibration check
+    const calibrationResult = await calibrateUserProfile(data.userId);
+    if (!calibrationResult.needsMoreData) {
+      profile.learningSpeed = calibrationResult.learningSpeed;
+      profile.isCalibrated = true;
+      profile.calibrationReviews = 0;
+    }
+  }
+  await profile.save();
 
     const plainCard = card.toObject();
     const plainProg = progress.toObject();

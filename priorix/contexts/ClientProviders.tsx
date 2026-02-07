@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import { SessionProvider } from "next-auth/react";
 import ToastProvider from "@/components/providers/ToastProvider";
+import { SidebarProvider } from "@/contexts/SidebarContext";
 
 interface ClientProvidersProps {
   children: React.ReactNode;
@@ -25,7 +26,9 @@ export default function ClientProviders({ children }: ClientProvidersProps) {
   return (
     <QueryClientProvider client={queryClient}>
       <ToastProvider />
-      <SessionProvider>{children}</SessionProvider>
+      <SessionProvider>
+        <SidebarProvider>{children}</SidebarProvider>
+      </SessionProvider>
     </QueryClientProvider>
   );
 }

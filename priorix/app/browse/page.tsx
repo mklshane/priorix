@@ -136,7 +136,7 @@ function BrowseContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-secondary/10">
-      <div className="mx-auto max-w-6xl p-6">
+      <div className="mx-auto max-w-6xl">
         {/* Header Section */}
         <div className="mb-8 space-y-2">
           <div className="flex items-center gap-2">
@@ -204,8 +204,8 @@ function BrowseContent() {
           </Card>
         )}
 
-        {/* Loading State */}
-        {(isLoading || isFetching) && (
+        {/* Loading State - only show on initial load, not refetches */}
+        {(isLoading || isFetching) && decks.length === 0 && (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, idx) => (
               <Card key={idx} className="border animate-pulse">

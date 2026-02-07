@@ -21,6 +21,7 @@ import { useDeck } from "@/hooks/useDeck";
 import { useFlashcards } from "@/hooks/useFlashcards";
 import { useSrsStudy } from "@/hooks/useSrsStudy";
 import { useToast } from "@/hooks/useToast";
+import { useStudySession } from "@/hooks/useStudySession";
 import { SrsRating, srsRatings, srsSessionSizes } from "@/lib/srs-config";
 import { cn } from "@/lib/utils";
 import { IFlashcard } from "@/types/flashcard";
@@ -93,6 +94,12 @@ const StudySrsPage = () => {
   const router = useRouter();
   const { showToast } = useToast();
 
+  // Session tracking
+  const { recordCardReview, endSession, startSession, sessionQuality } = useStudySession({ 
+    deckId,
+    enabled: true 
+  });
+
   const [sessionSize, setSessionSize] = useState<number>(() => {
     if (typeof window === "undefined") return 10;
     const raw = window.localStorage.getItem(sessionSizeStorageKey(deckId));
@@ -155,12 +162,13 @@ const StudySrsPage = () => {
 
   const currentCard = queue[currentIndex];
   const isPending =
-    isDeckLoading ||
-    isFlashcardsLoading ||
+    (isDeckLoading && !deck) ||
+    (isFlashcardsLoading && deckCards.length === 0) ||
     (isDueLoading &&
       !dueCards.length &&
       !pendingCards.length &&
-      !hasStartedRound);
+      !hasStartedRound &&
+      !roundCards.length);
   const roundActive = hasStartedRound && queue.length > 0;
 
   const toggleReveal = useCallback(() => {
@@ -191,7 +199,13 @@ const StudySrsPage = () => {
   const handleRating = async (rating: SrsRating) => {
     if (!currentCard) return;
     try {
+      const reviewStartTime = Date.now();
       const updatedCard = await review({ cardId: currentCard._id, rating });
+      const responseTime = Date.now() - reviewStartTime;
+      
+      // Track in session (responseTime in milliseconds)
+      recordCardReview(rating, responseTime);
+      
       setSeenCardIds((prev) => {
         const next = new Set(prev);
         next.add(currentCard._id);
@@ -208,6 +222,8 @@ const StudySrsPage = () => {
       if (nextQueue.length === 0) {
         setQueue([]);
         setCompletionOpen(true);
+        // End session when round completes
+        await endSession();
       } else {
         setQueue(nextQueue);
         setCurrentIndex((prevIdx) =>
@@ -244,8 +260,20 @@ const StudySrsPage = () => {
   }, [roundActive, currentCard, toggleReveal]);
 
   const handleContinue = async () => {
+    // End the current session if there was one
+    if (hasStartedRound && completedCount > 0) {
+      await endSession();
+    }
+    
+    // Fetch new cards and start a new session
     const result = await refetchDue();
     const nextCards = (result.data || []) as IFlashcard[];
+    
+    // Start new session if there are cards to study
+    if (nextCards.length > 0) {
+      startSession();
+    }
+    
     setQueue(nextCards);
     setPendingCards(nextCards);
     setRoundTotal(nextCards.length);
@@ -260,7 +288,11 @@ const StudySrsPage = () => {
     setLastRatings({});
   };
 
-  const exitToChooser = useCallback(() => {
+  const exitToChooser = useCallback(async () => {
+    // End session before resetting
+    if (hasStartedRound && completedCount > 0) {
+      await endSession();
+    }
     setQueue([]);
     setRoundTotal(0);
     setCompletedCount(0);
@@ -273,11 +305,11 @@ const StudySrsPage = () => {
     setPendingCards(dueCards);
     setSeenCardIds(new Set());
     setLastRatings({});
-  }, [dueCards]);
+  }, [dueCards, hasStartedRound, completedCount, endSession]);
 
-  const handleBackToDeck = () => {
+  const handleBackToDeck = async () => {
     if (hasStartedRound) {
-      exitToChooser();
+      await exitToChooser();
       return;
     }
     router.push(`/decks/${deckId}`);
@@ -300,30 +332,32 @@ const StudySrsPage = () => {
      const state = card.currentState ?? "new";
      const lastRating = lastRatings[card._id];
 
-     // REMOVED: The reps === 0 check since computeSummary handles it
-     // Cards in learning or relearning state, OR just rated "Again"
+     // Learning: Cards still in learning phase OR just rated "Again"
      const inLearningState =
        state === "new" || state === "learning" || state === "relearning";
      if (inLearningState || lastRating === "again") {
        return "learning";
      }
 
-     // Mastered criteria: stable, long-term retention
-     // Anki-style: interval ≥ 21 days, reps ≥ 5, good ease, few lapses
+     // Mastered criteria: Long-term stable memory (more achievable)
+     // interval ≥ 14 days, reps ≥ 4, decent ease, few lapses
      const isMastered =
-       interval >= 21 && reps >= 5 && ease >= 2.3 && lapses <= 2;
+       interval >= 14 && reps >= 4 && ease >= 2.2 && lapses <= 3;
      if (isMastered) {
        return "mastered";
      }
 
-     // Hard cards: either rated "Hard" recently OR showing unstable signs
+     // Hard cards: Showing signs of difficulty
+     // Low ease OR many lapses OR just rated "Hard"
+     // Note: Removed interval check - short intervals are normal for new graduates
      const isHard =
-       interval < 7 || ease < 2.1 || lapses > 2 || lastRating === "hard";
+       ease < 2.0 || lapses >= 3 || lastRating === "hard";
      if (isHard) {
        return "hard";
      }
 
-     // Good cards: graduated but not yet mastered
+     // Good cards: Graduated and progressing well
+     // Includes cards with intervals 1-13 days that aren't struggling
      return "good";
    },
    [lastRatings],
@@ -391,7 +425,7 @@ const StudySrsPage = () => {
   );
 
   const renderPreRound = () => (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-secondary/5 p-2">
+    <div className="min-h-screen p-4 md:p-4 lg:p-8 px-2 bg-gradient-to-b from-background via-background to-primary/5">
       <div className="max-w-4xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -402,7 +436,7 @@ const StudySrsPage = () => {
           {/* Header Section */}
           <div className="space-y-1">
             
-            <div className="hidden md:block bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-4 border">
+            <div className="hidden md:block bg-yellow/30 dark:bg-violet/20 rounded-lg p-4 border-2 border-primary">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
@@ -466,7 +500,7 @@ const StudySrsPage = () => {
                             className={cn(
                               "w-full h-15 flex flex-col gap-0 transition-all duration-200",
                               sessionSize === size
-                                ? "shadow-lg shadow-primary/20 bg-yellow text-primary"
+                                ? "shadow-lg shadow-primary/20 bg-yellow/50 dark:bg-violet/30 border-2 border-primary text-black dark:text-foreground"
                                 : "hover:border-primary/50",
                             )}
                           >
@@ -517,7 +551,7 @@ const StudySrsPage = () => {
                             width: `${((deckCardsWithUpdates.length - preRoundSummary.notYet) / deckCardsWithUpdates.length) * 100}%`,
                           }}
                           transition={{ duration: 0.8, ease: "easeOut" }}
-                          className="h-full bg-yellow rounded-full"
+                          className="h-full bg-gradient-to-r from-yellow to-primary rounded-full"
                         />
                       </div>
                       <div className="flex justify-between text-xs text-muted-foreground">
@@ -531,15 +565,15 @@ const StudySrsPage = () => {
 
                     {/* Quick Stats */}
                     <div className="grid grid-cols-3 gap-4 pt-1">
-                      <div className="bg-muted/50 rounded-lg p-4 text-center">
-                        <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                      <div className="bg-yellow/20 dark:bg-violet/20 rounded-lg p-4 text-center border border-primary/20">
+                        <div className="text-2xl font-bold text-primary">
                           {preRoundSummary.learning}
                         </div>
                         <div className="text-sm text-muted-foreground">
                           Learning
                         </div>
                       </div>
-                      <div className="bg-muted/50 rounded-lg p-4 text-center">
+                      <div className="bg-green/20 dark:bg-green/30 rounded-lg p-4 text-center border border-green/40">
                         <div className="text-2xl font-bold text-green-600 dark:text-green-400">
                           {preRoundSummary.mastered}
                         </div>
@@ -547,8 +581,8 @@ const StudySrsPage = () => {
                           Mastered
                         </div>
                       </div>
-                      <div className="bg-muted/50 rounded-lg p-4 text-center">
-                        <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                      <div className="bg-red-50 dark:bg-red-950/30 rounded-lg p-4 text-center border border-red-200 dark:border-red-800">
+                        <div className="text-2xl font-bold text-red-600 dark:text-red-400">
                           {preRoundSummary.hard}
                         </div>
                         <div className="text-sm text-muted-foreground">
@@ -575,9 +609,9 @@ const StudySrsPage = () => {
 
                     <div className="space-y-2 flex-1">
                       {/* Not Yet Studied */}
-                      <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border">
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border border-muted">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
+                          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
                             <Clock className="h-4 w-4 text-muted-foreground" />
                           </div>
                           <div>
@@ -593,10 +627,10 @@ const StudySrsPage = () => {
                       </div>
 
                       {/* Learning */}
-                      <div className="flex items-center justify-between p-3 rounded-lg bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800">
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-yellow/20 dark:bg-violet/20 border-2 border-primary/30">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-yellow-100 dark:bg-yellow-900 flex items-center justify-center">
-                            <RotateCcw className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                            <RotateCcw className="h-4 w-4 text-primary" />
                           </div>
                           <div>
                             <p className="font-medium">Learning</p>
@@ -605,16 +639,16 @@ const StudySrsPage = () => {
                             </p>
                           </div>
                         </div>
-                        <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+                        <div className="text-2xl font-bold text-primary">
                           {preRoundSummary.learning}
                         </div>
                       </div>
 
                       {/* Hard */}
-                      <div className="flex items-center justify-between p-3 rounded-lg bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800">
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border-2 border-red-200 dark:border-red-800">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900 flex items-center justify-center">
-                            <Target className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                          <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900 flex items-center justify-center">
+                            <Target className="h-4 w-4 text-red-600 dark:text-red-400" />
                           </div>
                           <div>
                             <p className="font-medium">Hard</p>
@@ -623,16 +657,16 @@ const StudySrsPage = () => {
                             </p>
                           </div>
                         </div>
-                        <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                        <div className="text-2xl font-bold text-red-600 dark:text-red-400">
                           {preRoundSummary.hard}
                         </div>
                       </div>
 
                       {/* Good */}
-                      <div className="flex items-center justify-between p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800">
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-blue/20 dark:bg-blue/30 border-2 border-blue/40">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
-                            <Check className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                          <div className="w-8 h-8 rounded-full bg-blue/30 flex items-center justify-center">
+                            <Check className="h-4 w-4 text-blue" />
                           </div>
                           <div>
                             <p className="font-medium">Good</p>
@@ -641,16 +675,16 @@ const StudySrsPage = () => {
                             </p>
                           </div>
                         </div>
-                        <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                        <div className="text-2xl font-bold text-blue">
                           {preRoundSummary.good}
                         </div>
                       </div>
 
                       {/* Mastered */}
-                      <div className="flex items-center justify-between p-3 rounded-lg bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800">
+                      <div className="flex items-center justify-between p-3 rounded-lg bg-green/20 dark:bg-green/30 border-2 border-green/40">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
-                            <Zap className="h-4 w-4 text-green-600 dark:text-green-400" />
+                          <div className="w-8 h-8 rounded-full bg-green/30 flex items-center justify-center">
+                            <Zap className="h-4 w-4 text-green" />
                           </div>
                           <div>
                             <p className="font-medium">Mastered</p>
@@ -659,7 +693,7 @@ const StudySrsPage = () => {
                             </p>
                           </div>
                         </div>
-                        <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                        <div className="text-2xl font-bold text-green">
                           {preRoundSummary.mastered}
                         </div>
                       </div>
@@ -671,13 +705,13 @@ const StudySrsPage = () => {
           </div>
 
           {/* Mobile Action Footer */}
-          <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t p-4 sm:hidden">
+          <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t-2 border-primary/20 p-4 sm:hidden">
             <div className="max-w-4xl mx-auto">
               <Button
                 onClick={startRound}
                 disabled={isReviewing || pendingCards.length === 0}
                 size="lg"
-                className="w-full gap-2 bg-green text-primary py-6"
+                className="w-full gap-2 py-6 shadow-lg"
               >
                 <Zap className="h-5 w-5" />
                 Start Studying {sessionSize} Cards
@@ -693,7 +727,7 @@ const StudySrsPage = () => {
 
   if (deckError || dueError) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 flex items-center justify-center">
         <Card className="w-full max-w-md border-2 border-destructive/20">
           <CardContent className="p-8 text-center space-y-6">
             <div className="w-16 h-16 mx-auto rounded-full bg-destructive/10 flex items-center justify-center">
@@ -721,7 +755,7 @@ const StudySrsPage = () => {
 
   if (!deck) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 flex items-center justify-center">
         <Card className="w-full max-w-md">
           <CardContent className="p-8 text-center space-y-4">
             <p className="text-muted-foreground">Deck not found.</p>
@@ -737,7 +771,7 @@ const StudySrsPage = () => {
   if (!hasStartedRound) return renderPreRound();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
       <div className="max-w-4xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -979,7 +1013,7 @@ const StudySrsPage = () => {
                 </div>
                 <div className="text-xl font-bold">{roundSummary.hard}</div>
                 <p className="text-[9px] text-muted-foreground mt-1">
-                  Rated Hard or interval &lt; 7 days
+                  Low ease (&lt;2.0) or 3+ lapses
                 </p>
               </div>
               <div className="p-3 rounded-lg border bg-blue-50 dark:bg-blue-950/30">
@@ -988,7 +1022,7 @@ const StudySrsPage = () => {
                 </div>
                 <div className="text-xl font-bold">{roundSummary.good}</div>
                 <p className="text-[9px] text-muted-foreground mt-1">
-                  Rated Good but not yet mastered
+                  Graduated, progressing well (1-13 days)
                 </p>
               </div>
               <div className="p-3 rounded-lg border bg-green-50 dark:bg-green-950/30">
@@ -999,7 +1033,7 @@ const StudySrsPage = () => {
                   {roundSummary.mastered}
                 </div>
                 <p className="text-[9px] text-muted-foreground mt-1">
-                  Interval ≥ 21 days, reps ≥ 5, ease ≥ 2.3
+                  Interval ≥ 14 days, 4+ reps, ease ≥ 2.2
                 </p>
               </div>
             </div>

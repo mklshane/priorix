@@ -14,13 +14,11 @@ import { Button } from "@/components/ui/button";
 import { Menu, User, Settings, LogOut, ArrowLeft } from "lucide-react";
 import { usePathname, useRouter, useParams } from "next/navigation";
 import ThemeToggle from "./button/ThemeToggle";
+import { useSidebar } from "@/contexts/SidebarContext";
 
-interface AppNavProps {
-  onToggleSidebar: () => void;
-}
-
-export default function AppNav({ onToggleSidebar }: AppNavProps) {
+export default function AppNav() {
   const { data: session } = useSession();
+  const { toggleSidebar, isMobile } = useSidebar();
   const user = session?.user;
   const pathname = usePathname();
   const router = useRouter();
@@ -90,7 +88,7 @@ export default function AppNav({ onToggleSidebar }: AppNavProps) {
 
   const handleToggle = () => {
     console.log("[v0] Burger menu clicked");
-    onToggleSidebar();
+    toggleSidebar();
   };
 
   const getFirstName = (name?: string | null) => {
@@ -199,15 +197,15 @@ export default function AppNav({ onToggleSidebar }: AppNavProps) {
   const currentPage = getCurrentPage();
 
   return (
-    <nav className="w-full px-6 py-4 bg-primary-foreground border-b border-border  ">
-      <div className="flex items-center justify-between relative">
+    <nav className="w-full h-16 bg-sidebar border-b border-sidebar-border px-4 lg:px-6 flex items-center justify-between">
+      <div className="flex items-center justify-between w-full relative">
         {/* Left - Hamburger Menu or Back Button */}
         <div className="flex-shrink-0">
           {shouldShowBackButton ? (
             <Button
               variant="ghost"
               size="sm"
-              className="back-button btn-active"
+              className="h-9 w-9 p-0 hover:bg-sidebar-accent text-sidebar-foreground rounded-lg transition-colors"
               onClick={handleBack}
             >
               <ArrowLeft className="h-5 w-5" />
@@ -216,7 +214,7 @@ export default function AppNav({ onToggleSidebar }: AppNavProps) {
             <Button
               variant="ghost"
               size="sm"
-              className="sidebar-toggle"
+              className="h-9 w-9 p-0 lg:hidden hover:bg-sidebar-accent text-sidebar-foreground rounded-lg transition-colors"
               onClick={handleToggle}
             >
               <Menu className="h-5 w-5" />
@@ -226,27 +224,27 @@ export default function AppNav({ onToggleSidebar }: AppNavProps) {
 
         {/* Center - Page Name */}
         <div className="absolute left-1/2 transform -translate-x-1/2">
-          <h1 className="font-lora text-2xl text-gray-900 dark:text-white whitespace-nowrap">
+          <h1 className="font-lora text-lg lg:text-xl text-sidebar-foreground whitespace-nowrap">
             {currentPage}
           </h1>
         </div>
 
         {/* Right - Theme Toggle and User */}
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2 lg:space-x-3">
           <ThemeToggle />
           {user && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center space-x-2 bg-muted border-2 rounded-full hover:bg-purple/20 text-primary py-2 px-2 md:py-1 md:px-3 transition-colors">
-                  <span className="font-sora text-sm text-gray-700 dark:text-gray-300 hidden sm:block">
+                <button className="flex items-center space-x-2 h-9 bg-sidebar-accent hover:bg-sidebar-accent/80 border border-sidebar-border rounded-lg px-2 lg:px-3 transition-colors">
+                  <span className="font-sora text-sm text-sidebar-foreground hidden sm:block">
                     {firstName}
                   </span>
-                  <Avatar className="h-8 w-8">
+                  <Avatar className="h-7 w-7">
                     <AvatarImage
                       src={user.image ?? ""}
                       alt={user.name ?? "User"}
                     />
-                    <AvatarFallback className="bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300">
+                    <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground text-xs">
                       {getInitials(user.name)}
                     </AvatarFallback>
                   </Avatar>

@@ -28,8 +28,19 @@ export default function RecentDecks({
   >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
   const { data: session } = useSession();
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   useEffect(() => {
     const handler = (event: Event) => {
@@ -110,9 +121,12 @@ export default function RecentDecks({
     );
   }
 
+  const displayLimit = isMobile ? 2 : 4;
+  const displayDecks = recentDecks.slice(0, displayLimit);
+
   return (
     <div className="grid gap-4 grid-cols-1 md:grid-cols-4">
-      {recentDecks.map((deck, index) => {
+      {displayDecks.map((deck, index) => {
         if (!deck || !deck._id) {
           console.warn("Invalid deck data:", deck);
           return null;
@@ -131,7 +145,7 @@ export default function RecentDecks({
         );
       })}
 
-      {Array.from({ length: 4 - recentDecks.length }).map((_, index) => (
+      {Array.from({ length: displayLimit - displayDecks.length }).map((_, index) => (
         <div
           key={`placeholder-${index}`}
           className="border-2 border-dashed border-muted-foreground/30 rounded-lg p-6 flex flex-col items-center justify-center text-muted-foreground/50 min-h-[150px]"

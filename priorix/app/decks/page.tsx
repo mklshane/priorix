@@ -402,8 +402,9 @@ const DecksPageContent = () => {
   };
 
   const folderPath = getFolderPath();
-  const showLoadingState = isLoading || isFetching;
-  const showFavoritesLoading = isLoadingFavorites || isFetchingFavorites;
+  // Only show loading skeleton on initial load, not on refetches when data exists
+  const showLoadingState = (isLoading || isFetching) && decks.length === 0;
+  const showFavoritesLoading = (isLoadingFavorites || isFetchingFavorites) && favoriteDecks.length === 0;
   const currentFolderName = currentFolderId
     ? folders.find((f) => f._id === currentFolderId)?.name || "Folder"
     : "All decks";
@@ -726,18 +727,19 @@ const DecksPageContent = () => {
   );
 
   return (
-    <div className="relative max-w-7xl w-full mx-auto px-3 sm:px-5 lg:px-8 pb-16 space-y-5">
-      <ConfirmDeleteModal
-        isOpen={deleteModalOpen}
-        onClose={handleDeleteCancel}
-        onConfirm={handleDeleteConfirm}
-        title="Delete Deck"
-        description="Are you sure you want to delete this deck? This action cannot be undone."
-        isLoading={deleteDeckMutation.isPending}
-      />
+    <div className="min-h-screen p-4 md:p-6 lg:p-8 px-2">
+      <div className="mx-auto  space-y-5">
+        <ConfirmDeleteModal
+          isOpen={deleteModalOpen}
+          onClose={handleDeleteCancel}
+          onConfirm={handleDeleteConfirm}
+          title="Delete Deck"
+          description="Are you sure you want to delete this deck? This action cannot be undone."
+          isLoading={deleteDeckMutation.isPending}
+        />
 
-      <div className="flex flex-col gap-2 mb-2">
-        <div className="hidden md:flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex flex-col gap-2 mb-2">
+          <div className="hidden md:flex items-center justify-between gap-3 flex-wrap">
           <div>
             <p className="text-sm text-muted-foreground mb-1">Overview</p>
             <h1 className="text-2xl md:text-3xl font-bold text-foreground">
@@ -1041,6 +1043,7 @@ const DecksPageContent = () => {
           </div>
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 };
