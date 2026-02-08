@@ -16,6 +16,9 @@ export interface IUserStudySession extends Document {
   timeOfDay: number; // 0-23 hour
   sessionQuality: number; // 0-100 score
   wasCompleted: boolean;
+  studyMode?: "flashcards" | "srs" | "quiz"; // Mode tracking
+  quizScore?: number; // Quiz score percentage (0-100)
+  quizType?: string; // "mcq", "true-false", "mixed"
   createdAt: Date;
   updatedAt: Date;
 }
@@ -90,6 +93,19 @@ const UserStudySessionSchema = new Schema<IUserStudySession>(
       type: Boolean,
       default: true,
     },
+    studyMode: {
+      type: String,
+      enum: ["flashcards", "srs", "quiz"],
+      default: "srs",
+    },
+    quizScore: {
+      type: Number,
+      min: 0,
+      max: 100,
+    },
+    quizType: {
+      type: String,
+    },
   },
   {
     timestamps: true,
@@ -100,6 +116,7 @@ const UserStudySessionSchema = new Schema<IUserStudySession>(
 UserStudySessionSchema.index({ userId: 1, sessionStart: -1 });
 UserStudySessionSchema.index({ userId: 1, deckId: 1, sessionStart: -1 });
 UserStudySessionSchema.index({ userId: 1, timeOfDay: 1 });
+UserStudySessionSchema.index({ userId: 1, studyMode: 1, sessionStart: -1 });
 
 const UserStudySession: Model<IUserStudySession> =
   mongoose.models.UserStudySession ||

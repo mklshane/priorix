@@ -24,7 +24,7 @@ export default function DashboardPage() {
   const { showToast, dismissToast } = useToast();
 
   // Fetch daily stats for heatmap and overview stats
-  const { data: userStats } = useQuery({
+  const { data: userStats, isLoading: isStatsLoading } = useQuery({
     queryKey: ["user-stats", session?.user?.id],
     queryFn: async () => {
       const res = await fetch(
@@ -245,28 +245,44 @@ export default function DashboardPage() {
     <div>
       {/* Header */}
       <div className="mb-8">
-        <Card className={`border-2 border-black dark:border-darkborder rounded-xl ${insight.bgColor}`}>
-          <CardContent className="py-5 px-5 lg:px-8">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex-1">
-                <h1 className="text-2xl sm:text-3xl font-bold font-sora text-foreground mb-2">
-                  {getGreeting()}, {user?.name?.split(' ')[0] || 'there'}! 👋
-                </h1>
-                <p className="text-sm sm:text-base text-foreground/80 font-sora">
-                  {insight.subtext}
-                </p>
+        {isStatsLoading ? (
+          <Card className="border-2 border-black dark:border-darkborder rounded-xl bg-muted/30">
+            <CardContent className="py-5 px-5 lg:px-8">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex-1 space-y-3">
+                  <div className="h-8 bg-muted animate-pulse rounded w-3/4" />
+                  <div className="h-5 bg-muted animate-pulse rounded w-full" />
+                </div>
+                <div className="hidden sm:block">
+                  <div className="h-12 w-32 bg-muted animate-pulse rounded-xl" />
+                </div>
               </div>
-              
-              {/* Stats badge */}
-              <div className="hidden sm:flex items-center gap-2 px-4 py-3 rounded-xl bg-white/50 dark:bg-black/20 border-2 border-black dark:border-darkborder">
-                <InsightIcon className="h-6 w-6 text-foreground" />
-                <span className="text-sm font-semibold text-foreground whitespace-nowrap">
-                  {insight.message.replace(/🔥|👋/g, '').trim()}
-                </span>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card className={`border-2 border-black dark:border-darkborder rounded-xl ${insight.bgColor}`}>
+            <CardContent className="py-5 px-5 lg:px-8">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex-1">
+                  <h1 className="text-2xl sm:text-3xl font-bold font-sora text-foreground mb-2">
+                    {getGreeting()}, {user?.name?.split(' ')[0] || 'there'}! 👋
+                  </h1>
+                  <p className="text-sm sm:text-base text-foreground/80 font-sora">
+                    {insight.subtext}
+                  </p>
+                </div>
+                
+                {/* Stats badge */}
+                <div className="hidden sm:flex items-center gap-2 px-4 py-3 rounded-xl bg-white/50 dark:bg-black/20 border-2 border-black dark:border-darkborder">
+                  <InsightIcon className="h-6 w-6 text-foreground" />
+                  <span className="text-sm font-semibold text-foreground whitespace-nowrap">
+                    {insight.message.replace(/🔥|👋/g, '').trim()}
+                  </span>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Recent Decks Grid */}
@@ -331,49 +347,7 @@ export default function DashboardPage() {
               </Card>
             </div>
           ) : patterns?.insights ? (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Learning Insights - 2 columns */}
-              <div className="lg:col-span-2">
-                <InsightsPanel insights={patterns.insights} />
-              </div>
-              
-              {/* Performance Trend - 1 column */}
-              <div>
-                {patterns.performanceTrend && (
-                  <Card className="bg-green/20 dark:bg-card border-2 border-black dark:border-darkborder rounded-xl h-full">
-                    <CardContent className="p-6">
-                      <h3 className="text-lg font-semibold mb-4 font-sora">
-                        Performance Trend
-                      </h3>
-                      <div className="flex flex-col items-center justify-center space-y-6 h-full">
-                        <div className="text-center">
-                          <p className="text-sm text-muted-foreground mb-1">Recent</p>
-                          <p className="text-3xl font-bold">
-                            {patterns.performanceTrend.recentAccuracy}%
-                          </p>
-                        </div>
-                        <div className="text-2xl text-muted-foreground">↓</div>
-                        <div className="text-center">
-                          <p className="text-sm text-muted-foreground mb-1">Change</p>
-                          <p
-                            className={`text-3xl font-bold ${
-                              patterns.performanceTrend.change > 0
-                                ? "text-green-500"
-                                : patterns.performanceTrend.change < 0
-                                ? "text-red-500"
-                                : ""
-                            }`}
-                          >
-                            {patterns.performanceTrend.change > 0 ? "+" : ""}
-                            {patterns.performanceTrend.change}%
-                          </p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-            </div>
+            <InsightsPanel insights={patterns.insights} />
           ) : (
             <div className="max-w-4xl">
               <Card className="bg-pink/20 dark:bg-card border-2 border-black dark:border-darkborder rounded-xl">
