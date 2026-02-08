@@ -21,6 +21,9 @@ export async function POST(req: NextRequest) {
       timeOfDay,
       sessionQuality,
       wasCompleted,
+      studyMode,
+      quizScore,
+      quizType,
     } = body;
 
     if (!userId) {
@@ -45,6 +48,9 @@ export async function POST(req: NextRequest) {
       timeOfDay,
       sessionQuality,
       wasCompleted,
+      studyMode: studyMode || "srs",
+      quizScore,
+      quizType,
     });
 
     // Update user learning profile

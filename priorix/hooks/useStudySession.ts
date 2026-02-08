@@ -14,9 +14,10 @@ interface SessionMetrics {
 interface UseStudySessionProps {
   deckId: string;
   enabled?: boolean;
+  studyMode?: "flashcards" | "srs" | "quiz";
 }
 
-export function useStudySession({ deckId, enabled = true }: UseStudySessionProps) {
+export function useStudySession({ deckId, enabled = true, studyMode = "srs" }: UseStudySessionProps) {
   const { data: session } = useSession();
   const [sessionMetrics, setSessionMetrics] = useState<SessionMetrics>({
     cardsReviewed: 0,
@@ -92,7 +93,7 @@ export function useStudySession({ deckId, enabled = true }: UseStudySessionProps
   );
 
   const endSession = useCallback(
-    async (wasCompleted: boolean = true) => {
+    async (wasCompleted: boolean = true, additionalData?: { quizScore?: number; quizType?: string }) => {
       if (!isSessionActive || !session?.user?.id) {
         return { success: false, error: "No active session" };
       }
@@ -129,6 +130,9 @@ export function useStudySession({ deckId, enabled = true }: UseStudySessionProps
             timeOfDay,
             sessionQuality,
             wasCompleted,
+            studyMode,
+            quizScore: additionalData?.quizScore,
+            quizType: additionalData?.quizType,
           }),
         });
 
@@ -149,6 +153,7 @@ export function useStudySession({ deckId, enabled = true }: UseStudySessionProps
       deckId,
       sessionMetrics,
       sessionQuality,
+      studyMode,
     ]
   );
 

@@ -39,7 +39,7 @@ export default function InsightsPanel({ insights }: InsightsPanelProps) {
 
   return (
     <Card className="border-2 border-black dark:border-darkborder rounded-xl">
-      <CardContent className="p-6">
+      <CardContent className="py-2 px-6">
         <div className="flex items-center space-x-2 mb-4">
           <Lightbulb className="h-5 w-5 text-yellow" />
           <h3 className="text-lg font-semibold font-sora">Learning Insights</h3>

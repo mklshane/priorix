@@ -41,12 +41,12 @@ const StudyModeModal = ({ isOpen, onClose, onSelectMode, hasCards }: StudyModeMo
       id: "quiz" as StudyMode,
       title: "Quiz Mode",
       emoji: "📝",
-      description: "Test your knowledge",
-      color: "bg-[#ffeb7c] dark:bg-yellow/40",
-      borderColor: "border-black/30 dark:border-darkborder/30",
-      hoverScale: false,
+      description: "MCQ & True/False questions",
+      color: "bg-[#ffeb7c] dark:bg-purple/40",
+      borderColor: "border-black dark:border-darkborder",
+      hoverScale: true,
       icon: FileText,
-      disabled: true,
+      disabled: false,
     },
   ];
 
