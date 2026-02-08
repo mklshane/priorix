@@ -141,37 +141,71 @@ Rules:
 }
 
 function generateMCQFallback(card: any, allCards: any[]): QuizQuestion {
-  // Use definitions from other cards as distractors
-  const otherCards = allCards
-    .filter((c) => c._id.toString() !== card._id.toString())
-    .sort(() => Math.random() - 0.5);
-
-  const distractors = otherCards
-    .slice(0, 3)
-    .map((c) => c.definition);
-
-  // If not enough cards, generate generic distractors
-  while (distractors.length < 3) {
-    distractors.push(`An unrelated concept to ${card.term}`);
+  // If deck is too small, return a warning question
+  if (allCards.length < 4) {
+    return {
+      cardId: card._id.toString(),
+      questionText: "Not enough cards in this deck to generate a meaningful MCQ. Please add more cards.",
+      options: [],
+      correctAnswer: "",
+      type: "mcq",
+      explanation: "A minimum of 4 cards is recommended for MCQ quizzes.",
+    };
   }
 
-  const options = [card.definition, ...distractors];
-  const shuffledOptions = options.sort(() => Math.random() - 0.5);
+  // Choose template: term-to-definition or definition-to-term
+  const useDefinitionToTerm = Math.random() > 0.5;
+  const otherCards = allCards.filter((c) => c._id.toString() !== card._id.toString());
 
-  // Create a proper question format
-  const questionText = card.term.endsWith("?")
-    ? card.term
-    : `What is ${card.term}?`;
-
-  return {
-    cardId: card._id.toString(),
-    questionText: questionText,
-    options: shuffledOptions,
-    correctAnswer: card.definition,
-    type: "mcq",
-    explanation: `The correct answer is: ${card.definition}. This is the definition of ${card.term}.`,
-  };
-}
+  // Distractor selection: avoid definitions too similar to correct answer
+  let distractors: string[] = [];
+  if (useDefinitionToTerm) {
+    // Definition-to-term: correct answer is card.term, distractors are other card terms
+    distractors = otherCards
+      .map((c) => c.term)
+      .filter((t) => t !== card.term)
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 3);
+    // Remove duplicates
+    distractors = Array.from(new Set(distractors));
+    const options = [card.term, ...distractors].sort(() => Math.random() - 0.5);
+    return {
+      cardId: card._id.toString(),
+      questionText: `Which term matches this definition?\n${card.definition}`,
+      options,
+      correctAnswer: card.term,
+      type: "mcq",
+      explanation: `The correct answer is: ${card.term}. This term matches the given definition.`,
+    };
+  } else {
+    // Term-to-definition: correct answer is card.definition, distractors are other card definitions
+    distractors = otherCards
+      .map((c) => c.definition)
+      .filter((d) => d !== card.definition && d.length > 0 && Math.abs(d.length - card.definition.length) > 3)
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 3);
+    // Remove duplicates
+    distractors = Array.from(new Set(distractors));
+    // If not enough distractors, fill with random definitions (no generic distractors)
+    while (distractors.length < 3) {
+      const randomDef = otherCards[Math.floor(Math.random() * otherCards.length)].definition;
+      if (!distractors.includes(randomDef) && randomDef !== card.definition) {
+        distractors.push(randomDef);
+      }
+    }
+    const options = [card.definition, ...distractors].sort(() => Math.random() - 0.5);
+    // Remove nearly identical options
+    const uniqueOptions = Array.from(new Set(options));
+    return {
+      cardId: card._id.toString(),
+      questionText: card.term.endsWith("?") ? card.term : `What is ${card.term}?`,
+      options: uniqueOptions,
+      correctAnswer: card.definition,
+      type: "mcq",
+      explanation: `The correct answer is: ${card.definition}. This is the definition of ${card.term}.`,
+    };
+  }
+  }
 
 // Helper function to create natural-sounding statements
 function createNaturalStatement(term: string, definition: string): string {
@@ -273,33 +307,57 @@ Rules:
 }
 
 function generateTrueFalseFallback(card: any, allCards?: any[]): QuizQuestion {
-  // Use a wrong definition from another card if available
-  if (allCards && allCards.length > 1) {
-    const otherCards = allCards.filter(c => c._id.toString() !== card._id.toString());
-    if (otherCards.length > 0) {
-      const randomCard = otherCards[Math.floor(Math.random() * otherCards.length)];
-      const falseStatement = createNaturalStatement(card.term, randomCard.definition);
-      
-      return {
-        cardId: card._id.toString(),
-        questionText: falseStatement,
-        options: ["True", "False"],
-        correctAnswer: "False",
-        type: "true-false",
-        explanation: `This statement is false. ${card.term} is actually: ${card.definition}. The statement incorrectly describes it as something else.`,
-      };
-    }
+  // If deck is too small, return a warning question
+  if (!allCards || allCards.length < 2) {
+    return {
+      cardId: card._id.toString(),
+      questionText: "Not enough cards in this deck to generate a meaningful True/False question. Please add more cards.",
+      options: ["True", "False"],
+      correctAnswer: "",
+      type: "true-false",
+      explanation: "A minimum of 2 cards is recommended for True/False quizzes.",
+    };
   }
-  
-  // Create a true statement as last resort
-  const statement = createNaturalStatement(card.term, card.definition);
-  
-  return {
-    cardId: card._id.toString(),
-    questionText: statement,
-    options: ["True", "False"],
-    correctAnswer: "True",
-    type: "true-false",
-    explanation: `This statement is true. ${card.term} is correctly described as: ${card.definition}.`,
-  };
+
+  const otherCards = allCards.filter(c => c._id.toString() !== card._id.toString());
+  // Randomly decide true or false
+  const isTrue = Math.random() > 0.5;
+  if (isTrue) {
+    // True statement
+    const statement = createNaturalStatement(card.term, card.definition);
+    return {
+      cardId: card._id.toString(),
+      questionText: statement,
+      options: ["True", "False"],
+      correctAnswer: "True",
+      type: "true-false",
+      explanation: `This statement is true. ${card.term} is correctly described as: ${card.definition}.`,
+    };
+  } else {
+    // False statement: pick a definition from another card that is not too similar
+    let falseDef = "";
+    for (const oc of otherCards) {
+      if (oc.definition !== card.definition && oc.definition.length > 0 && Math.abs(oc.definition.length - card.definition.length) > 3) {
+        falseDef = oc.definition;
+        break;
+      }
+    }
+    // If none found, pick random
+    if (!falseDef && otherCards.length > 0) {
+      falseDef = otherCards[Math.floor(Math.random() * otherCards.length)].definition;
+    }
+    // Fallback to generic if still not found
+    if (!falseDef) {
+      falseDef = "An unrelated concept.";
+    }
+    const falseStatement = createNaturalStatement(card.term, falseDef);
+    return {
+      cardId: card._id.toString(),
+      questionText: falseStatement,
+      options: ["True", "False"],
+      correctAnswer: "False",
+      type: "true-false",
+      explanation: `This statement is false. ${card.term} is actually: ${card.definition}. The statement incorrectly describes it as something else.`,
+    };
+  }
 }
