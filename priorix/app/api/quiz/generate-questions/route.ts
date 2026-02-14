@@ -13,29 +13,33 @@ export async function POST(req: NextRequest) {
     if (!deckId || !questionCount || !quizTypes || quizTypes.length === 0) {
       return NextResponse.json(
         { error: "Missing required fields" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     await ConnectDB();
 
     // Fetch flashcards
-    const query = cardIds && cardIds.length > 0 
-      ? { deck: deckId, _id: { $in: cardIds } }
-      : { deck: deckId };
-    
+    const query =
+      cardIds && cardIds.length > 0
+        ? { deck: deckId, _id: { $in: cardIds } }
+        : { deck: deckId };
+
     const allCards = await Flashcard.find(query).lean();
 
     if (allCards.length === 0) {
       return NextResponse.json(
         { error: "No flashcards found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     // Shuffle and select cards
     const shuffled = allCards.sort(() => Math.random() - 0.5);
-    const selectedCards = shuffled.slice(0, Math.min(questionCount, allCards.length));
+    const selectedCards = shuffled.slice(
+      0,
+      Math.min(questionCount, allCards.length),
+    );
 
     // Generate questions with limited AI usage to avoid quota
     // Use AI for only a few questions, fallback for the rest
@@ -46,13 +50,15 @@ export async function POST(req: NextRequest) {
     for (let i = 0; i < selectedCards.length; i++) {
       const card = selectedCards[i];
       // Randomly select quiz type from allowed types
-      const quizType: QuizType = quizTypes[Math.floor(Math.random() * quizTypes.length)];
-      
+      const quizType: QuizType =
+        quizTypes[Math.floor(Math.random() * quizTypes.length)];
+
       // Use AI strategically - first few questions and distributed throughout
-      const shouldUseAI = aiCallsUsed < maxAICalls && (i < maxAICalls || Math.random() > 0.7);
-      
+      const shouldUseAI =
+        aiCallsUsed < maxAICalls && (i < maxAICalls || Math.random() > 0.7);
+
       if (quizType === "mcq") {
-        const mcqQuestion = shouldUseAI 
+        const mcqQuestion = shouldUseAI
           ? await generateMCQ(card, allCards, true)
           : generateMCQFallback(card, allCards);
         questions.push(mcqQuestion);
@@ -74,38 +80,38 @@ export async function POST(req: NextRequest) {
     console.error("Error generating quiz questions:", error);
     return NextResponse.json(
       { error: "Failed to generate questions" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
-async function generateMCQ(card: any, allCards: any[], tryAI: boolean = false): Promise<QuizQuestion> {
+async function generateMCQ(
+  card: any,
+  allCards: any[],
+  tryAI: boolean = false,
+): Promise<QuizQuestion> {
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
 
     const prompt = `
-Create a multiple choice question from this flashcard:
+You are an expert test-maker. Create a high-quality, college-level multiple-choice question based on this flashcard:
 Term: ${card.term}
 Definition: ${card.definition}
 
-Generate a complete MCQ with:
-1. A clear, properly formatted question (not just the term)
-2. Four answer options (one correct, three plausible but incorrect)
-3. A detailed explanation of why the answer is correct
+Rules for the MCQ:
+1. The question must be a clear, natural-sounding sentence that tests the user's understanding of the concept (e.g., scenarios, direct questions, or "Which of the following...").
+2. Provide exactly 4 options.
+3. The correct answer must be one of the options and accurately reflect the flashcard.
+4. The 3 incorrect options (distractors) must be highly plausible, related to the same subject area, but definitively incorrect. Do not use silly, obvious, or throwaway options.
+5. Provide an explanation that teaches the user *why* the answer is correct and briefly clarifies why the distractors are wrong.
+6. Return ONLY valid JSON in this EXACT format with NO markdown formatting (\`\`\`json) and NO extra text:
 
-Return ONLY valid JSON in this EXACT format with no markdown:
 {
-  "question": "What is [concept]?" or "Which of the following describes [concept]?",
-  "options": ["correct answer", "wrong 1", "wrong 2", "wrong 3"],
+  "question": "The educational question testing the concept",
+  "options": ["correct answer", "plausible wrong 1", "plausible wrong 2", "plausible wrong 3"],
   "correctAnswer": "correct answer",
-  "explanation": "Detailed explanation of why this is correct and what the concept means"
+  "explanation": "Detailed educational explanation of the correct answer."
 }
-
-Rules:
-- Make the question text natural and educational
-- Wrong answers should be plausible but clearly incorrect
-- Explanation should teach, not just repeat the definition
-- NO markdown formatting, NO code blocks, ONLY the JSON object
 `;
 
     const result = await model.generateContent(prompt);
@@ -121,7 +127,14 @@ Rules:
       const jsonString = textResponse.slice(jsonStart, jsonEnd);
       const aiData = JSON.parse(jsonString);
 
-      if (aiData.question && aiData.options && Array.isArray(aiData.options) && aiData.options.length === 4 && aiData.correctAnswer && aiData.explanation) {
+      if (
+        aiData.question &&
+        aiData.options &&
+        Array.isArray(aiData.options) &&
+        aiData.options.length === 4 &&
+        aiData.correctAnswer &&
+        aiData.explanation
+      ) {
         return {
           cardId: card._id.toString(),
           questionText: aiData.question,
@@ -145,7 +158,8 @@ function generateMCQFallback(card: any, allCards: any[]): QuizQuestion {
   if (allCards.length < 4) {
     return {
       cardId: card._id.toString(),
-      questionText: "Not enough cards in this deck to generate a meaningful MCQ. Please add more cards.",
+      questionText:
+        "Not enough cards in this deck to generate a meaningful MCQ. Please add more cards.",
       options: [],
       correctAnswer: "",
       type: "mcq",
@@ -153,125 +167,113 @@ function generateMCQFallback(card: any, allCards: any[]): QuizQuestion {
     };
   }
 
-  // Choose template: term-to-definition or definition-to-term
   const useDefinitionToTerm = Math.random() > 0.5;
-  const otherCards = allCards.filter((c) => c._id.toString() !== card._id.toString());
+  const otherCards = allCards.filter(
+    (c) => c._id.toString() !== card._id.toString(),
+  );
 
-  // Distractor selection: avoid definitions too similar to correct answer
-  let distractors: string[] = [];
   if (useDefinitionToTerm) {
-    // Definition-to-term: correct answer is card.term, distractors are other card terms
-    distractors = otherCards
+    // Definition-to-term
+    let distractors = otherCards
       .map((c) => c.term)
       .filter((t) => t !== card.term)
       .sort(() => Math.random() - 0.5)
       .slice(0, 3);
-    // Remove duplicates
+
     distractors = Array.from(new Set(distractors));
     const options = [card.term, ...distractors].sort(() => Math.random() - 0.5);
+
     return {
       cardId: card._id.toString(),
-      questionText: `Which term matches this definition?\n${card.definition}`,
+      questionText: `Which of the following terms matches this description?\n\n"${card.definition}"`,
       options,
       correctAnswer: card.term,
       type: "mcq",
-      explanation: `The correct answer is: ${card.term}. This term matches the given definition.`,
+      explanation: `The correct answer is ${card.term}.`,
     };
   } else {
-    // Term-to-definition: correct answer is card.definition, distractors are other card definitions
-    distractors = otherCards
+    // Term-to-definition
+    // Find distractors that are somewhat similar in length to make them plausible
+    const targetLength = card.definition.length;
+    let distractors = otherCards
       .map((c) => c.definition)
-      .filter((d) => d !== card.definition && d.length > 0 && Math.abs(d.length - card.definition.length) > 3)
-      .sort(() => Math.random() - 0.5)
-      .slice(0, 3);
-    // Remove duplicates
-    distractors = Array.from(new Set(distractors));
-    // If not enough distractors, fill with random definitions (no generic distractors)
+      .filter((d) => d !== card.definition && d.trim().length > 0)
+      // Sort by length difference so distractors look visually similar to the answer
+      .sort(
+        (a, b) =>
+          Math.abs(a.length - targetLength) - Math.abs(b.length - targetLength),
+      )
+      .slice(0, 5) // Take top 5 closest in length
+      .sort(() => Math.random() - 0.5) // Shuffle them
+      .slice(0, 3); // Pick 3
+
     while (distractors.length < 3) {
-      const randomDef = otherCards[Math.floor(Math.random() * otherCards.length)].definition;
-      if (!distractors.includes(randomDef) && randomDef !== card.definition) {
-        distractors.push(randomDef);
-      }
+      distractors.push("None of the above.");
     }
-    const options = [card.definition, ...distractors].sort(() => Math.random() - 0.5);
-    // Remove nearly identical options
+
+    const options = [card.definition, ...distractors].sort(
+      () => Math.random() - 0.5,
+    );
     const uniqueOptions = Array.from(new Set(options));
+
     return {
       cardId: card._id.toString(),
-      questionText: card.term.endsWith("?") ? card.term : `What is ${card.term}?`,
+      questionText: `Which of the following best describes "${card.term}"?`,
       options: uniqueOptions,
       correctAnswer: card.definition,
       type: "mcq",
-      explanation: `The correct answer is: ${card.definition}. This is the definition of ${card.term}.`,
+      explanation: `The correct answer is: ${card.definition}.`,
     };
-  }
-  }
-
-// Helper function to create natural-sounding statements
-function createNaturalStatement(term: string, definition: string): string {
-  const termLower = term.toLowerCase();
-  
-  // Check for "What is/are..." patterns
-  if (termLower.startsWith("what is")) {
-    const subject = term.substring(7).trim();
-    return `${subject} is ${definition}`;
-  }
-  
-  if (termLower.startsWith("what are")) {
-    const subject = term.substring(8).trim();
-    return `${subject} are ${definition}`;
-  }
-  
-  // Check for question marks - convert to statement
-  if (term.endsWith("?")) {
-    return `${term.slice(0, -1)}: ${definition}`;
-  }
-  
-  // Default: Simple subject-verb-object format
-  // Check if definition is a verb phrase or noun phrase
-  const defLower = definition.toLowerCase();
-  if (defLower.startsWith("the ") || defLower.startsWith("a ") || defLower.startsWith("an ")) {
-    return `${term} is ${definition}`;
-  } else if (defLower.match(/^(to |for |by |in |on |at )/)) {
-    return `${term} is used ${definition}`;
-  } else {
-    // Most generic format
-    return `${term}: ${definition}`;
   }
 }
 
-async function generateTrueFalse(card: any, tryAI: boolean = false, allCards?: any[]): Promise<QuizQuestion> {
+// Helper function to create safe, grammatically neutral test statements
+function buildTestStatement(term: string, definition: string): string {
+  let cleanDef = definition.trim();
+  // Lowercase the first letter if it's a standard word to make it flow better,
+  // but avoid lowercasing if it looks like an acronym (e.g., "NASA")
+  if (
+    cleanDef.length > 1 &&
+    cleanDef[0] === cleanDef[0].toUpperCase() &&
+    cleanDef[1] === cleanDef[1].toLowerCase()
+  ) {
+    cleanDef = cleanDef[0].toLowerCase() + cleanDef.slice(1);
+  }
+
+  // Using quotes and 'refers to' or 'is defined as' avoids awkward subject-verb mismatches
+  return `The term "${term.trim()}" is defined as: ${cleanDef}`;
+}
+
+async function generateTrueFalse(
+  card: any,
+  tryAI: boolean = false,
+  allCards?: any[],
+): Promise<QuizQuestion> {
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
-    
+
     // Randomly decide if this will be a true or false statement
     const isTrue = Math.random() > 0.5;
 
     const prompt = `
-Create a True/False question from this flashcard:
+You are an expert test-maker. Create a True/False question based on this flashcard:
 Term: ${card.term}
 Definition: ${card.definition}
 
-Generate a ${isTrue ? "TRUE" : "FALSE"} statement with:
-1. A clear, declarative statement (not a question)
-2. A detailed explanation of why it's true or false
+You must generate a ${isTrue ? "TRUE" : "FALSE"} statement.
 
-${isTrue 
-  ? "Make the statement correctly describe the term/concept."
-  : "Make the statement contain a plausible but incorrect description."}
+Rules for the True/False statement:
+1. Write a clear, declarative sentence (not a question).
+2. If TRUE, the statement must accurately describe the term based on the definition in a natural way.
+3. If FALSE, the statement must substitute a key detail with a common misconception or a related but incorrect fact. It should sound highly plausible to a student learning the material. Do not make the false statement absurd or overly obvious.
+4. Provide an explanation that clarifies the actual truth and reinforces the correct definition.
+5. Return ONLY valid JSON in this EXACT format with NO markdown formatting (\`\`\`json) and NO extra text:
 
-Return ONLY valid JSON in this EXACT format with no markdown:
 {
-  "statement": "Natural declarative statement about the concept",
+  "statement": "The natural, declarative statement here",
   "correctAnswer": "${isTrue ? "True" : "False"}",
-  "explanation": "Detailed explanation of why this statement is ${isTrue ? "true" : "false"} and what the actual concept means"
+  "explanation": "Detailed explanation of why this statement is ${isTrue ? "true" : "false"}, including the actual correct definition of the concept."
 }
-
-Rules:
-- Statement should be natural and educational (like real quiz statements)
-- For false statements, make them believable but clearly wrong
-- Explanation should teach the concept, not just say "true" or "false"
-- NO markdown formatting, NO code blocks, ONLY the JSON object
 `;
 
     const result = await model.generateContent(prompt);
@@ -307,57 +309,54 @@ Rules:
 }
 
 function generateTrueFalseFallback(card: any, allCards?: any[]): QuizQuestion {
-  // If deck is too small, return a warning question
   if (!allCards || allCards.length < 2) {
     return {
       cardId: card._id.toString(),
-      questionText: "Not enough cards in this deck to generate a meaningful True/False question. Please add more cards.",
+      questionText:
+        "Not enough cards in this deck to generate a meaningful True/False question. Please add more cards.",
       options: ["True", "False"],
       correctAnswer: "",
       type: "true-false",
-      explanation: "A minimum of 2 cards is recommended for True/False quizzes.",
+      explanation:
+        "A minimum of 2 cards is recommended for True/False quizzes.",
     };
   }
 
-  const otherCards = allCards.filter(c => c._id.toString() !== card._id.toString());
-  // Randomly decide true or false
+  const otherCards = allCards.filter(
+    (c) => c._id.toString() !== card._id.toString(),
+  );
   const isTrue = Math.random() > 0.5;
+
   if (isTrue) {
-    // True statement
-    const statement = createNaturalStatement(card.term, card.definition);
     return {
       cardId: card._id.toString(),
-      questionText: statement,
+      questionText: buildTestStatement(card.term, card.definition),
       options: ["True", "False"],
       correctAnswer: "True",
       type: "true-false",
-      explanation: `This statement is true. ${card.term} is correctly described as: ${card.definition}.`,
+      explanation: `Correct! "${card.term}" is accurately described by this definition.`,
     };
   } else {
-    // False statement: pick a definition from another card that is not too similar
-    let falseDef = "";
-    for (const oc of otherCards) {
-      if (oc.definition !== card.definition && oc.definition.length > 0 && Math.abs(oc.definition.length - card.definition.length) > 3) {
-        falseDef = oc.definition;
-        break;
-      }
-    }
-    // If none found, pick random
-    if (!falseDef && otherCards.length > 0) {
-      falseDef = otherCards[Math.floor(Math.random() * otherCards.length)].definition;
-    }
-    // Fallback to generic if still not found
-    if (!falseDef) {
-      falseDef = "An unrelated concept.";
-    }
-    const falseStatement = createNaturalStatement(card.term, falseDef);
+    // False statement: pick a definition from another card that is similar in length
+    const targetLength = card.definition.length;
+    const sortedOtherCards = [...otherCards]
+      .filter((c) => c.definition && c.definition.trim().length > 0)
+      .sort(
+        (a, b) =>
+          Math.abs(a.definition.length - targetLength) -
+          Math.abs(b.definition.length - targetLength),
+      );
+
+    const falseCard = sortedOtherCards[0] || otherCards[0];
+    const falseStatement = buildTestStatement(card.term, falseCard.definition);
+
     return {
       cardId: card._id.toString(),
       questionText: falseStatement,
       options: ["True", "False"],
       correctAnswer: "False",
       type: "true-false",
-      explanation: `This statement is false. ${card.term} is actually: ${card.definition}. The statement incorrectly describes it as something else.`,
+      explanation: `False. That is actually the definition for "${falseCard.term}". The correct definition of "${card.term}" is: ${card.definition}`,
     };
   }
 }
