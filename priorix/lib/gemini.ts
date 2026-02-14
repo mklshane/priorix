@@ -11,10 +11,10 @@ export async function generateFlashcardsFromText(
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
 
     const prompt = `
-You are a flashcard generator. Carefully read the following text and extract ALL key terms, names, people, events, concepts, objects, and important ideas.  
+You are an expert educational content creator. Carefully read the following text and extract ALL key terms, names, people, events, concepts, objects, and important ideas into flashcards.
 
-Rules for generating flashcards:
-- Return ONLY a JSON array in this exact format:
+Strict Rules for Generation:
+- Return ONLY a JSON array in this exact format, with NO markdown formatting (\`\`\`json) and NO extra text:
 [
   {
     "term": "term here",
@@ -23,12 +23,10 @@ Rules for generating flashcards:
   }
 ]
 - Include ALL terms and key ideas found in the text. Do not omit any.
-- Use the EXACT wording from the material for each definition. Do not rephrase or summarize.
-- If a term has multiple definitions or explanations, create MULTIPLE flashcards for that term, one per definition.
-- Ensure every flashcard has a clear "term" and "definition".
-- DO NOT include the term in the definition. Either leave it out or add _________.
+- Keep the exact meaning from the material, but format the definition as a clear, standalone explanation.
+- ABSOLUTELY DO NOT include the "term" itself inside the "definition". 
+- Write the definition naturally by starting directly with the description or by using pronouns (e.g., "It is...", "This process...", "A person who...").
 - DO NOT create duplicate flashcards. Each flashcard must be unique.
-- For terms with multiple definitions, ensure each definition is distinct and not repetitive.
 
 Text to analyze:
 ${text.substring(0, 30000)}
