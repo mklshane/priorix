@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { IFlashcard } from "@/types/flashcard";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY_FLASHCARD!);
 
 export async function generateFlashcardsFromText(
   text: string,
@@ -23,10 +23,12 @@ Strict Rules for Generation:
   }
 ]
 - Include ALL terms and key ideas found in the text. Do not omit any.
+- Ensure that all terms (key ideas, concepts, names, dates, events, objects) are included. 
 - Keep the exact meaning from the material, but format the definition as a clear, standalone explanation.
 - ABSOLUTELY DO NOT include the "term" itself inside the "definition". 
 - Write the definition naturally by starting directly with the description or by using pronouns (e.g., "It is...", "This process...", "A person who...").
 - DO NOT create duplicate flashcards. Each flashcard must be unique.
+- If there are multiple definitions for the same term, combine them into one flashcard with a comprehensive definition.
 
 Text to analyze:
 ${text.substring(0, 30000)}
