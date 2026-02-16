@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI, SchemaType, Schema } from "@google/generative-ai";
 import { ConnectDB } from "@/lib/config/db";
 import Flashcard from "@/lib/models/Flashcard";
 import { QuizType, QuizQuestion } from "@/types/quiz";
@@ -105,9 +105,55 @@ export async function POST(req: NextRequest) {
 
 // --- BULK GENERATION FUNCTION ---
 async function generateBulkQuestions(cards: any[]): Promise<QuizQuestion[]> {
-  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
+  // 1. Define the exact JSON structure you want Gemini to return
+  const quizQuestionSchema: Schema = {
+    type: SchemaType.ARRAY,
+    description: "An array of generated quiz questions based on the provided flashcards.",
+    items: {
+      type: SchemaType.OBJECT,
+      properties: {
+        cardId: {
+          type: SchemaType.STRING,
+          description: "The exact id provided in the input",
+        },
+        questionText: {
+          type: SchemaType.STRING,
+          description: "The generated question or true/false statement",
+        },
+        options: {
+          type: SchemaType.ARRAY,
+          description: "Exactly 4 options for mcq, or exactly ['True', 'False'] for true-false",
+          items: {
+            type: SchemaType.STRING,
+          },
+        },
+        correctAnswer: {
+          type: SchemaType.STRING,
+          description: "The exact string of the correct option",
+        },
+        type: {
+          type: SchemaType.STRING,
+          description: "Must be either 'mcq' or 'true-false'",
+        },
+        explanation: {
+          type: SchemaType.STRING,
+          description: "Detailed explanation of why the answer is correct.",
+        },
+      },
+      // Force the model to include every single field
+      required: ["cardId", "questionText", "options", "correctAnswer", "type", "explanation"],
+    },
+  };
 
-  // Format the input data cleanly for the prompt
+  // 2. Pass the schema into the model's generation config
+  const model = genAI.getGenerativeModel({ 
+    model: "gemini-2.5-flash-lite",
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: quizQuestionSchema,
+    }
+  });
+
   const promptData = cards.map((card) => ({
     id: card._id.toString(),
     term: card.term,
@@ -115,57 +161,38 @@ async function generateBulkQuestions(cards: any[]): Promise<QuizQuestion[]> {
     requestedType: card.assignedType,
   }));
 
+  // 3. Simplified prompt! You no longer need to explain JSON formatting rules.
   const prompt = `
-You are an expert educational test-maker. I am providing you with a list of flashcards. 
-For each flashcard, you must generate a high-quality, college-level question based on its "requestedType" (either "mcq" or "true-false").
+You are an expert educational test-maker. Generate a college-level question for each flashcard based on its "requestedType" ("mcq" or "true-false").
 
 Rules for MCQ ("mcq"):
-1. Provide a clear question or scenario testing the concept.
-2. Provide exactly 4 options in an array. The correct answer must be one of them.
-3. The 3 incorrect options (distractors) must be highly plausible, related to the subject, but definitively wrong.
+- Provide a clear question testing the concept.
+- Provide exactly 4 options. The correct answer must be one of them.
+- Distractors must be highly plausible, related to the subject, but definitively wrong.
 
 Rules for True/False ("true-false"):
-1. Write a clear, declarative statement (not a question).
-2. Randomly decide to make it true or false.
-3. If TRUE, accurately describe the term.
-4. If FALSE, substitute a key detail with a plausible misconception. Do not make it absurdly obvious.
-5. The "options" array MUST be exactly ["True", "False"].
-
-Return ONLY a valid JSON array of objects matching this exact structure, with NO markdown formatting (\`\`\`json) and NO extra text:
-
-[
-  {
-    "cardId": "the exact id provided in the input",
-    "questionText": "The question or statement here",
-    "options": ["option 1", "option 2", "option 3", "option 4"], // OR ["True", "False"]
-    "correctAnswer": "the exact correct option string",
-    "type": "mcq", // or "true-false"
-    "explanation": "Detailed explanation of why the answer is correct."
-  }
-]
+- Write a clear, declarative statement. Randomly decide to make it true or false.
+- If TRUE, accurately describe the term.
+- If FALSE, substitute a key detail with a plausible misconception.
+- The "options" array MUST be exactly ["True", "False"].
 
 Input Flashcards:
 ${JSON.stringify(promptData, null, 2)}
 `;
 
   const result = await model.generateContent(prompt);
-  const response = await result.response;
-  let textResponse = response.text().trim();
-
-  // Clean up response markdown blocks if the AI includes them anyway
-  textResponse = textResponse.replace(/```json|```/g, "").trim();
-  const jsonStart = textResponse.indexOf("[");
-  const jsonEnd = textResponse.lastIndexOf("]") + 1;
-
-  if (jsonStart !== -1 && jsonEnd > 0) {
-    const jsonString = textResponse.slice(jsonStart, jsonEnd);
-    const aiData = JSON.parse(jsonString);
-
-    if (Array.isArray(aiData)) {
-      return aiData as QuizQuestion[];
-    }
+  
+  // 4. Clean and direct parsing! 
+  // Because we set responseMimeType to application/json, it returns pure JSON. No markdown ticks (```) will be included.
+  const textResponse = result.response.text();
+  
+  try {
+    const aiData = JSON.parse(textResponse);
+    return aiData as QuizQuestion[];
+  } catch (error) {
+    console.error("Failed to parse AI JSON:", textResponse);
+    throw new Error("Invalid AI response format.");
   }
-  throw new Error("Invalid AI response format: Expected an array.");
 }
 
 // --- FALLBACK FUNCTIONS ---
