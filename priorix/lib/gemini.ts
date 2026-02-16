@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { IFlashcard } from "@/types/flashcard";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY_FLASHCARD!);
 
 export async function generateFlashcardsFromText(
   text: string,
