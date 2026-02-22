@@ -1,6 +1,10 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { callWithKeyAndModelFallback } from "@/lib/gemini";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+const GENERAL_KEYS = (process.env.GEMINI_KEYS_GENERAL || process.env.GEMINI_API_KEY || "")
+  .split(",")
+  .map((k) => k.trim())
+  .filter(Boolean);
 
 /**
  * Assess the difficulty of a flashcard using AI
@@ -14,8 +18,6 @@ export async function assessCardDifficulty(
   definition: string
 ): Promise<number> {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
-
     const prompt = `
 You are an educational difficulty assessor. Analyze the following flashcard and rate its difficulty from 1-10.
 
@@ -40,7 +42,7 @@ Definition: "${definition}"
 Respond with ONLY a single number between 1 and 10. No explanation.
 `;
 
-    const result = await model.generateContent(prompt);
+    const result = await callWithKeyAndModelFallback(GENERAL_KEYS, prompt);
     const response = await result.response;
     const text = response.text().trim();
 
@@ -69,8 +71,6 @@ export async function assessCardDifficultyBatch(
   cards: Array<{ term: string; definition: string }>
 ): Promise<number[]> {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
-
     // Batch up to 10 cards per request
     const batchSize = 10;
     const results: number[] = [];
@@ -91,7 +91,7 @@ ${batch.map((card, idx) => `${idx + 1}. Term: "${card.term}" - Definition: "${ca
 Respond with ONLY the difficulty scores separated by commas (e.g., "5,7,3,6,4"). No other text.
 `;
 
-      const result = await model.generateContent(prompt);
+      const result = await callWithKeyAndModelFallback(GENERAL_KEYS, prompt);
       const response = await result.response;
       const text = response.text().trim();
 
@@ -126,8 +126,6 @@ export async function generateTopicTags(
   definition: string
 ): Promise<string[]> {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
-
     const prompt = `
 Analyze this flashcard and generate 2-4 relevant topic tags.
 
@@ -146,7 +144,7 @@ Definition: "${definition}"
 Respond with ONLY the tags separated by commas. No other text.
 `;
 
-    const result = await model.generateContent(prompt);
+    const result = await callWithKeyAndModelFallback(GENERAL_KEYS, prompt);
     const response = await result.response;
     const text = response.text().trim();
 

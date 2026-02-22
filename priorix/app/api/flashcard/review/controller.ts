@@ -7,7 +7,7 @@ import { addDays, clampEase, srsConfig } from "@/lib/srs-config";
 import type { SrsRating } from "@/lib/srs-config";
 import { processAdaptiveReview, getContextModifier } from "@/lib/adaptive-srs";
 import { calibrateUserProfile } from "@/lib/profile-calibration";
-import { prioritizeCards } from "@/lib/review-priority";
+import { prioritizeCards, balanceWorkload } from "@/lib/review-priority";
 
 const minutesToMs = (minutes: number) => minutes * 60 * 1000;
 const forgottenThresholdMs = 14 * 24 * 60 * 60 * 1000;
@@ -100,7 +100,12 @@ const initProgressIfNeeded = async (
 
   // Initialize adaptive SRS fields
   if (progress.perceivedDifficulty === undefined) {
-    progress.perceivedDifficulty = 5; // Default medium difficulty
+    // Seed from AI-estimated difficulty when available, otherwise default to medium (5)
+    const aiDifficulty = card.estimatedDifficulty;
+    progress.perceivedDifficulty =
+      typeof aiDifficulty === "number" && aiDifficulty >= 1 && aiDifficulty <= 10
+        ? aiDifficulty
+        : 5;
     updated = true;
   }
 
@@ -177,13 +182,75 @@ export const getDueFlashcards = async (
 
   const progressList = await Promise.all(ensureProgressPromises);
 
-  // Use priority queue to get optimal review order
-  const prioritizedCards = prioritizeCards(
-    progressList,
+  // ──────────────────────────────────────────────────────────────
+  // STEP 1: Filter to only cards that are actually due RIGHT NOW.
+  //   - New cards (never reviewed, nextReviewAt is null) → due
+  //   - Cards whose nextReviewAt ≤ now                  → due
+  //   - Cards whose nextReviewAt is in the future       → NOT due, skip
+  // This is the fundamental SRS gate: you only see a card when
+  // its scheduled review time has arrived.
+  // ──────────────────────────────────────────────────────────────
+  const dueProgressList = progressList.filter((p) => {
+    if (!p.nextReviewAt) return true;              // never reviewed → due
+    return new Date(p.nextReviewAt).getTime() <= now.getTime(); // past due
+  });
+
+  // STEP 2: Prioritize only the due cards
+  const allPrioritized = prioritizeCards(
+    dueProgressList,
     profile,
     1.0, // deckImportance
-    limit
+    undefined // no limit yet — we partition first
   );
+
+  // ──────────────────────────────────────────────────────────────
+  // STEP 3: Partition into "review" (previously seen) vs "new"
+  //   - New = never reviewed (currentState "new", reviewCount 0)
+  //   - Review = everything else (learning, review, relearning)
+  //
+  // The new-card cap (30% of session) only kicks in when there
+  // are due review cards competing for slots. When there are no
+  // due reviews (e.g., first session on a fresh deck), all slots
+  // go to new cards so the session fills to the requested size.
+  // ──────────────────────────────────────────────────────────────
+  const maxNewCards = Math.max(1, Math.floor(limit * 0.3));
+  const reviewPool: typeof allPrioritized = [];
+  const newPool: typeof allPrioritized = [];
+
+  for (const card of allPrioritized) {
+    const isNew = card.currentState === "new" && (card.reviewCount ?? 0) === 0;
+    if (isNew) {
+      newPool.push(card);
+    } else {
+      reviewPool.push(card);
+    }
+  }
+
+  // STEP 4: Fill the session
+  const selected: typeof allPrioritized = [];
+
+  // 4a. Due review cards first (by priority)
+  const reviewSlots = Math.min(reviewPool.length, limit);
+  selected.push(...reviewPool.slice(0, reviewSlots));
+
+  // 4b. New cards — capped only when review cards exist
+  const remainingSlots = limit - selected.length;
+  const effectiveNewCap = reviewPool.length > 0
+    ? Math.min(newPool.length, maxNewCards, remainingSlots)
+    : Math.min(newPool.length, remainingSlots);
+  selected.push(...newPool.slice(0, effectiveNewCap));
+
+  // 4c. Backfill with extra new cards if review pool didn't fill
+  if (selected.length < limit && newPool.length > effectiveNewCap) {
+    const backfill = Math.min(newPool.length - effectiveNewCap, limit - selected.length);
+    selected.push(...newPool.slice(effectiveNewCap, effectiveNewCap + backfill));
+  }
+
+  // Apply workload balancing to prevent overwhelming sessions
+  const { reviewNow } = balanceWorkload(selected, profile.dailyReviewGoal || 50);
+
+  // Use balanced list, but never exceed the requested limit
+  const prioritizedCards = reviewNow.slice(0, limit);
 
   // Map back to include card data
   const cardMap = new Map(cards.map((c) => [String(c._id), c]));

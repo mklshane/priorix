@@ -60,148 +60,185 @@ export default function DashboardPage() {
   const getInsightMessage = () => {
     if (!userStats?.overview) {
       return {
-        message: "Start learning",
-        subtext: "Create your first deck and begin mastering new concepts.",
+        message: "Welcome! 👋",
+        subtext: "Create your first deck and start mastering new concepts.",
         icon: BookOpen,
         bgColor: "bg-pink/30 dark:bg-pink/20"
       };
     }
 
-    const { totalCardsStudied, currentStreak, averageAccuracy, longestStreak, totalStudyTime } = userStats.overview;
+    const {
+      totalCardsStudied, // today's cards
+      totalStudyTime,    // today's minutes
+      currentStreak,
+      longestStreak,
+      averageAccuracy,
+      averageRetention,
+      totalCards,
+      sessionsCompleted,
+    } = userStats.overview;
 
-    // Epic streak achievement (30+ days)
+    const mastered = userStats?.masteryDistribution?.mastered ?? 0;
+    const trend = patterns?.performanceTrend;
+    const optimalHours: number[] = patterns?.optimalStudyTimes ?? [];
+    const currentHour = new Date().getHours();
+
+    // --- Priority 1: Epic streak (30+ days) ---
     if (currentStreak >= 30) {
       return {
         message: `${currentStreak}-day streak! 🏆`,
-        subtext: "Absolutely incredible dedication! You're building habits that last a lifetime.",
+        subtext: "You've built an unbreakable habit. Legendary consistency!",
         icon: Flame,
         bgColor: "bg-yellow/30 dark:bg-yellow/20"
       };
     }
 
-    // Perfect accuracy
-    if (averageAccuracy === 100 && totalCardsStudied >= 10) {
+    // --- Priority 2: New personal best streak (5+) ---
+    if (currentStreak === longestStreak && currentStreak >= 5) {
       return {
-        message: "Perfect accuracy! ⭐",
-        subtext: "Flawless performance! Your focus and retention are exceptional.",
+        message: "New personal best! 🏅",
+        subtext: `Your longest streak ever: ${currentStreak} days! History in the making.`,
+        icon: Flame,
+        bgColor: "bg-yellow/30 dark:bg-yellow/20"
+      };
+    }
+
+    // --- Priority 3: Mastery milestone (100+ cards mastered) ---
+    if (mastered >= 100) {
+      return {
+        message: `${mastered} cards mastered! 🎯`,
+        subtext: "Your long-term memory is stacked. True expertise is forming.",
         icon: Award,
         bgColor: "bg-green/30 dark:bg-green/20"
       };
     }
 
-    // Major milestones
-    if (totalCardsStudied >= 1000) {
+    // --- Priority 4: Mastery milestone (25+ cards mastered) ---
+    if (mastered >= 25) {
       return {
-        message: `${totalCardsStudied.toLocaleString()} cards mastered! 🎯`,
-        subtext: "You're a learning machine! This level of commitment is truly impressive.",
+        message: `${mastered} cards mastered 💎`,
+        subtext: "These are locked in your long-term memory. Real progress!",
+        icon: Award,
+        bgColor: "bg-green/30 dark:bg-green/20"
+      };
+    }
+
+    // --- Priority 5: Accuracy trending up ---
+    if (trend?.trend === "improving" && trend.change > 0) {
+      return {
+        message: "Accuracy trending up! 📈",
+        subtext: `Your accuracy improved by ${Math.abs(trend.change)}% recently. Your brain is adapting!`,
         icon: TrendingUp,
         bgColor: "bg-violet/30 dark:bg-violet/20"
       };
     }
 
-    if (totalCardsStudied >= 500) {
+    // --- Priority 6: Optimal study time match ---
+    if (optimalHours.length > 0 && optimalHours.includes(currentHour)) {
       return {
-        message: `${totalCardsStudied} cards studied 💪`,
-        subtext: "Half a thousand cards down! You're becoming an expert.",
+        message: "Peak brain hour! ⚡",
+        subtext: "You perform best at this time of day. Make the most of it!",
+        icon: Zap,
+        bgColor: "bg-yellow/30 dark:bg-yellow/20"
+      };
+    }
+
+    // --- Priority 7: Big day today (50+ cards) ---
+    if (totalCardsStudied >= 50) {
+      return {
+        message: `${totalCardsStudied} cards today! 🚀`,
+        subtext: "You're on fire today! An impressive study session.",
         icon: TrendingUp,
         bgColor: "bg-violet/30 dark:bg-violet/20"
       };
     }
 
-    if (totalCardsStudied >= 100) {
+    // --- Priority 8: Strong day (20+ cards) ---
+    if (totalCardsStudied >= 20) {
       return {
-        message: `${totalCardsStudied} cards strong! 🚀`,
-        subtext: "You've hit triple digits! The compound effect is working.",
+        message: `${totalCardsStudied} cards down today 💪`,
+        subtext: "Solid session so far! Every card strengthens the neural pathways.",
         icon: TrendingUp,
         bgColor: "bg-violet/30 dark:bg-violet/20"
       };
     }
 
-    // Long streak (7-29 days)
+    // --- Priority 9: Near-perfect accuracy today ---
+    if (averageAccuracy >= 95 && totalCardsStudied >= 5) {
+      return {
+        message: "Near-perfect recall! ⭐",
+        subtext: "Your retention is outstanding. The spaced repetition is working.",
+        icon: Award,
+        bgColor: "bg-green/30 dark:bg-green/20"
+      };
+    }
+
+    // --- Priority 10: High accuracy today ---
+    if (averageAccuracy >= 85 && totalCardsStudied >= 5) {
+      return {
+        message: `${Math.round(averageAccuracy)}% accuracy 🎯`,
+        subtext: "Strong recall across your cards. Your study method is paying off.",
+        icon: Target,
+        bgColor: "bg-green/30 dark:bg-green/20"
+      };
+    }
+
+    // --- Priority 11: Long streak (7-29 days) ---
     if (currentStreak >= 7) {
       return {
         message: `${currentStreak}-day streak 🔥`,
-        subtext: "Your consistency is building lasting knowledge. Keep it up!",
+        subtext: "A full week of consistency! Knowledge compounds with every day.",
         icon: Flame,
         bgColor: "bg-yellow/30 dark:bg-yellow/20"
       };
     }
 
-    // High accuracy
-    if (averageAccuracy >= 90 && totalCardsStudied >= 20) {
+    // --- Priority 12: Declining trend (gentle nudge) ---
+    if (trend?.trend === "declining") {
       return {
-        message: `${Math.round(averageAccuracy)}% accuracy 🎯`,
-        subtext: "Outstanding retention! Your study techniques are really working.",
-        icon: Award,
-        bgColor: "bg-green/30 dark:bg-green/20"
+        message: "Time to refocus 🎯",
+        subtext: "Your accuracy dipped recently. A focused session today can turn it around!",
+        icon: Target,
+        bgColor: "bg-pink/30 dark:bg-pink/20"
       };
     }
 
-    if (averageAccuracy >= 85 && totalCardsStudied >= 20) {
-      return {
-        message: `${Math.round(averageAccuracy)}% accuracy`,
-        subtext: "Your mastery is showing. Time to challenge yourself with new material.",
-        icon: Award,
-        bgColor: "bg-green/30 dark:bg-green/20"
-      };
-    }
-
-    // Broke personal record
-    if (currentStreak === longestStreak && currentStreak >= 3) {
-      return {
-        message: "New personal best! 🏅",
-        subtext: `You're on your longest streak yet: ${currentStreak} days! Keep pushing.`,
-        icon: Flame,
-        bgColor: "bg-yellow/30 dark:bg-yellow/20"
-      };
-    }
-
-    // Good progress (50+ cards)
-    if (totalCardsStudied >= 50) {
-      return {
-        message: `${totalCardsStudied} cards studied`,
-        subtext: "You're making great progress. Consistency breeds mastery!",
-        icon: TrendingUp,
-        bgColor: "bg-violet/30 dark:bg-violet/20"
-      };
-    }
-
-    // Study time milestone
-    if (totalStudyTime >= 300) { // 5+ hours
-      return {
-        message: `${Math.round(totalStudyTime / 60)}+ hours invested 📚`,
-        subtext: "Your dedication is remarkable. Every minute counts toward mastery.",
-        icon: BookOpen,
-        bgColor: "bg-violet/30 dark:bg-violet/20"
-      };
-    }
-
-    // Starting journey (3+ days streak)
+    // --- Priority 13: Building habit (3+ day streak) ---
     if (currentStreak >= 3) {
       return {
-        message: "Building habit! 💫",
-        subtext: `${currentStreak} days in a row! The hardest part is already behind you.`,
+        message: `${currentStreak} days strong! 💫`,
+        subtext: "The hardest part is behind you. You're building a real habit!",
         icon: Zap,
         bgColor: "bg-yellow/30 dark:bg-yellow/20"
       };
     }
 
-    // Getting started
+    // --- Priority 14: Active today ---
     if (totalCardsStudied > 0) {
       return {
-        message: "Building momentum",
-        subtext: "Every card you study brings you closer to mastery. Keep going!",
+        message: "Nice start today! ✨",
+        subtext: `${totalCardsStudied} card${totalCardsStudied !== 1 ? "s" : ""} studied so far. Keep the momentum going!`,
         icon: Zap,
         bgColor: "bg-yellow/30 dark:bg-yellow/20"
       };
     }
 
-    // Default fallback
+    // --- Priority 15: Has cards but hasn't studied today ---
+    if (totalCards > 0) {
+      return {
+        message: "Ready to learn 📚",
+        subtext: "Your cards are waiting. Even a quick 5-minute session makes a difference!",
+        icon: BookOpen,
+        bgColor: "bg-green/30 dark:bg-green/20"
+      };
+    }
+
+    // --- Priority 16: Brand new user fallback ---
     return {
-      message: "Ready to learn",
-      subtext: "Your brain is primed for learning. Let's make today count!",
-      icon: Target,
-      bgColor: "bg-green/30 dark:bg-green/20"
+      message: "Welcome! 👋",
+      subtext: "Create your first deck and start mastering new concepts.",
+      icon: BookOpen,
+      bgColor: "bg-pink/30 dark:bg-pink/20"
     };
   };
 

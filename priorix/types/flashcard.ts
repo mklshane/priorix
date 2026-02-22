@@ -17,6 +17,15 @@ export interface IFlashcard {
   currentState?: "new" | "learning" | "review" | "relearning";
   learningStepIndex?: number;
   lapseCount?: number;
+  // Adaptive SRS fields (from UserCardProgress merge)
+  perceivedDifficulty?: number;
+  retentionRate?: number;
+  priorityScore?: number;
+  urgencyScore?: number;
+  importanceScore?: number;
+  forgetProbability?: number;
+  // AI fields
+  estimatedDifficulty?: number;
   createdAt?: string;
   updatedAt?: string;
   stalenessStatus?: "notYet" | "forgotten" | "recent";

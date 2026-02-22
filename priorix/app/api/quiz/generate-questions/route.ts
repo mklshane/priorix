@@ -2,10 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI, SchemaType, Schema } from "@google/generative-ai";
 import { ConnectDB } from "@/lib/config/db";
 import Flashcard from "@/lib/models/Flashcard";
+import Deck from "@/lib/models/Deck";
 import { QuizType, QuizQuestion } from "@/types/quiz";
+import { callWithKeyAndModelFallback } from "@/lib/gemini";
 
-// Initialize Gemini API
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY_QUIZ!);
+const QUIZ_KEYS = (process.env.GEMINI_KEYS_QUIZ || process.env.GEMINI_KEY_QUIZ || "")
+  .split(",")
+  .map((k) => k.trim())
+  .filter(Boolean);
+
+const SOURCE_TEXT_MAX_CHARS = 50000;
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,6 +25,13 @@ export async function POST(req: NextRequest) {
     }
 
     await ConnectDB();
+
+    const deck = await Deck.findById(deckId).select("sourceText").lean<{
+      sourceText?: string;
+    }>();
+
+    const sourceText = (deck?.sourceText || "").trim();
+    const hasSourceText = sourceText.length > 0;
 
     // Fetch flashcards
     const query =
@@ -63,7 +76,10 @@ export async function POST(req: NextRequest) {
     // 1. Generate AI questions in ONE single bulk request
     if (aiCards.length > 0) {
       try {
-        const aiQuestions = await generateBulkQuestions(aiCards);
+        const aiQuestions = hasSourceText
+          ? await generateBulkQuestionsFromSourceText(aiCards, sourceText)
+          : await generateBulkQuestions(aiCards);
+
         questions.push(...aiQuestions);
         aiQuestions.forEach((q) => {
           questionSourceMap.set(q.cardId, "ai");
@@ -84,7 +100,9 @@ export async function POST(req: NextRequest) {
           missingCards.forEach((c) => {
             fallbackReasonMap.set(
               c._id.toString(),
-              "Gemini returned no question for this cardId (missing from response)",
+              hasSourceText
+                ? "Source-text generation returned no question for this cardId"
+                : "Gemini returned no question for this cardId (missing from response)",
             );
           });
 
@@ -97,10 +115,12 @@ export async function POST(req: NextRequest) {
             d["@type"]?.includes("RetryInfo"),
           )?.retryDelay ?? null;
 
-        let reason = "Gemini bulk request failed (exception thrown)";
+        let reason = hasSourceText
+          ? "Source-text quiz generation failed (exception thrown)"
+          : "Gemini bulk request failed (exception thrown)";
 
         if (status === 429) {
-          reason = `Gemini rate-limited / quota exceeded (429)${
+          reason = `${hasSourceText ? "Source-text generation" : "Gemini"} rate-limited / quota exceeded (429)${
             retryDelay ? ` | Retry after: ${retryDelay}` : ""
           }`;
         }
@@ -126,7 +146,9 @@ export async function POST(req: NextRequest) {
       if (!fallbackReasonMap.has(card._id.toString())) {
         fallbackReasonMap.set(
           card._id.toString(),
-          "Card was not sent to Gemini (quota batching / maxAICalls limit)",
+          hasSourceText
+            ? "Card used flashcard fallback after source-text path"
+            : "Card was not sent to Gemini (quota batching / maxAICalls limit)",
         );
       }
 
@@ -167,6 +189,108 @@ export async function POST(req: NextRequest) {
       { error: "Failed to generate questions" },
       { status: 500 },
     );
+  }
+}
+
+async function generateBulkQuestionsFromSourceText(
+  cards: any[],
+  sourceText: string,
+): Promise<QuizQuestion[]> {
+  const quizQuestionSchema: Schema = {
+    type: SchemaType.ARRAY,
+    description:
+      "An array of generated quiz questions grounded in the provided source material.",
+    items: {
+      type: SchemaType.OBJECT,
+      properties: {
+        cardId: {
+          type: SchemaType.STRING,
+          description: "The exact id provided in the input slots",
+        },
+        questionText: {
+          type: SchemaType.STRING,
+          description: "The generated question or true/false statement",
+        },
+        options: {
+          type: SchemaType.ARRAY,
+          description:
+            "Exactly 4 options for mcq, or exactly ['True', 'False'] for true-false",
+          items: {
+            type: SchemaType.STRING,
+          },
+        },
+        correctAnswer: {
+          type: SchemaType.STRING,
+          description: "The exact string of the correct option",
+        },
+        type: {
+          type: SchemaType.STRING,
+          description: "Must be either 'mcq' or 'true-false'",
+        },
+        explanation: {
+          type: SchemaType.STRING,
+          description: "Detailed explanation of why the answer is correct.",
+        },
+      },
+      required: [
+        "cardId",
+        "questionText",
+        "options",
+        "correctAnswer",
+        "type",
+        "explanation",
+      ],
+    },
+  };
+
+  const schemaConfig = {
+    responseMimeType: "application/json" as const,
+    responseSchema: quizQuestionSchema,
+  };
+
+  const promptSlots = cards.map((card) => ({
+    cardId: card._id.toString(),
+    requestedType: card.assignedType,
+  }));
+
+  const prompt = `
+You are an expert educational test-maker.
+Generate exactly one college-level quiz question for each slot in "Question Slots", strictly grounded in the "Source Material".
+
+RULES:
+- Use only the Source Material as the knowledge base.
+- Return one question per slot and preserve each slot's exact cardId.
+- Respect requestedType for each slot ("mcq" or "true-false").
+- Difficulty must be college-level and test understanding/application.
+- Avoid trick questions, double negatives, "All of the above", and "None of the above".
+
+MCQ RULES:
+- Exactly 4 options.
+- Exactly one correct option.
+- Distractors must be plausible.
+- correctAnswer must exactly match one option.
+
+TRUE/FALSE RULES:
+- questionText must be a declarative statement.
+- options must be exactly ["True", "False"].
+- correctAnswer must be "True" or "False".
+
+Question Slots:
+${JSON.stringify(promptSlots, null, 2)}
+
+Source Material:
+${sourceText.substring(0, SOURCE_TEXT_MAX_CHARS)}
+`;
+
+  const result = await callWithKeyAndModelFallback(QUIZ_KEYS, prompt, schemaConfig);
+  const textResponse = result.response.text();
+
+  try {
+    const aiData = JSON.parse(textResponse);
+    return aiData as QuizQuestion[];
+  } catch (error) {
+    console.error("Failed to parse source-text AI JSON:", textResponse);
+    throw new Error("Invalid source-text AI response format.");
   }
 }
 
@@ -221,14 +345,11 @@ async function generateBulkQuestions(cards: any[]): Promise<QuizQuestion[]> {
     },
   };
 
-  // 2. Pass the schema into the model's generation config
-  const model = genAI.getGenerativeModel({
-    model: "gemini-2.5-flash-lite",
-    generationConfig: {
-      responseMimeType: "application/json",
-      responseSchema: quizQuestionSchema,
-    },
-  });
+  // 2. Use key rotation with model fallback and schema config
+  const schemaConfig = {
+    responseMimeType: "application/json" as const,
+    responseSchema: quizQuestionSchema,
+  };
 
   const promptData = cards.map((card) => ({
     id: card._id.toString(),
@@ -277,7 +398,7 @@ Input Flashcards:
 ${JSON.stringify(promptData, null, 2)}
 `;
 
-  const result = await model.generateContent(prompt);
+  const result = await callWithKeyAndModelFallback(QUIZ_KEYS, prompt, schemaConfig);
 
   // 4. Clean and direct parsing!
   // Because we set responseMimeType to application/json, it returns pure JSON. No markdown ticks (```) will be included.

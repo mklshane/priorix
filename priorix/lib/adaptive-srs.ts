@@ -32,8 +32,8 @@ interface AdaptiveSettings {
  */
 export function getAdaptiveSettings(learningSpeed: LearningSpeed): AdaptiveSettings {
   const baseSettings = {
-    learningSteps: [10, 1440], // 10 min, 1 day
-    relearnSteps: [10, 1440],
+    learningSteps: [1, 10], // 1 min, 10 min (Anki-style: 3 exposures in one session)
+    relearnSteps: [10], // 10 min (single relearn step)
     minEaseFactor: 1.3,
     maxEaseFactor: 3.5,
   };
@@ -226,6 +226,8 @@ export function processAdaptiveReview(
         const difficultyMod = getDifficultyModifier(perceivedDifficulty);
         
         intervalDays = baseInterval * personalMultiplier * difficultyMod * contextModifier;
+        // Add ±5% jitter to prevent review pile-ups
+        intervalDays *= 0.95 + Math.random() * 0.10;
         nextReviewAt = new Date(now.getTime() + intervalDays * 24 * 60 * 60 * 1000);
       } else {
         // Next learning step
@@ -273,6 +275,10 @@ export function processAdaptiveReview(
       
       intervalDays = newInterval * contextModifier;
       
+      // Add ±5% jitter to prevent review pile-ups when many cards
+      // graduate on the same day
+      intervalDays *= 0.95 + Math.random() * 0.10;
+      
       // Apply minimum interval of 1 day
       intervalDays = Math.max(1, intervalDays);
       
@@ -300,6 +306,9 @@ export function processAdaptiveReview(
           1,
           progress.intervalDays * 0.5 * profile.personalMultipliers[rating] * contextModifier
         );
+        // Add ±5% jitter to prevent review pile-ups
+        intervalDays *= 0.95 + Math.random() * 0.10;
+        intervalDays = Math.max(1, intervalDays);
         nextReviewAt = new Date(now.getTime() + intervalDays * 24 * 60 * 60 * 1000);
       } else {
         // Next relearning step

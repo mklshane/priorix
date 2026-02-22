@@ -5,18 +5,35 @@ export interface IFlashcard extends Document {
   definition: string;
   deck: mongoose.Types.ObjectId;
   userId?: mongoose.Types.ObjectId;
+  /**
+   * @deprecated SRS tracking moved to UserCardProgress. These fields on
+   * Flashcard are kept for backward compatibility / migration seeding only.
+   * The source of truth for all per-user SRS state is UserCardProgress.
+   */
   easeFactor?: number;
+  /** @deprecated Use UserCardProgress */
   intervalDays?: number;
+  /** @deprecated Use UserCardProgress */
   lastReviewedAt?: Date | null;
+  /** @deprecated Use UserCardProgress */
   nextReviewAt?: Date | null;
+  /** @deprecated Use UserCardProgress */
   reviewCount?: number;
+  /** @deprecated Use UserCardProgress */
   againCount?: number;
+  /** @deprecated Use UserCardProgress */
   hardCount?: number;
+  /** @deprecated Use UserCardProgress */
   goodCount?: number;
+  /** @deprecated Use UserCardProgress */
   easyCount?: number;
+  /** @deprecated Use UserCardProgress */
   averageResponseTime?: number;
+  /** @deprecated Use UserCardProgress */
   currentState?: "new" | "learning" | "review" | "relearning";
+  /** @deprecated Use UserCardProgress */
   learningStepIndex?: number;
+  /** @deprecated Use UserCardProgress */
   lapseCount?: number;
   // Adaptive learning fields
   estimatedDifficulty?: number; // AI-predicted difficulty (1-10)

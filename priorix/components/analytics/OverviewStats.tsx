@@ -21,15 +21,15 @@ export default function OverviewStats({ stats, layout = "grid" }: OverviewStatsP
   const statCards = [
     {
       icon: <BookOpen className="h-5 w-5" />,
-      label: "Cards Studied",
+      label: "Cards Studied Today",
       value: stats.totalCardsStudied.toLocaleString(),
       subtitle: `${stats.totalCards} total cards`,
     },
     {
       icon: <Clock className="h-5 w-5" />,
-      label: "Study Time",
+      label: "Study Time Today",
       value: `${Math.floor(stats.totalStudyTime / 60)}h ${stats.totalStudyTime % 60}m`,
-      subtitle: `${stats.sessionsCompleted} sessions`,
+      subtitle: `${stats.sessionsCompleted} sessions total`,
     },
     {
       icon: <Target className="h-5 w-5" />,
