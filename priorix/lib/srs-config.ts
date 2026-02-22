@@ -2,18 +2,23 @@ export const srsConfig = {
   scope: "global" as const,
   startingEase: 2.5,
   minEase: 1.3,
+  /**
+   * @deprecated The adaptive SRS (lib/adaptive-srs.ts) uses per-learning-speed
+   * settings instead of these fixed multipliers. Kept as fallback defaults for
+   * initProgressIfNeeded() migration seeding only.
+   */
   easeStepDownHard: 0.15,
-  easeStepUpEasy: 0.15,
-  againIntervalDays: 1,
-  hardMultiplier: 1.2,
-  goodMultiplier: 2.5,
-  easyMultiplier: 3.5,
+  /** @deprecated See above */ easeStepUpEasy: 0.15,
+  /** @deprecated See above */ againIntervalDays: 1,
+  /** @deprecated See above */ hardMultiplier: 1.2,
+  /** @deprecated See above */ goodMultiplier: 2.5,
+  /** @deprecated See above */ easyMultiplier: 3.5,
   minIntervalDays: 1,
   learningStepsMinutes: [10, 60 * 24],
   relearningStepsMinutes: [10, 60 * 24],
-  initialReviewIntervalDays: 4,
-  easyGraduatingIntervalDays: 6,
-  lapseIntervalDays: 1,
+  /** @deprecated See above */ initialReviewIntervalDays: 4,
+  /** @deprecated See above */ easyGraduatingIntervalDays: 6,
+  /** @deprecated See above */ lapseIntervalDays: 1,
   // Minimum delay (minutes) before a reviewed card can be selected again, as a safety net.
   minNextReviewMinutes: 10,
 };

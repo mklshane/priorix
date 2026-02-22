@@ -124,6 +124,22 @@ export async function GET(req: NextRequest) {
           reviewedCards.length
         : 0;
 
+    // Calculate today's stats
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todaySessions = sessions.filter((s) => new Date(s.sessionStart) >= todayStart);
+    const todayCardsStudied = todaySessions.reduce(
+      (sum, s) => sum + s.cardsReviewed,
+      0
+    );
+    const todayStudyTimeMinutes = todaySessions.reduce((sum, s) => {
+      const duration =
+        (new Date(s.sessionEnd).getTime() -
+          new Date(s.sessionStart).getTime()) /
+        60000;
+      return sum + duration;
+    }, 0);
+
     // Calculate streak
     const allSessions = await UserStudySession.find({ userId }).sort({
       sessionStart: -1,
@@ -204,8 +220,8 @@ export async function GET(req: NextRequest) {
 
     const stats = {
       overview: {
-        totalCardsStudied,
-        totalStudyTime: Math.round(totalStudyTimeMinutes),
+        totalCardsStudied: todayCardsStudied,
+        totalStudyTime: Math.round(todayStudyTimeMinutes),
         averageAccuracy: Math.round(averageAccuracy),
         averageRetention: Math.round(averageRetention),
         currentStreak: streak.current,

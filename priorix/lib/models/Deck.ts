@@ -4,6 +4,8 @@ import { IFlashcard } from "./Flashcard";
 export interface IDeck extends Document {
   title: string;
   description?: string;
+  sourceText?: string;
+  sourceTextUpdatedAt?: Date;
   user: mongoose.Types.ObjectId; // owner of the deck
   userName?: string; // Store the user's name for easier access
   folder?: mongoose.Types.ObjectId | null; // optional folder container
@@ -18,6 +20,8 @@ const DeckSchema: Schema<IDeck> = new Schema(
   {
     title: { type: String, required: true, trim: true },
     description: { type: String, trim: true },
+    sourceText: { type: String, default: "" },
+    sourceTextUpdatedAt: { type: Date },
     user: { type: Schema.Types.ObjectId, ref: "User", required: true },
     userName: { type: String, trim: true }, // Store user's name
     folder: { type: Schema.Types.ObjectId, ref: "Folder", default: null },

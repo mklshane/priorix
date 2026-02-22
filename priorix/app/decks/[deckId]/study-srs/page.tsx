@@ -57,9 +57,88 @@ const defaultSummary: SummaryBuckets = {
 
 const FORGOTTEN_THRESHOLD_MS = 14 * 24 * 60 * 60 * 1000;
 
+/**
+ * Client-side interval preview: estimates what the next review interval
+ * would be for each rating, based on the card's current SRS state.
+ * Returns a human-readable string like "10m", "1d", "3d", "2w".
+ */
+function previewInterval(card: IFlashcard, rating: SrsRating): string {
+  const state = card.currentState ?? "new";
+  const ease = card.easeFactor ?? 2.5;
+  const interval = card.intervalDays ?? 0;
+  const step = card.learningStepIndex ?? 0;
+  const difficulty = card.perceivedDifficulty ?? 5;
+
+  // Difficulty modifier: 1.2 (easy, d=1) to 0.7 (hard, d=10)
+  const diffMod = 1.2 - (difficulty - 1) * 0.055;
+
+  const learningSteps = [1, 10]; // minutes (matches adaptive-srs.ts)
+  const relearnSteps = [10]; // single relearn step
+
+  let minutes = 0;
+
+  if (state === "new" || state === "learning") {
+    if (rating === "again") {
+      minutes = learningSteps[0];
+    } else if (rating === "hard") {
+      minutes = learningSteps[step] ?? learningSteps[learningSteps.length - 1];
+    } else {
+      const nextStep = step + 1;
+      if (nextStep >= learningSteps.length) {
+        // Graduates
+        const baseInterval = rating === "easy" ? 4 : 1;
+        minutes = baseInterval * diffMod * 24 * 60;
+      } else {
+        minutes = learningSteps[nextStep];
+      }
+    }
+  } else if (state === "review") {
+    if (rating === "again") {
+      minutes = relearnSteps[0];
+    } else {
+      let newInterval: number;
+      if (rating === "hard") {
+        newInterval = interval * 1.2 * diffMod;
+      } else if (rating === "good") {
+        newInterval = interval * ease * diffMod;
+      } else {
+        newInterval = interval * ease * 1.3 * diffMod;
+      }
+      minutes = Math.max(1, newInterval) * 24 * 60;
+    }
+  } else {
+    // relearning
+    if (rating === "again") {
+      minutes = relearnSteps[0];
+    } else if (rating === "hard") {
+      minutes = relearnSteps[step] ?? relearnSteps[relearnSteps.length - 1];
+    } else {
+      const nextStep = step + 1;
+      if (nextStep >= relearnSteps.length) {
+        const days = Math.max(1, interval * 0.5);
+        minutes = days * 24 * 60;
+      } else {
+        minutes = relearnSteps[nextStep];
+      }
+    }
+  }
+
+  return formatInterval(minutes);
+}
+
+function formatInterval(minutes: number): string {
+  if (minutes < 60) return `${Math.round(minutes)}m`;
+  if (minutes < 1440) return `${Math.round(minutes / 60)}h`;
+  const days = minutes / 1440;
+  if (days < 7) return `${Math.round(days)}d`;
+  if (days < 30) return `${Math.round(days / 7)}w`;
+  return `${Math.round(days / 30)}mo`;
+}
+
 const ratingConfig = {
   again: {
     label: "Again",
+    description: "I forgot this card.",
     color: "text-red-700 dark:text-red-200",
     bgColor: "bg-red-50 dark:bg-red-950/30",
     borderColor: "border-red-200 dark:border-red-800",
@@ -67,6 +146,7 @@ const ratingConfig = {
   },
   hard: {
     label: "Hard",
+    description: "I remembered, but it was difficult.",
     color: "text-orange-700 dark:text-orange-200",
     bgColor: "bg-orange-50 dark:bg-orange-950/30",
     borderColor: "border-orange-200 dark:border-orange-800",
@@ -74,6 +154,7 @@ const ratingConfig = {
   },
   good: {
     label: "Good",
+    description: "I remembered easily.",
     color: "text-blue-700 dark:text-blue-200",
     bgColor: "bg-blue-50 dark:bg-blue-950/30",
     borderColor: "border-blue-200 dark:border-blue-800",
@@ -81,6 +162,7 @@ const ratingConfig = {
   },
   easy: {
     label: "Easy",
+    description: "This was very easy to recall.",
     color: "text-green-700 dark:text-green-200",
     bgColor: "bg-green-50 dark:bg-green-950/30",
     borderColor: "border-green-200 dark:border-green-800",
@@ -182,16 +264,17 @@ const StudySrsPage = () => {
 
   const startRound = () => {
     if (pendingCards.length === 0) return;
-    const shuffled = [...pendingCards].sort(() => Math.random() - 0.5);
-    setQueue(shuffled);
-    setRoundTotal(shuffled.length);
+    // Preserve priority order from the API (most urgent first)
+    const ordered = [...pendingCards];
+    setQueue(ordered);
+    setRoundTotal(ordered.length);
     setCompletedCount(0);
     setCurrentIndex(0);
     setIsRevealed(false);
     setCompletionOpen(false);
     setStats({ ...defaultStats });
     setHasStartedRound(true);
-    setRoundCards(shuffled);
+    setRoundCards(ordered);
     setSeenCardIds(new Set());
     setLastRatings({});
   };
@@ -424,6 +507,16 @@ const StudySrsPage = () => {
     [computeSummary, deckCardsWithUpdates],
   );
 
+  // Count new vs review cards in the current pending set
+  const pendingNewCount = useMemo(
+    () =>
+      pendingCards.filter(
+        (c) => c.currentState === "new" && (c.reviewCount ?? 0) === 0,
+      ).length,
+    [pendingCards],
+  );
+  const pendingReviewCount = pendingCards.length - pendingNewCount;
+
   const renderPreRound = () => (
     <div className="min-h-screen p-4 md:p-4 lg:p-8 px-2 bg-gradient-to-b from-background via-background to-primary/5">
       <div className="max-w-4xl mx-auto">
@@ -445,6 +538,14 @@ const StudySrsPage = () => {
                   <div>
                     <p className="font-medium">Ready to study</p>
                     <p className="text-2xl font-bold">{pendingCards.length}</p>
+                    {pendingCards.length > 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        {pendingReviewCount} review{pendingReviewCount !== 1 ? "s" : ""}
+                        {pendingNewCount > 0 && (
+                          <> + {pendingNewCount} new</>
+                        )}
+                      </p>
+                    )}
                   </div>
                 </div>
                 <Button
@@ -706,7 +807,15 @@ const StudySrsPage = () => {
 
           {/* Mobile Action Footer */}
           <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t-2 border-primary/20 p-4 sm:hidden">
-            <div className="max-w-4xl mx-auto">
+            <div className="max-w-4xl mx-auto space-y-1">
+              {pendingCards.length > 0 && (
+                <p className="text-xs text-center text-muted-foreground">
+                  {pendingReviewCount} review{pendingReviewCount !== 1 ? "s" : ""}
+                  {pendingNewCount > 0 && (
+                    <> + {pendingNewCount} new</>
+                  )}
+                </p>
+              )}
               <Button
                 onClick={startRound}
                 disabled={isReviewing || pendingCards.length === 0}
@@ -869,7 +978,7 @@ const StudySrsPage = () => {
                           animate={{ opacity: 1, y: 0 }}
                           className="space-y-4"
                         >
-                          <div className="grid grid-cols-4 md:grid-cols-4 gap-3">
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                             {srsRatings.map((rating) => {
                               const config = ratingConfig[rating];
                               const Icon = config.icon;
@@ -886,7 +995,7 @@ const StudySrsPage = () => {
                                     variant="outline"
                                     disabled={isReviewing}
                                     className={cn(
-                                      "h-18 w-full flex flex-col gap-1 border-2 text-left bg-white dark:bg-card",
+                                      "h-20 w-full flex flex-col gap-0.5 border-2 text-left bg-white dark:bg-card",
                                       config.bgColor,
                                       config.borderColor,
                                       config.color,
@@ -894,7 +1003,7 @@ const StudySrsPage = () => {
                                     )}
                                   >
                                     <Icon
-                                      className={cn("h-5 w-5", config.color)}
+                                      className={cn("h-4 w-4", config.color)}
                                     />
                                     <div
                                       className={cn(
@@ -903,6 +1012,9 @@ const StudySrsPage = () => {
                                       )}
                                     >
                                       {config.label}
+                                    </div>
+                                    <div className="text-[9px] opacity-60 font-medium leading-tight text-center">
+                                      {config.description}
                                     </div>
                                   </Button>
                                 </motion.div>

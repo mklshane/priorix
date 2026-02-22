@@ -30,7 +30,9 @@ function calculateUrgency(
   now: Date
 ): { urgency: number; isOverdue: boolean; daysOverdue: number } {
   if (!nextReviewAt) {
-    return { urgency: 1.0, isOverdue: true, daysOverdue: 0 };
+    // New (never-reviewed) cards get moderate urgency so they don't
+    // outrank genuinely overdue review cards in the priority queue.
+    return { urgency: 0.5, isOverdue: false, daysOverdue: 0 };
   }
 
   const dueTime = new Date(nextReviewAt).getTime();
