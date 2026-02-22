@@ -328,7 +328,7 @@ const DeckCard: React.FC<DeckCardProps> = ({
                           e.stopPropagation();
                           setEditTitle(deck.title);
                           setEditDescription(deck.description || "");
-                          setEditIsPublic(deck.isPublic || true);
+                          setEditIsPublic(deck.isPublic ?? true);
                           setEditFolderId(resolveFolderId(deck.folder));
                           setEditDialogOpen(true);
                         }}

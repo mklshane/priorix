@@ -59,8 +59,8 @@ export async function generateFlashcardsFromText(
 You are an expert educational content creator. Carefully read the following text and extract ALL individual facts, terms, people, places, events, dates, objects, and key concepts into flashcards.
 
 Flashcard Rules:
-1. Each flashcard must represent ONE atomic fact or term. Do NOT combine multiple facts into one flashcard.
-2. The "term" field should be the keyword, name, or concept.
+1. Each flashcard must represent ONE atomic fact or term. Do NOT combine multiple definition into one flashcard.
+2. The "term" field should be the keyword, name, person, concept, date, or object.
 3. The "definition" field should be a short, factual, standalone description of that term. Start directly with the description. Do NOT include the term itself in the definition.
 4. ENUMERATIONS / LISTS (steps, types, advantages, disadvantages, categories, components, parts, stages, causes/effects, methods, functions, principles, examples, or any grouped items):
    a. Create a **group flashcard** first. Use the heading or topic as the "term" and the definition as a **numbered list of only the item names**.
@@ -72,8 +72,11 @@ Flashcard Rules:
      { "term": "Speed (advantage of Solar Energy)", "definition": "It processes data quickly.", "deck": "${deckId}" }
      { "term": "Cost (advantage of Solar Energy)", "definition": "It reduces expenses.", "deck": "${deckId}" }
      { "term": "Reliability (advantage of Solar Energy)", "definition": "It maintains uptime.", "deck": "${deckId}" }
-5. Do not create duplicate flashcards. If the same term appears with different facts, create multiple flashcards, one per fact.
-6. Return ONLY a JSON array in this exact format:
+5. If a term appears multiple times in the text with different meanings, explanations, contexts, or facts, create SEPARATE flashcards for each distinct definition or fact.
+6. A term is allowed to appear multiple times in the output as long as each flashcard contains a different single definition or fact.
+7. NEVER combine multiple definitions, explanations, functions, examples, or characteristics into one flashcard — even if they refer to the same term.
+8. Ensure that absolutely ALL individual facts are extracted. Do NOT summarize, compress, merge, or omit any information.
+9. Return ONLY a JSON array in this exact format:
 
 [
   {
