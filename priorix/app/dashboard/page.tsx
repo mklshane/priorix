@@ -163,7 +163,17 @@ export default function DashboardPage() {
       };
     }
 
-    // --- Priority 9: Near-perfect accuracy today ---
+    // --- Priority 9: Solid study time today ---
+    if (totalStudyTime >= 30) {
+      return {
+        message: `${Math.round(totalStudyTime)} mins studied today ⏱️`,
+        subtext: "Great focus session. Keep this pace and your retention will compound.",
+        icon: Zap,
+        bgColor: "bg-yellow/30 dark:bg-yellow/20"
+      };
+    }
+
+    // --- Priority 10: Near-perfect accuracy today ---
     if (averageAccuracy >= 95 && totalCardsStudied >= 5) {
       return {
         message: "Near-perfect recall! ⭐",
@@ -173,7 +183,7 @@ export default function DashboardPage() {
       };
     }
 
-    // --- Priority 10: High accuracy today ---
+    // --- Priority 11: High accuracy today ---
     if (averageAccuracy >= 85 && totalCardsStudied >= 5) {
       return {
         message: `${Math.round(averageAccuracy)}% accuracy 🎯`,
@@ -183,7 +193,7 @@ export default function DashboardPage() {
       };
     }
 
-    // --- Priority 11: Long streak (7-29 days) ---
+    // --- Priority 12: Long streak (7-29 days) ---
     if (currentStreak >= 7) {
       return {
         message: `${currentStreak}-day streak 🔥`,
@@ -193,7 +203,7 @@ export default function DashboardPage() {
       };
     }
 
-    // --- Priority 12: Declining trend (gentle nudge) ---
+    // --- Priority 13: Declining trend (gentle nudge) ---
     if (trend?.trend === "declining") {
       return {
         message: "Time to refocus 🎯",
@@ -203,7 +213,7 @@ export default function DashboardPage() {
       };
     }
 
-    // --- Priority 13: Building habit (3+ day streak) ---
+    // --- Priority 14: Building habit (3+ day streak) ---
     if (currentStreak >= 3) {
       return {
         message: `${currentStreak} days strong! 💫`,
@@ -213,7 +223,7 @@ export default function DashboardPage() {
       };
     }
 
-    // --- Priority 14: Active today ---
+    // --- Priority 15: Active today ---
     if (totalCardsStudied > 0) {
       return {
         message: "Nice start today! ✨",
@@ -223,7 +233,7 @@ export default function DashboardPage() {
       };
     }
 
-    // --- Priority 15: Has cards but hasn't studied today ---
+    // --- Priority 16: Has cards but hasn't studied today ---
     if (totalCards > 0) {
       return {
         message: "Ready to learn 📚",
@@ -233,7 +243,7 @@ export default function DashboardPage() {
       };
     }
 
-    // --- Priority 16: Brand new user fallback ---
+    // --- Priority 17: Brand new user fallback ---
     return {
       message: "Welcome! 👋",
       subtext: "Create your first deck and start mastering new concepts.",

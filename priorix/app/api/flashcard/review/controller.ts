@@ -208,12 +208,10 @@ export const getDueFlashcards = async (
   //   - New = never reviewed (currentState "new", reviewCount 0)
   //   - Review = everything else (learning, review, relearning)
   //
-  // The new-card cap (30% of session) only kicks in when there
-  // are due review cards competing for slots. When there are no
-  // due reviews (e.g., first session on a fresh deck), all slots
-  // go to new cards so the session fills to the requested size.
+  // New cards get 70% of session slots when available.
+  // If fewer new cards exist, reviews backfill the remaining slots.
+  // Only when no new cards remain does the session become 100% reviews.
   // ──────────────────────────────────────────────────────────────
-  const maxNewCards = Math.max(1, Math.floor(limit * 0.3));
   const reviewPool: typeof allPrioritized = [];
   const newPool: typeof allPrioritized = [];
 
@@ -226,28 +224,42 @@ export const getDueFlashcards = async (
     }
   }
 
-  // STEP 4: Fill the session
+  // STEP 4: Fill the session — prioritise new cards (70%) when available
   const selected: typeof allPrioritized = [];
 
-  // 4a. Due review cards first (by priority)
-  const reviewSlots = Math.min(reviewPool.length, limit);
-  selected.push(...reviewPool.slice(0, reviewSlots));
+  if (newPool.length === 0) {
+    // No unlearned cards left — entire session is reviews
+    selected.push(...reviewPool.slice(0, limit));
+  } else if (reviewPool.length === 0) {
+    // No due reviews — entire session is new cards
+    selected.push(...newPool.slice(0, limit));
+  } else {
+    // Mix: 70% new cards, remaining slots for reviews.
+    // If fewer new cards than 70%, backfill with reviews.
+    const newSlots = Math.max(1, Math.floor(limit * 0.7));
+    const actualNew = Math.min(newPool.length, newSlots);
+    const reviewSlots = limit - actualNew;
+    const actualReview = Math.min(reviewPool.length, reviewSlots);
 
-  // 4b. New cards — capped only when review cards exist
-  const remainingSlots = limit - selected.length;
-  const effectiveNewCap = reviewPool.length > 0
-    ? Math.min(newPool.length, maxNewCards, remainingSlots)
-    : Math.min(newPool.length, remainingSlots);
-  selected.push(...newPool.slice(0, effectiveNewCap));
+    selected.push(...newPool.slice(0, actualNew));
+    selected.push(...reviewPool.slice(0, actualReview));
 
-  // 4c. Backfill with extra new cards if review pool didn't fill
-  if (selected.length < limit && newPool.length > effectiveNewCap) {
-    const backfill = Math.min(newPool.length - effectiveNewCap, limit - selected.length);
-    selected.push(...newPool.slice(effectiveNewCap, effectiveNewCap + backfill));
+    // Backfill remaining slots if either pool was smaller than its allocation
+    const remaining = limit - selected.length;
+    if (remaining > 0) {
+      const extraReview = reviewPool.slice(actualReview, actualReview + remaining);
+      selected.push(...extraReview);
+      const stillRemaining = limit - selected.length;
+      if (stillRemaining > 0) {
+        selected.push(...newPool.slice(actualNew, actualNew + stillRemaining));
+      }
+    }
   }
 
-  // Apply workload balancing to prevent overwhelming sessions
-  const { reviewNow } = balanceWorkload(selected, profile.dailyReviewGoal || 50);
+  // Apply workload balancing — use the higher of dailyReviewGoal or the
+  // requested session size so the user's chosen limit is always respected
+  const effectiveGoal = Math.max(profile.dailyReviewGoal || 50, limit);
+  const { reviewNow } = balanceWorkload(selected, effectiveGoal);
 
   // Use balanced list, but never exceed the requested limit
   const prioritizedCards = reviewNow.slice(0, limit);

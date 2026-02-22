@@ -87,15 +87,15 @@
 
 ---
 
-## ✅ Phase 3: AI-Powered Intelligence (COMPLETED)
+## ✅ Phase 3: Difficulty + Topic Intelligence (COMPLETED)
 
-### AI Difficulty Assessment
+### Difficulty Assessment
 
 1. **AI Difficulty Library** (`lib/ai-difficulty.ts`)
-   - **assessCardDifficulty()**: Rates single card difficulty 1-10 using Gemini
-   - **assessCardDifficultyBatch()**: Processes up to 10 cards per request
-   - ** generateTopicTags()**: Creates 2-4 relevant topic tags per card
-   - Considers: vocabulary complexity, concept abstractness, prerequisites, memorization difficulty
+   - **assessCardDifficulty()**: Rates single card difficulty 1-10 using local deterministic heuristics
+   - **assessCardDifficultyBatch()**: Scores multiple cards locally in one pass
+   - **generateTopicTags()**: Creates 1-4 relevant topic tags using keyword heuristics
+   - Considers: length, vocabulary complexity signals, and subject keyword matching
 
 2. **Difficulty Assessment API** (`/api/ai/assess-difficulty`)
    - POST: Assess difficulty for a card (with or without saving)
@@ -125,7 +125,7 @@
 3. **MasteryDistribution** - Pie chart of card mastery levels (new/learning/mastered)
 4. **HeatmapCalendar** - GitHub-style activity calendar (last 30 days)
 5. **DeckPerformance** - Table showing per-deck retention, mastery, difficulty
-6. **InsightsPanel** - Display AI-generated learning insights with priority badges
+6. **InsightsPanel** - Display generated learning insights with priority badges
 7. **StudyTimeHeatmap** - 24-hour heatmap showing accuracy by time of day
 
 ### Styling
