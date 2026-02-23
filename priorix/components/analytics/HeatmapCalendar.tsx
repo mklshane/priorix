@@ -45,11 +45,13 @@ export default function HeatmapCalendar({ dailyStats }: HeatmapCalendarProps) {
 
     if (cards < 50) return "bg-green/10 dark:bg-green/5";
     if (cards < 100) return "bg-green/20 dark:bg-green/10";
-    if (cards < 200) return "bg-green/30 dark:bg-green/15";
-    if (cards < 300) return "bg-green/40 dark:bg-green/20";
-    if (cards < 400) return "bg-green/50 dark:bg-green/30";
-    if (cards < 600) return "bg-green/60 dark:bg-green/40";
-    if (cards < 800) return "bg-green/70 dark:bg-green/50";
+    if (cards < 150) return "bg-green/30 dark:bg-green/15";
+    if (cards < 200) return "bg-green/40 dark:bg-green/20";
+    if (cards < 250) return "bg-green/50 dark:bg-green/30";
+    if (cards < 325) return "bg-green/60 dark:bg-green/40";
+    if (cards < 400) return "bg-green/70 dark:bg-green/50";
+    if (cards < 450) return "bg-green/80 dark:bg-green/60";
+
     return "bg-green dark:bg-green/70";
   };
 
@@ -224,6 +226,7 @@ export default function HeatmapCalendar({ dailyStats }: HeatmapCalendarProps) {
     "bg-green/50 dark:bg-green/30",
     "bg-green/60 dark:bg-green/40",
     "bg-green/70 dark:bg-green/50",
+    "bg-green/80 dark:bg-green/60",
     "bg-green dark:bg-green/70",
   ];
 
