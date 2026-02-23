@@ -42,10 +42,15 @@ export default function HeatmapCalendar({ dailyStats }: HeatmapCalendarProps) {
 
   const getIntensityColor = (cards: number) => {
     if (cards === 0) return "bg-gray-200 dark:bg-gray-800";
-    if (cards < 10) return "bg-green/20 dark:bg-green/10";
-    if (cards < 25) return "bg-green/40 dark:bg-green/20";
-    if (cards < 50) return "bg-green/60 dark:bg-green/40";
-    return "bg-green dark:bg-green/60";
+
+    if (cards < 50) return "bg-green/10 dark:bg-green/5";
+    if (cards < 100) return "bg-green/20 dark:bg-green/10";
+    if (cards < 200) return "bg-green/30 dark:bg-green/15";
+    if (cards < 300) return "bg-green/40 dark:bg-green/20";
+    if (cards < 400) return "bg-green/50 dark:bg-green/30";
+    if (cards < 600) return "bg-green/60 dark:bg-green/40";
+    if (cards < 800) return "bg-green/70 dark:bg-green/50";
+    return "bg-green dark:bg-green/70";
   };
 
   // 🔹 Compute weeks and box size dynamically to fill container
@@ -212,10 +217,14 @@ export default function HeatmapCalendar({ dailyStats }: HeatmapCalendarProps) {
 
   const legendClasses = [
     "bg-gray-200 dark:bg-gray-800",
+    "bg-green/10 dark:bg-green/5",
     "bg-green/20 dark:bg-green/10",
+    "bg-green/30 dark:bg-green/15",
     "bg-green/40 dark:bg-green/20",
+    "bg-green/50 dark:bg-green/30",
     "bg-green/60 dark:bg-green/40",
-    "bg-green dark:bg-green/60",
+    "bg-green/70 dark:bg-green/50",
+    "bg-green dark:bg-green/70",
   ];
 
   const monthGapWidth = isMobile ? 8 : 10;
