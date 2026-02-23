@@ -57,6 +57,16 @@ const defaultSummary: SummaryBuckets = {
 
 const FORGOTTEN_THRESHOLD_MS = 14 * 24 * 60 * 60 * 1000;
 
+/** Fisher-Yates shuffle — randomises presentation order so learners can't predict sequence */
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 /**
  * Client-side interval preview: estimates what the next review interval
  * would be for each rating, based on the card's current SRS state.
@@ -264,8 +274,8 @@ const StudySrsPage = () => {
 
   const startRound = () => {
     if (pendingCards.length === 0) return;
-    // Preserve priority order from the API (most urgent first)
-    const ordered = [...pendingCards];
+    // Shuffle so learners can't predict the sequence
+    const ordered = shuffle(pendingCards);
     setQueue(ordered);
     setRoundTotal(ordered.length);
     setCompletedCount(0);
@@ -357,7 +367,7 @@ const StudySrsPage = () => {
       startSession();
     }
     
-    setQueue(nextCards);
+    setQueue(shuffle(nextCards));
     setPendingCards(nextCards);
     setRoundTotal(nextCards.length);
     setCompletedCount(0);

@@ -56,40 +56,35 @@ export async function generateFlashcardsFromText(
   try {
 
     const prompt = `
-You are an expert educational content creator. Carefully read the following text and extract ALL key terms, names, people, events, concepts, objects, and important ideas into flashcards.
+You are an expert educational content creator. Carefully read the following text and extract ALL individual facts, terms, people, places, events, dates, objects, and key concepts into flashcards.
 
-Strict Rules for Generation:
-- Return ONLY a JSON array in this exact format, with NO markdown formatting (\`\`\`json) and NO extra text:
+Flashcard Rules:
+1. Each flashcard must represent ONE atomic fact or term. Do NOT combine multiple definition into one flashcard.
+2. The "term" field should be the keyword, name, person, concept, date, or object.
+3. The "definition" field should be a short, factual, standalone description of that term. Start directly with the description. Do NOT include the term itself in the definition.
+4. ENUMERATIONS / LISTS (steps, types, advantages, disadvantages, categories, components, parts, stages, causes/effects, methods, functions, principles, examples, or any grouped items):
+   a. Create a **group flashcard** first. Use the heading or topic as the "term" and the definition as a **numbered list of only the item names**.
+   b. Then create a **separate flashcard for each individual item** with a short factual definition.
+   Example: 
+     Text: "Advantages of Solar Energy: Speed - it processes data quickly, Cost - it reduces expenses, Reliability - it maintains uptime"
+     Output:
+     { "term": "Advantages of Solar Energy", "definition": "1. Speed\n2. Cost\n3. Reliability", "deck": "${deckId}" }
+     { "term": "Speed (advantage of Solar Energy)", "definition": "It processes data quickly.", "deck": "${deckId}" }
+     { "term": "Cost (advantage of Solar Energy)", "definition": "It reduces expenses.", "deck": "${deckId}" }
+     { "term": "Reliability (advantage of Solar Energy)", "definition": "It maintains uptime.", "deck": "${deckId}" }
+5. If a term appears multiple times in the text with different meanings, explanations, contexts, or facts, create SEPARATE flashcards for each distinct definition or fact.
+6. A term is allowed to appear multiple times in the output as long as each flashcard contains a different single definition or fact.
+7. NEVER combine multiple definitions, explanations, functions, examples, or characteristics into one flashcard — even if they refer to the same term.
+8. Ensure that absolutely ALL individual facts are extracted. Do NOT summarize, compress, merge, or omit any information.
+9. Return ONLY a JSON array in this exact format:
+
 [
   {
     "term": "term here",
-    "definition": "definition here",
+    "definition": "short factual definition here",
     "deck": "${deckId}"
   }
 ]
-- Include ALL terms and key ideas found in the text. Do not omit any.
-- Ensure that all terms (key ideas, concepts, names, dates, events, objects) are included.
-- Keep the exact meaning from the material, but format the definition as a clear, standalone explanation.
-- ABSOLUTELY DO NOT include the "term" itself inside the "definition".
-- Write the definition naturally by starting directly with the description or by using pronouns (e.g., "It is...", "This process...", "A person who...").
-- DO NOT create duplicate flashcards. Each flashcard must be unique.
-- If there are multiple definitions for the same term, combine them into one flashcard with a comprehensive definition.
-
-Special Rule for Enumerations (VERY IMPORTANT):
-When the text contains lists, steps, stages, types, advantages, disadvantages, characteristics, features, components, parts, categories, principles, factors, causes, effects, functions, methods, examples, or any grouped items under a heading or topic:
-1. FIRST, create an overview flashcard where the "term" is the group heading (e.g., "Advantages of Solar Energy", "Steps of Mitosis", "Types of Bonds") and the "definition" is a numbered list of ONLY the item names, like:
-   "1. Cost efficiency  2. Environmental impact  3. Scalability"
-2. THEN, create a SEPARATE flashcard for EACH individual item, where the "term" is the item name with context (e.g., "Cost efficiency (advantage of Solar Energy)") and the "definition" explains that specific item in detail.
-
-Example for enumerations:
-Given text: "Advantages of X: Speed - it processes data quickly, Cost - it reduces expenses, Reliability - it maintains uptime"
-Output:
-  { "term": "Advantages of X", "definition": "1. Speed\n  2. Cost\n  3. Reliability" }
-  { "term": "Speed (advantage of X)", "definition": "It processes data quickly." }
-  { "term": "Cost (advantage of X)", "definition": "It reduces expenses." }
-  { "term": "Reliability (advantage of X)", "definition": "It maintains uptime." }
-
-Apply this pattern to ALL enumerations found in the text — steps, phases, types, pros/cons, subtopics, categories, etc.
 
 Text to analyze:
 ${text.substring(0, 30000)}

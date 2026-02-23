@@ -1,163 +1,83 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import { callWithKeyAndModelFallback } from "@/lib/gemini";
-
-const GENERAL_KEYS = (process.env.GEMINI_KEYS_GENERAL || process.env.GEMINI_API_KEY || "")
-  .split(",")
-  .map((k) => k.trim())
-  .filter(Boolean);
-
 /**
- * Assess the difficulty of a flashcard using AI
- * Returns a score from 1-10 where:
- * 1-3: Easy (simple facts, common terms)
- * 4-6: Medium (requires understanding, moderate complexity)
- * 7-10: Hard (complex concepts, requires deep understanding)
+ * Assess the difficulty of a flashcard with local deterministic heuristics.
+ * Returns a score from 1-10.
  */
 export async function assessCardDifficulty(
   term: string,
   definition: string
 ): Promise<number> {
-  try {
-    const prompt = `
-You are an educational difficulty assessor. Analyze the following flashcard and rate its difficulty from 1-10.
-
-Consider these factors:
-1. Vocabulary complexity (simple vs technical terms)
-2. Concept abstractness (concrete vs abstract ideas)
-3. Length and information density
-4. Prerequisites needed (common knowledge vs specialized)
-5. Memorization difficulty
-
-Difficulty Scale:
-- 1-2: Very simple (e.g., "What is water?" - "H2O")
-- 3-4: Easy (basic terms and simple concepts)
-- 5-6: Medium (requires understanding, moderate complexity)
-- 7-8: Hard (complex concepts, technical terminology)
-- 9-10: Very hard (highly abstract, multiple prerequisites, expert-level)
-
-Flashcard:
-Term: "${term}"
-Definition: "${definition}"
-
-Respond with ONLY a single number between 1 and 10. No explanation.
-`;
-
-    const result = await callWithKeyAndModelFallback(GENERAL_KEYS, prompt);
-    const response = await result.response;
-    const text = response.text().trim();
-
-    // Extract number from response
-    const match = text.match(/\d+/);
-    if (!match) {
-      console.warn("Could not parse difficulty score, defaulting to 5");
-      return 5;
-    }
-
-    const difficulty = parseInt(match[0], 10);
-    
-    // Clamp to 1-10 range
-    return Math.max(1, Math.min(10, difficulty));
-  } catch (error) {
-    console.error("Error assessing card difficulty:", error);
-    // Default to medium difficulty on error
-    return 5;
-  }
+  return scoreDifficulty(term, definition);
 }
 
 /**
- * Assess difficulty for multiple flashcards in batch
+ * Assess difficulty for multiple flashcards in batch.
  */
 export async function assessCardDifficultyBatch(
   cards: Array<{ term: string; definition: string }>
 ): Promise<number[]> {
-  try {
-    // Batch up to 10 cards per request
-    const batchSize = 10;
-    const results: number[] = [];
-
-    for (let i = 0; i < cards.length; i += batchSize) {
-      const batch = cards.slice(i, i + batchSize);
-      
-      const prompt = `
-You are an educational difficulty assessor. Rate the difficulty of each flashcard from 1-10.
-
-Consider: vocabulary complexity, concept abstractness, length, prerequisites needed, memorization difficulty.
-
-Scale: 1-2 (very simple), 3-4 (easy), 5-6 (medium), 7-8 (hard), 9-10 (very hard).
-
-Flashcards:
-${batch.map((card, idx) => `${idx + 1}. Term: "${card.term}" - Definition: "${card.definition}"`).join("\n")}
-
-Respond with ONLY the difficulty scores separated by commas (e.g., "5,7,3,6,4"). No other text.
-`;
-
-      const result = await callWithKeyAndModelFallback(GENERAL_KEYS, prompt);
-      const response = await result.response;
-      const text = response.text().trim();
-
-      // Parse comma-separated scores
-      const scores = text
-        .split(",")
-        .map((s) => parseInt(s.trim(), 10))
-        .filter((n) => !isNaN(n) && n >= 1 && n <= 10);
-
-      // If parsing failed or wrong count, assign default
-      if (scores.length !== batch.length) {
-        console.warn("Batch difficulty assessment failed, using defaults");
-        results.push(...Array(batch.length).fill(5));
-      } else {
-        results.push(...scores);
-      }
-    }
-
-    return results;
-  } catch (error) {
-    console.error("Error in batch difficulty assessment:", error);
-    // Return defaults on error
-    return Array(cards.length).fill(5);
-  }
+  return cards.map((card) => scoreDifficulty(card.term, card.definition));
 }
 
 /**
- * Generate topic tags for a flashcard
+ * Generate topic tags for a flashcard using simple keyword heuristics.
  */
 export async function generateTopicTags(
   term: string,
   definition: string
 ): Promise<string[]> {
-  try {
-    const prompt = `
-Analyze this flashcard and generate 2-4 relevant topic tags.
+  const text = `${term} ${definition}`.toLowerCase();
+  const tags = new Set<string>();
 
-Tags should be:
-- Single words or short phrases (1-3 words)
-- Academic categories or subject areas
-- Lowercase
-- No special characters
+  if (/\b(cell|organism|ecosystem|genetics|evolution|anatomy)\b/.test(text)) tags.add("biology");
+  if (/\b(atom|energy|force|motion|quantum|thermodynamics)\b/.test(text)) tags.add("physics");
+  if (/\b(reaction|molecule|compound|acid|base|periodic)\b/.test(text)) tags.add("chemistry");
+  if (/\b(equation|theorem|algebra|geometry|calculus|probability)\b/.test(text)) tags.add("mathematics");
+  if (/\b(code|algorithm|programming|database|network|software)\b/.test(text)) tags.add("computer science");
+  if (/\b(revolution|empire|war|century|civilization|treaty)\b/.test(text)) tags.add("history");
+  if (/\b(grammar|poetry|novel|literature|rhetoric|linguistics)\b/.test(text)) tags.add("literature");
+  if (/\b(market|inflation|gdp|supply|demand|economy)\b/.test(text)) tags.add("economics");
+  if (/\b(government|democracy|policy|constitution|election|state)\b/.test(text)) tags.add("politics");
 
-Examples: "biology", "world history", "chemistry", "mathematics", "programming", "physics", "literature"
+  const result = Array.from(tags).slice(0, 4);
+  return result.length > 0 ? result : ["general"];
+}
 
-Flashcard:
-Term: "${term}"
-Definition: "${definition}"
+function scoreDifficulty(term: string, definition: string): number {
+  const normalizedTerm = term.trim();
+  const normalizedDefinition = definition.trim();
+  const text = `${normalizedTerm} ${normalizedDefinition}`.trim();
 
-Respond with ONLY the tags separated by commas. No other text.
-`;
+  if (!text) return 5;
 
-    const result = await callWithKeyAndModelFallback(GENERAL_KEYS, prompt);
-    const response = await result.response;
-    const text = response.text().trim();
+  const wordCount = text.split(/\s+/).filter(Boolean).length;
+  const longWordCount = text
+    .split(/\s+/)
+    .filter((word) => word.replace(/[^a-zA-Z]/g, "").length >= 10).length;
 
-    // Parse comma-separated tags
-    const tags = text
-      .split(",")
-      .map((tag) => tag.trim().toLowerCase())
-      .filter((tag) => tag.length > 0 && tag.length < 30)
-      .slice(0, 4); // Max 4 tags
+  const complexitySignals = [
+    /\b(theorem|paradigm|synthesis|interdependence|metacognition)\b/i,
+    /\b(photosynthesis|electromagnetic|stoichiometry|differentiation)\b/i,
+    /\b(hypothesis|methodology|epistemology|algorithmic)\b/i,
+  ];
 
-    return tags.length > 0 ? tags : ["general"];
-  } catch (error) {
-    console.error("Error generating topic tags:", error);
-    return ["general"];
-  }
+  const signalHits = complexitySignals.reduce(
+    (count, pattern) => (pattern.test(text) ? count + 1 : count),
+    0
+  );
+
+  let score = 1;
+
+  if (wordCount > 10) score += 1;
+  if (wordCount > 22) score += 1;
+  if (wordCount > 40) score += 1;
+  if (wordCount > 70) score += 1;
+
+  if (longWordCount >= 2) score += 1;
+  if (longWordCount >= 5) score += 1;
+
+  score += signalHits;
+
+  if (score < 1) return 1;
+  if (score > 10) return 10;
+  return score;
 }
