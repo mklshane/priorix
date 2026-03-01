@@ -8,7 +8,7 @@ export async function PATCH(
 ) {
   try {
     const { taskId } = await params;
-    const { status, userId } = await request.json();
+    const { dueDate, dueTime, userId } = await request.json();
 
     if (!userId) {
       return NextResponse.json(
@@ -17,18 +17,28 @@ export async function PATCH(
       );
     }
 
-    if (!["todo", "in-progress", "completed"].includes(status)) {
-      return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+    if (!dueDate) {
+      return NextResponse.json(
+        { error: "Due date is required" },
+        { status: 400 }
+      );
+    }
+
+    if (dueTime && !/^([01]\d|2[0-3]):([0-5]\d)$/.test(dueTime)) {
+      return NextResponse.json(
+        { error: "Invalid time format. Use HH:MM (24-hour)" },
+        { status: 400 }
+      );
     }
 
     await ConnectDB();
 
-    const updateData: any = { status };
+    const updateData: any = {
+      dueDate: new Date(dueDate),
+    };
 
-    if (status === "completed") {
-      updateData.completedAt = new Date();
-    } else {
-      updateData.completedAt = null;
+    if (dueTime !== undefined) {
+      updateData.dueTime = dueTime || null;
     }
 
     const task = await Task.findOneAndUpdate(
@@ -45,9 +55,9 @@ export async function PATCH(
 
     return NextResponse.json(task);
   } catch (error) {
-    console.error("Update task status error:", error);
+    console.error("Reschedule task error:", error);
     return NextResponse.json(
-      { error: "Failed to update task status" },
+      { error: "Failed to reschedule task" },
       { status: 500 }
     );
   }
