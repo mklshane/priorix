@@ -7,6 +7,7 @@ import {
   Tag,
   FileText,
   MoreVertical,
+  ArrowRight,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import Link from "next/link";
 
 interface Task {
   _id: string;
@@ -35,6 +37,7 @@ interface Task {
   description?: string;
   status: "todo" | "in-progress" | "completed";
   dueDate?: string;
+  priority?: "low" | "medium" | "high" | "urgent";
   tags: string[];
   completedAt?: string;
   createdAt: string;
@@ -327,15 +330,24 @@ export default function TodoList() {
   return (
     <Card className="bg-card border-2 border-black py-7 h-full flex flex-col gap-0 dark:border-darkborder">
       <CardHeader className="pb-3">
-        <CardTitle className="text-card-foreground text-lg flex items-center gap-2">
-          <CheckSquare className="h-5 w-5" />
-          Todo List
-          {tasks.length > 0 && (
-            <span className="text-sm text-muted-foreground ml-2">
-              ({tasks.length})
-            </span>
-          )}
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-card-foreground text-lg flex items-center gap-2">
+            <CheckSquare className="h-5 w-5" />
+            Todo List
+            {tasks.length > 0 && (
+              <span className="text-sm text-muted-foreground ml-2">
+                ({tasks.length})
+              </span>
+            )}
+          </CardTitle>
+          <Link
+            href="/todo"
+            className="text-xs text-primary hover:underline flex items-center gap-1"
+          >
+            View All
+            <ArrowRight className="h-3 w-3" />
+          </Link>
+        </div>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col overflow-hidden">
         {/* Add Task Button */}
@@ -471,14 +483,29 @@ export default function TodoList() {
 
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
-                      <div
-                        className={`text-sm ${
-                          task.status === "completed"
-                            ? "text-muted-foreground line-through"
-                            : "text-card-foreground"
-                        }`}
-                      >
-                        {task.taskTitle}
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`text-sm ${
+                            task.status === "completed"
+                              ? "text-muted-foreground line-through"
+                              : "text-card-foreground"
+                          }`}
+                        >
+                          {task.taskTitle}
+                        </div>
+                        {task.priority && task.priority !== "medium" && (
+                          <span
+                            className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+                              task.priority === "urgent"
+                                ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                                : task.priority === "high"
+                                  ? "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
+                                  : "bg-gray-100 text-gray-600 dark:bg-gray-800/50 dark:text-gray-400"
+                            }`}
+                          >
+                            {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+                          </span>
+                        )}
                       </div>
 
                       {task.dueDate && (

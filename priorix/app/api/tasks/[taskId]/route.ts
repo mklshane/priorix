@@ -43,7 +43,20 @@ export async function PUT(
   try {
     const { taskId } = await params;
     const body = await request.json();
-    const { taskTitle, description, status, dueDate, tags, userId } = body;
+    const {
+      taskTitle,
+      description,
+      status,
+      dueDate,
+      dueTime,
+      priority,
+      tags,
+      color,
+      linkedDeck,
+      linkedNote,
+      recurring,
+      userId,
+    } = body;
 
     if (!userId) {
       return NextResponse.json(
@@ -76,10 +89,9 @@ export async function PUT(
       }
       updateData.status = status;
 
-      // Set completedAt if marking as completed
       if (status === "completed") {
         updateData.completedAt = new Date();
-      } else if (status !== "completed") {
+      } else {
         updateData.completedAt = null;
       }
     }
@@ -88,16 +100,54 @@ export async function PUT(
       updateData.dueDate = dueDate ? new Date(dueDate) : null;
     }
 
+    if (dueTime !== undefined) {
+      if (dueTime && !/^([01]\d|2[0-3]):([0-5]\d)$/.test(dueTime)) {
+        return NextResponse.json(
+          { error: "Invalid time format. Use HH:MM (24-hour)" },
+          { status: 400 }
+        );
+      }
+      updateData.dueTime = dueTime || null;
+    }
+
+    if (priority !== undefined) {
+      if (!["low", "medium", "high", "urgent"].includes(priority)) {
+        return NextResponse.json(
+          { error: "Invalid priority" },
+          { status: 400 }
+        );
+      }
+      updateData.priority = priority;
+    }
+
     if (tags !== undefined) {
       updateData.tags =
         tags?.map((tag: string) => tag.toLowerCase().trim()) || [];
+    }
+
+    if (color !== undefined) {
+      updateData.color = color || null;
+    }
+
+    if (linkedDeck !== undefined) {
+      updateData.linkedDeck = linkedDeck || null;
+    }
+
+    if (linkedNote !== undefined) {
+      updateData.linkedNote = linkedNote || null;
+    }
+
+    if (recurring !== undefined) {
+      updateData.recurring = recurring || null;
     }
 
     const task = await Task.findOneAndUpdate(
       { _id: taskId, createdBy: userId },
       updateData,
       { new: true, runValidators: true }
-    );
+    )
+      .populate("linkedDeck", "title _id")
+      .populate("linkedNote", "title _id");
 
     if (!task) {
       return NextResponse.json({ error: "Task not found" }, { status: 404 });
