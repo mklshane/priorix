@@ -24,6 +24,7 @@ export default function AppNav() {
   const router = useRouter();
   const params = useParams();
   const [deckName, setDeckName] = useState<string>("");
+  const [noteName, setNoteName] = useState<string>("");
   const [fromDashboardRecent, setFromDashboardRecent] = useState(false);
 
   useEffect(() => {
@@ -35,6 +36,7 @@ export default function AppNav() {
   const isOnDeckPage = pathname.match(/^\/decks\/([^\/]+)$/) !== null;
   const isOnStudyPage = pathname.match(/^\/decks\/([^\/]+)\/study$/) !== null;
   const isOnSrsPage = pathname.match(/^\/decks\/([^\/]+)\/study-srs$/) !== null;
+  const isOnNotePage = pathname.match(/^\/notes\/([^\/]+)$/) !== null;
 
   const handleBack = () => {
     if (isOnStudyPage || isOnSrsPage) {
@@ -148,16 +150,36 @@ export default function AppNav() {
     }
   }, [pathname, params]);
 
+  useEffect(() => {
+    const noteMatch = pathname.match(/^\/notes\/([^\/]+)$/);
+    if (noteMatch && noteMatch[1]) {
+      const fetchNoteName = async () => {
+        try {
+          const res = await fetch(`/api/notes/${noteMatch[1]}`);
+          if (res.ok) {
+            const note = await res.json();
+            setNoteName(note.title || "Note");
+          }
+        } catch {
+          setNoteName("Note");
+        }
+      };
+      fetchNoteName();
+    } else {
+      setNoteName("");
+    }
+  }, [pathname]);
+
   // Show back button in these cases:
   // 1. Always show on study pages (to go back to deck details)
   // 2. Always show on deck pages (to go back to appropriate location)
-  const shouldShowBackButton = isOnStudyPage || isOnSrsPage || isOnDeckPage;
+  const shouldShowBackButton = isOnStudyPage || isOnSrsPage || isOnDeckPage || isOnNotePage;
 
   // Show hamburger menu when:
   // 1. On dashboard page
   // 2. On other pages that aren't deck/study pages (like /decks, /todo, /notes)
   const shouldShowHamburgerMenu =
-    pathname === "/dashboard" || (!isOnDeckPage && !isOnStudyPage && !isOnSrsPage);
+    pathname === "/dashboard" || (!isOnDeckPage && !isOnStudyPage && !isOnSrsPage && !isOnNotePage);
 
   const pageNames: Record<string, string> = {
     "/dashboard": "Priorix",
@@ -170,6 +192,10 @@ export default function AppNav() {
   const getCurrentPage = () => {
     if (isOnStudyPage || isOnSrsPage) {
       return deckName || "Study";
+    }
+
+    if (isOnNotePage) {
+      return noteName || "Note";
     }
 
     const deckId = getDeckId();
@@ -206,7 +232,13 @@ export default function AppNav() {
               variant="ghost"
               size="sm"
               className="h-9 w-9 p-0 hover:bg-sidebar-accent text-sidebar-foreground rounded-lg transition-colors"
-              onClick={handleBack}
+              onClick={() => {
+                if (isOnNotePage) {
+                  router.push("/notes");
+                  return;
+                }
+                handleBack();
+              }}
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
