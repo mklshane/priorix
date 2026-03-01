@@ -187,7 +187,7 @@ function MonthView({
         {dayHeaders.map((day) => (
           <div
             key={day}
-            className="text-[11px] sm:text-xs font-medium text-muted-foreground text-center py-1 sm:py-2"
+            className="text-[11px] sm:text-xs font-medium text-muted-foreground text-center py-1 sm:py-2 uppercase tracking-wide"
           >
             {day}
           </div>
@@ -195,7 +195,7 @@ function MonthView({
       </div>
 
       {/* Day cells */}
-      <div className="grid grid-cols-7 gap-0.5">
+      <div className="grid grid-cols-7 gap-px md:gap-[2px] bg-border/30 rounded-lg overflow-hidden md:border md:border-border/40">
         {calendarDays.map((date) => (
           <CalendarDayCell
             key={date.toISOString()}
