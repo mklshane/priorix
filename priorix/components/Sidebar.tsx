@@ -8,8 +8,8 @@ import {
   Settings,
   X,
   Compass,
-  ChevronLeft,
-  ChevronRight,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter, usePathname } from "next/navigation";
@@ -35,7 +35,7 @@ export default function Sidebar() {
   return (
     <div
       className={cn(
-        "fixed inset-y-0 left-0 z-50 flex h-screen flex-col bg-sidebar border-r border-sidebar-border transition-all duration-300 ease-in-out",
+        "fixed inset-y-0 left-0 z-50 flex h-screen flex-col bg-sidebar border-r border-sidebar-border transition-all duration-300 ease-in-out shadow-sm",
         sidebarWidth,
         // Mobile: slide in/out
         isMobile && (shouldShow ? "translate-x-0" : "-translate-x-full"),
@@ -44,9 +44,9 @@ export default function Sidebar() {
       )}
     >
       {/* Header */}
-      <div className="flex h-16 items-center justify-between px-4 lg:px-6">
+      <div className="flex h-16 items-center justify-between px-4 lg:px-5 border-b border-sidebar-border/60">
         <h1 className={cn(
-          "text-xl text-sidebar-foreground font-lora transition-opacity duration-200 select-none",
+          "text-lg text-sidebar-foreground font-lora tracking-wide transition-opacity duration-200 select-none",
           !isMobile && !isOpen && "lg:opacity-0 lg:w-0 lg:pointer-events-none"
         )}>
           Menu
@@ -67,20 +67,20 @@ export default function Sidebar() {
         {!isMobile && (
           <button
             onClick={toggleSidebar}
-            className="hidden lg:block p-2 rounded-md hover:bg-sidebar-accent transition-colors ml-auto select-none cursor-pointer"
+            className="hidden lg:block p-2 rounded-md border border-sidebar-border/70 hover:bg-sidebar-accent transition-colors ml-auto select-none cursor-pointer"
             title={isOpen ? "Collapse sidebar" : "Expand sidebar"}
           >
             {isOpen ? (
-              <ChevronLeft className="h-5 w-5 text-sidebar-foreground" />
+              <PanelLeftClose className="h-5 w-5 text-sidebar-foreground" />
             ) : (
-              <ChevronRight className="h-5 w-5 text-sidebar-foreground" />
+              <PanelLeftOpen className="h-5 w-5 text-sidebar-foreground" />
             )}
           </button>
         )}
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 px-3 lg:px-4 py-4">
+      <nav className="flex-1 space-y-1.5 px-3 lg:px-3 py-4">
         {navigation.map((item) => {
           const isActive = pathname === item.href;
           return (
@@ -91,7 +91,7 @@ export default function Sidebar() {
                 if (isMobile) closeSidebar();
               }}
               className={cn(
-                "group flex w-full items-center rounded-lg px-3 py-2.5 text-sm font-medium transition-colors relative select-none cursor-pointer",
+                "group flex w-full items-center rounded-xl px-3 py-2.5 text-sm font-medium transition-colors relative select-none cursor-pointer",
                 isActive
                   ? "bg-sidebar-primary text-sidebar-primary-foreground"
                   : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
@@ -117,7 +117,7 @@ export default function Sidebar() {
               
               {/* Tooltip for collapsed desktop mode */}
               {!isMobile && !isOpen && (
-                <span className="hidden lg:group-hover:block absolute left-full ml-2 px-2 py-1 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded whitespace-nowrap z-50">
+                <span className="hidden lg:group-hover:block absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground border border-sidebar-border text-xs rounded-md whitespace-nowrap z-50 shadow-sm">
                   {item.name}
                 </span>
               )}
@@ -127,10 +127,10 @@ export default function Sidebar() {
       </nav>
 
       {/* Settings */}
-      <div className="border-t border-sidebar-border p-3 lg:p-4">
+      <div className="border-t border-sidebar-border p-3 lg:p-3">
         <button 
           className={cn(
-            "group flex w-full items-center rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative select-none cursor-pointer",
+            "group flex w-full items-center rounded-xl px-3 py-2.5 text-sm font-medium text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative select-none cursor-pointer",
             !isMobile && !isOpen && "lg:justify-center lg:px-2"
           )}
           title={!isMobile && !isOpen ? "Settings" : ""}
@@ -148,7 +148,7 @@ export default function Sidebar() {
           
           {/* Tooltip for collapsed desktop mode */}
           {!isMobile && !isOpen && (
-            <span className="hidden lg:group-hover:block absolute left-full ml-2 px-2 py-1 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded whitespace-nowrap z-50">
+            <span className="hidden lg:group-hover:block absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground border border-sidebar-border text-xs rounded-md whitespace-nowrap z-50 shadow-sm">
               Settings
             </span>
           )}
