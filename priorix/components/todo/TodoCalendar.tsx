@@ -77,47 +77,47 @@ export default function TodoCalendar({
   return (
     <div className="flex flex-col h-full">
       {/* Calendar Header */}
-      <div className="flex items-center justify-between gap-2 mb-3 sm:mb-4">
-        <div className="flex items-center gap-1 sm:gap-2 min-w-0">
+      <div className="flex items-center justify-between gap-2 mb-4">
+        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
           <Button
             variant="ghost"
             size="icon"
             onClick={navigateBack}
-            className="h-7 w-7 sm:h-8 sm:w-8 shrink-0"
+            className="h-8 w-8 rounded-full shrink-0 hover:bg-muted"
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <h2 className="text-sm sm:text-lg font-semibold text-center truncate">
+          <h2 className="text-sm sm:text-base font-semibold text-center truncate min-w-[120px]">
             {headerLabel}
           </h2>
           <Button
             variant="ghost"
             size="icon"
             onClick={navigateForward}
-            className="h-7 w-7 sm:h-8 sm:w-8 shrink-0"
+            className="h-8 w-8 rounded-full shrink-0 hover:bg-muted"
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
 
-        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
           <Button
             variant="outline"
             size="sm"
             onClick={goToToday}
-            className="text-xs h-7 sm:h-8 px-2 sm:px-3"
+            className="text-xs h-8 px-3 rounded-lg font-medium"
           >
             Today
           </Button>
-          <div className="flex rounded-lg border border-border overflow-hidden">
+          <div className="flex rounded-lg bg-muted/50 p-0.5">
             {(["month", "week", "day"] as CalendarView[]).map((v) => (
               <button
                 key={v}
                 onClick={() => onViewChange(v)}
-                className={`px-2 sm:px-3 py-1 sm:py-1.5 text-[11px] sm:text-xs font-medium capitalize transition-colors ${
+                className={`px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium capitalize rounded-md transition-all duration-150 ${
                   view === v
-                    ? "bg-primary text-primary-foreground"
-                    : "hover:bg-muted text-muted-foreground"
+                    ? "bg-card text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 {v}

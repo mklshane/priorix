@@ -139,11 +139,11 @@ export default function TodoPage() {
 
   if (sessionStatus === "loading") {
     return (
-      <div className="w-full max-w-[1400px] mx-auto p-4 md:p-6">
-        <div className="h-8 w-48 bg-muted rounded animate-pulse mb-6" />
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_380px] gap-6">
-          <div className="h-[500px] bg-muted rounded-xl animate-pulse" />
-          <div className="h-[500px] bg-muted rounded-xl animate-pulse" />
+      <div className="w-full max-w-[1400px] mx-auto p-4 md:p-6 space-y-5">
+        <div className="h-8 w-48 bg-muted rounded-lg animate-pulse" />
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_380px] gap-5">
+          <div className="h-[500px] bg-muted rounded-2xl animate-pulse" />
+          <div className="h-[500px] bg-muted rounded-2xl animate-pulse" />
         </div>
       </div>
     );
@@ -163,7 +163,7 @@ export default function TodoPage() {
   }
 
   return (
-    <div className="w-full max-w-[1400px] mx-auto ">
+    <div className="w-full max-w-[1400px] mx-auto">
 
       <DndContext
         sensors={sensors}
@@ -171,9 +171,9 @@ export default function TodoPage() {
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_380px] lg:grid-cols-[1fr_420px] gap-6 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_380px] lg:grid-cols-[1fr_420px] gap-5 items-start">
           {/* Left: Calendar */}
-          <div className="bg-card border border-border rounded-xl p-3 sm:p-4 md:p-5 min-h-0 md:min-h-[500px]">
+          <div className="bg-card border border-border rounded-2xl p-3 sm:p-4 md:p-5 min-h-0 md:min-h-[500px] shadow-sm">
             <TodoCalendar
               currentDate={currentDate}
               selectedDate={selectedDate}
@@ -189,7 +189,7 @@ export default function TodoPage() {
           </div>
 
           {/* Right: Task List */}
-          <div className="bg-card border border-border rounded-xl p-3 sm:p-4 md:p-5 min-h-0 md:min-h-[500px] max-h-[calc(100vh-180px)] md:sticky">
+          <div className="bg-card border border-border rounded-2xl p-3 sm:p-4 md:p-5 min-h-0 md:min-h-[500px] max-h-[calc(100vh-180px)] md:sticky md:top-4 shadow-sm">
             <TaskList
               selectedDate={selectedDate}
               tasks={tasks}
@@ -200,8 +200,11 @@ export default function TodoPage() {
 
         <DragOverlay>
           {activeTask && (
-            <div className="bg-card border border-primary/30 shadow-lg rounded-lg p-2 text-sm max-w-[200px] truncate opacity-90">
-              {activeTask.taskTitle}
+            <div className="bg-card border border-primary/30 shadow-xl rounded-xl p-3 text-sm max-w-[220px] opacity-95 backdrop-blur-sm">
+              <span className="font-medium truncate block">{activeTask.taskTitle}</span>
+              {activeTask.dueTime && (
+                <span className="text-xs text-muted-foreground mt-0.5 block">{activeTask.dueTime}</span>
+              )}
             </div>
           )}
         </DragOverlay>

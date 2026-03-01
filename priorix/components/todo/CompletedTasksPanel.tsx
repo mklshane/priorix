@@ -59,28 +59,30 @@ export default function CompletedTasksPanel({
     .slice(0, 3);
 
   return (
-    <div className="mt-4 border-t border-border pt-4">
+    <div className="mt-5 pt-4 border-t border-border/60">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-full"
+        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-full group/completed"
       >
-        <History className="h-4 w-4" />
-        <span>
+        <div className="flex items-center justify-center w-6 h-6 rounded-md bg-muted/60 group-hover/completed:bg-muted transition-colors">
+          <History className="h-3.5 w-3.5" />
+        </div>
+        <span className="text-xs font-medium">
           Completed ({tasks.length})
         </span>
         {isExpanded ? (
-          <ChevronUp className="h-4 w-4 ml-auto" />
+          <ChevronUp className="h-3.5 w-3.5 ml-auto" />
         ) : (
-          <ChevronDown className="h-4 w-4 ml-auto" />
+          <ChevronDown className="h-3.5 w-3.5 ml-auto" />
         )}
       </button>
 
       {!isExpanded && previewTasks.length > 0 && (
-        <div className="mt-2 space-y-1">
+        <div className="mt-2 space-y-0.5">
           {previewTasks.map((task) => (
             <div
               key={task._id}
-              className="text-xs text-muted-foreground line-through pl-6 truncate"
+              className="text-xs text-muted-foreground/60 line-through pl-8 truncate"
             >
               {task.taskTitle}
             </div>
@@ -88,7 +90,7 @@ export default function CompletedTasksPanel({
           {tasks.length > 3 && (
             <button
               onClick={() => setIsExpanded(true)}
-              className="text-xs text-primary hover:underline pl-6"
+              className="text-xs text-primary/70 hover:text-primary hover:underline pl-8 transition-colors"
             >
               +{tasks.length - 3} more
             </button>
@@ -100,10 +102,10 @@ export default function CompletedTasksPanel({
         <div className="mt-3 space-y-4">
           {groups.map((group) => (
             <div key={group.label}>
-              <div className="text-xs font-medium text-muted-foreground mb-2 pl-1">
+              <div className="text-[11px] font-medium text-muted-foreground/70 mb-2 pl-1 uppercase tracking-wider">
                 {group.label}
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <AnimatePresence mode="popLayout">
                   {group.tasks.map((task) => (
                     <TaskCard

@@ -76,23 +76,24 @@ export default function CalendarDayCell({
         relative flex flex-col items-start
         p-0.5 sm:p-1 md:p-1.5
         min-h-[44px] sm:min-h-[60px] md:min-h-[100px]
-        rounded-md sm:rounded-lg cursor-pointer
+        rounded-lg sm:rounded-xl cursor-pointer
         transition-all duration-200 border
-        ${isOver ? "bg-primary/10 border-primary scale-[1.02]" : "border-border/40"}
-        ${isSelected ? "bg-primary/10 border-primary/50 ring-1 ring-primary/30" : "hover:bg-muted/40"}
-        ${!isCurrentMonth ? "opacity-35" : ""}
-        ${dayTasks.length > 0 && !isSelected && isCurrentMonth ? "bg-muted/15" : ""}
+        ${isOver ? "bg-primary/10 border-primary shadow-sm scale-[1.02]" : "border-transparent"}
+        ${isSelected ? "bg-primary/8 border-primary/40 ring-1 ring-primary/20 shadow-sm" : "hover:bg-muted/50 hover:border-border/30"}
+        ${!isCurrentMonth ? "opacity-30" : ""}
+        ${dayTasks.length > 0 && !isSelected && isCurrentMonth ? "bg-muted/10" : ""}
       `}
     >
       {/* Date number */}
       <span
         className={`
-          text-xs sm:text-sm font-medium
+          text-[11px] sm:text-sm font-medium
           w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7
           flex items-center justify-center rounded-full mb-0.5 shrink-0
-          ${isTodayDate ? "bg-primary text-primary-foreground font-bold" : ""}
+          transition-colors duration-150
+          ${isTodayDate ? "bg-primary text-primary-foreground font-bold shadow-sm" : ""}
           ${isSelected && !isTodayDate ? "text-primary font-semibold" : ""}
-          ${!isCurrentMonth ? "text-muted-foreground" : "text-card-foreground"}
+          ${!isCurrentMonth ? "text-muted-foreground/60" : "text-card-foreground"}
         `}
       >
         {date.getDate()}
