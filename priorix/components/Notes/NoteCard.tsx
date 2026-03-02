@@ -64,7 +64,7 @@ export default function NoteCard({
 	return (
 		<div
 			className={cn(
-				"group relative flex h-full min-h-[200px] border border-gray-300 cursor-pointer flex-col rounded-2xl p-5 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg",
+				"group relative flex h-full min-h-[200px] cursor-pointer flex-col rounded-2xl border border-gray-300 shadow-sm p-5 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg",
 				colorClass
 			)}
 			onClick={() => onOpen(note._id)}
@@ -84,7 +84,7 @@ export default function NoteCard({
 						<Button
 							variant="ghost"
 							size="icon"
-							className="h-7 w-7 shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
+							className="h-7 w-7 shrink-0 opacity-70 transition-opacity group-hover:opacity-100"
 							onClick={(e) => e.stopPropagation()}
 						>
 							<MoreHorizontal className="h-4 w-4" />
@@ -138,7 +138,7 @@ export default function NoteCard({
 			</p>
 
 			{/* Footer */}
-			<div className="mt-4 flex items-center justify-between border-t border-black/[0.06] pt-3 dark:border-white/[0.06]">
+			<div className="mt-4 flex items-center justify-between border-t border-black/10 pt-3 dark:border-white/10">
 				<div className="flex items-center gap-1.5 text-[11px] font-medium opacity-55">
 					<Clock className="h-3 w-3" />
 					<span>{formatTime(note.updatedAt)}</span>
