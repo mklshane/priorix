@@ -362,7 +362,7 @@ const StudyPage = () => {
   if (!isPending && ((deckError && !deck) || (flashcardsError && flashcards.length === 0))) {
     const errorMessage = deckError || flashcardsError || "Failed to load data";
     return (
-      <div className="min-h-screen p-4 md:p-6 lg:p-8 px-2 max-w-3xl">
+      <div className="min-h-screen p-4 md:p-6 px-2 max-w-3xl">
         <Card>
           <CardContent className="p-8 text-center">
             <p>{errorMessage}</p>

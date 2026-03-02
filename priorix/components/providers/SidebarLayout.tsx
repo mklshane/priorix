@@ -38,7 +38,7 @@ export default function SidebarLayout({ children, contentClassName }: SidebarLay
         )}
       >
         <AppNav />
-        <main className={cn("flex-1 overflow-y-auto", contentClassName || "p-4 md:p-6 lg:p-8")}>
+        <main className={cn("flex-1 overflow-y-auto", contentClassName || "p-4 md:p-6")}>
           {children}
         </main>
       </div>
