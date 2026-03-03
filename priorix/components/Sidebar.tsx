@@ -49,14 +49,14 @@ export default function Sidebar() {
           "text-lg text-sidebar-foreground font-lora tracking-wide transition-opacity duration-200 select-none",
           !isMobile && !isOpen && "lg:opacity-0 lg:w-0 lg:pointer-events-none"
         )}>
-          Menu
+          Priorix
         </h1>
         
         {/* Mobile: Close button */}
         {isMobile && (
           <button
             onClick={closeSidebar}
-            className="p-2 rounded-md hover:bg-sidebar-accent transition-colors select-none cursor-pointer"
+            className="p-2 rounded-lg hover:bg-sidebar-accent transition-colors select-none cursor-pointer"
             title="Close sidebar"
           >
             <X className="h-5 w-5 text-sidebar-foreground" />
@@ -67,7 +67,7 @@ export default function Sidebar() {
         {!isMobile && (
           <button
             onClick={toggleSidebar}
-            className="hidden lg:block p-2 rounded-md border border-sidebar-border/70 hover:bg-sidebar-accent transition-colors ml-auto select-none cursor-pointer"
+            className="hidden lg:block p-2 rounded-lg border border-sidebar-border/70 hover:bg-sidebar-accent transition-colors ml-auto select-none cursor-pointer"
             title={isOpen ? "Collapse sidebar" : "Expand sidebar"}
           >
             {isOpen ? (
@@ -82,7 +82,7 @@ export default function Sidebar() {
       {/* Navigation */}
       <nav className="flex-1 space-y-1.5 px-3 lg:px-3 py-4">
         {navigation.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
           return (
             <button
               key={item.name}
@@ -129,14 +129,20 @@ export default function Sidebar() {
       {/* Settings */}
       <div className="border-t border-sidebar-border p-3 lg:p-3">
         <button 
+          onClick={() => {
+            router.push("/settings/learning");
+            if (isMobile) closeSidebar();
+          }}
           className={cn(
             "group flex w-full items-center rounded-xl px-3 py-2.5 text-sm font-medium text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground relative select-none cursor-pointer",
+            (pathname === "/settings/learning" || pathname.startsWith("/settings/")) && "bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary",
             !isMobile && !isOpen && "lg:justify-center lg:px-2"
           )}
           title={!isMobile && !isOpen ? "Settings" : ""}
         >
           <Settings className={cn(
-            "h-5 w-5 flex-shrink-0 text-muted-foreground",
+            "h-5 w-5 flex-shrink-0",
+            (pathname === "/settings/learning" || pathname.startsWith("/settings/")) ? "text-sidebar-primary-foreground" : "text-muted-foreground",
             !isMobile && !isOpen ? "lg:mr-0" : "mr-3"
           )} />
           <span className={cn(

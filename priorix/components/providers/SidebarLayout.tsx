@@ -19,7 +19,7 @@ export default function SidebarLayout({ children, contentClassName }: SidebarLay
       {/* Backdrop overlay - mobile only */}
       {isMobile && isVisible && (
         <div
-          className="fixed inset-0 bg-black/10 z-40"
+          className="fixed inset-0 bg-black/20 backdrop-blur-[1px] z-40"
           onClick={closeSidebar}
         />
       )}
@@ -38,7 +38,12 @@ export default function SidebarLayout({ children, contentClassName }: SidebarLay
         )}
       >
         <AppNav />
-        <main className={cn("flex-1 overflow-y-auto", contentClassName || "p-4 md:p-6")}>
+        <main
+          className={cn(
+            "flex-1 overflow-y-auto",
+            contentClassName || "mx-auto w-full max-w-[1400px] px-4 py-6 md:px-6 md:py-8"
+          )}
+        >
           {children}
         </main>
       </div>
