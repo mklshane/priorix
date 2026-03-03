@@ -1,6 +1,6 @@
 const LoadingState = () => {
   return (
-    <div className="min-h-screen p-4 md:p-6 lg:p-8 animate-in fade-in duration-300">
+    <div className="min-h-screen p-4 md:p-6 animate-in fade-in duration-300">
       {/* Header skeleton */}
       <div className="mb-6 md:mb-8">
         <div className="rounded-xl border-2 border-primary/20 dark:border-darkborder/50 bg-card p-5 md:p-6">

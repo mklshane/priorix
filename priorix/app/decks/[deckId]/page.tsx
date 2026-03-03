@@ -223,7 +223,7 @@ const DeckDetailPage = () => {
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-6 lg:p-8 max-w-5xl mx-auto" key={retryKey}>
+    <div className="min-h-screen p-4 md:p-6 max-w-5xl mx-auto" key={retryKey}>
       <ImportModal
         isOpen={showImportModal}
         onClose={handleCloseImportModal}
@@ -248,7 +248,9 @@ const DeckDetailPage = () => {
       {isImporting && (
         <div className="mb-5 flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300 rounded-xl border border-blue-200 dark:border-blue-500/20 animate-in fade-in slide-in-from-top-2 duration-300">
           <div className="h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin shrink-0" />
-          <span className="text-sm font-medium">Generating flashcards from your document... This may take a moment.</span>
+          <span className="text-sm font-medium">
+            Generating flashcards from your document... This may take a moment.
+          </span>
         </div>
       )}
 

@@ -5,6 +5,14 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -35,16 +43,18 @@ import {
   Trash2,
   StickyNote,
   X,
+  ArrowUpDown,
+  FolderPlus,
 } from "lucide-react";
 
 /* ── colour palette cycling ── */
 const NOTE_COLORS = [
-  "bg-rose-50 dark:bg-rose-950/30 text-rose-950 dark:text-rose-100",
-  "bg-amber-50 dark:bg-amber-950/30 text-amber-950 dark:text-amber-100",
-  "bg-sky-50 dark:bg-sky-950/30 text-sky-950 dark:text-sky-100",
-  "bg-violet-50 dark:bg-violet-950/30 text-violet-950 dark:text-violet-100",
-  "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-950 dark:text-emerald-100",
-  "bg-fuchsia-50 dark:bg-fuchsia-950/30 text-fuchsia-950 dark:text-fuchsia-100",
+  "bg-rose-100 dark:bg-rose-950/30 text-rose-950 dark:text-rose-100",
+  "bg-amber-100 dark:bg-amber-950/30 text-amber-950 dark:text-amber-100",
+  "bg-sky-100 dark:bg-sky-950/30 text-sky-950 dark:text-sky-100",
+  "bg-violet-100 dark:bg-violet-950/30 text-violet-950 dark:text-violet-100",
+  "bg-emerald-100 dark:bg-emerald-950/30 text-emerald-950 dark:text-emerald-100",
+  "bg-fuchsia-100 dark:bg-fuchsia-950/30 text-fuchsia-950 dark:text-fuchsia-100",
 ];
 
 const FOLDER_COLORS = [
@@ -63,9 +73,11 @@ export default function NotesPage() {
 
   const [activeFolder, setActiveFolder] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<"recent" | "name" | "date">("recent");
 
   const [isCreateNoteOpen, setIsCreateNoteOpen] = useState(false);
   const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
+  const [isCreateChooserOpen, setIsCreateChooserOpen] = useState(false);
   const [isRenameNoteOpen, setIsRenameNoteOpen] = useState(false);
   const [isRenameFolderOpen, setIsRenameFolderOpen] = useState(false);
 
@@ -87,7 +99,7 @@ export default function NotesPage() {
   /* Always fetch ALL notes — never filter by folder at the API level */
   const { data: allNotes = [], isLoading: notesLoading } = useNotes(enabled, {
     search: searchQuery,
-    sortBy: "recent",
+    sortBy,
   });
 
   const { createNote, updateNote, deleteNote } = useNoteMutations();
@@ -106,6 +118,13 @@ export default function NotesPage() {
     () => (activeFolder ? folders.find((f) => f._id === activeFolder) : null),
     [activeFolder, folders]
   );
+
+  const rootNotesCount = useMemo(
+    () => allNotes.filter((n) => !n.folder).length,
+    [allNotes]
+  );
+
+  const hasFilters = !!activeFolder || !!searchQuery.trim();
 
   /* ── handlers ── */
   const handleCreateNote = async () => {
@@ -183,6 +202,11 @@ export default function NotesPage() {
     }
   };
 
+  const handleClearFilters = () => {
+    setActiveFolder(null);
+    setSearchQuery("");
+  };
+
   /* ── loading / auth ── */
   if (status === "loading") {
     return (
@@ -202,81 +226,113 @@ export default function NotesPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-6">
-      {/* ═══════ HEADER ═══════ */}
-      <header className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-extrabold tracking-tight">My Notes</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {allNotes.length} note{allNotes.length !== 1 ? "s" : ""} &middot;{" "}
-            {folders.length} folder{folders.length !== 1 ? "s" : ""}
-          </p>
+      <section className="rounded-3xl border border-border/60 bg-card p-5 shadow-sm md:p-6">
+        <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
+          <div className="space-y-2">
+            <h1 className="text-3xl font-extrabold tracking-tight">Notes</h1>
+            <p className="text-sm text-muted-foreground">
+              Capture ideas fast, organize with folders, and keep everything easy to find.
+            </p>
+          </div>
+
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+            <Button
+              className="h-10 gap-2 rounded-xl"
+              onClick={() => setIsCreateChooserOpen(true)}
+            >
+              <Plus className="h-4 w-4" />
+              Add
+            </Button>
+          </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="relative w-full sm:w-72">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2  text-muted-foreground" />
+        <div className="mt-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="relative w-full lg:max-w-md">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search notes..."
-              className="h-10 rounded-xl border-gray-300 bg-primary-foreground pl-9 text-sm shadow-none focus-visible:bg-background"
+              placeholder="Search notes by title or content"
+              className="h-10 rounded-xl border-border bg-background pl-9"
             />
           </div>
-          <Button
-            size="sm"
-            className="h-10 gap-2 rounded-xl px-4"
-            onClick={() => setIsCreateNoteOpen(true)}
-          >
-            <Plus className="h-4 w-4" />
-            <span className="hidden sm:inline">New Note</span>
-          </Button>
-        </div>
-      </header>
 
-      <hr className="border-border/50" />
-
-      {/* ═══════ FOLDERS ═══════ */}
-      <section>
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold tracking-tight">Folders</h2>
-          {activeFolder && (
-            <button
-              onClick={() => setActiveFolder(null)}
-              className="flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary/20"
+          <div className="flex flex-wrap items-center gap-2">
+            <Select
+              value={sortBy}
+              onValueChange={(value: "recent" | "name" | "date") => setSortBy(value)}
             >
-              Viewing: {activeFolderObj?.name}
-              <X className="h-3 w-3" />
-            </button>
+              <SelectTrigger className="h-10 w-[160px] rounded-xl bg-background">
+                <ArrowUpDown className="h-4 w-4" />
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent align="end">
+                <SelectItem value="recent">Most recent</SelectItem>
+                <SelectItem value="name">Name (A-Z)</SelectItem>
+                <SelectItem value="date">Created date</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {hasFilters && (
+              <Button
+                variant="ghost"
+                className="h-10 gap-1 rounded-xl"
+                onClick={handleClearFilters}
+              >
+                <X className="h-4 w-4" />
+                Clear filters
+              </Button>
+            )}
+          </div>
+        </div>
+      </section>
+
+      <section className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold tracking-tight">Folders</h2>
+          {activeFolderObj && (
+            <Badge variant="secondary" className="rounded-full px-3 py-1">
+              Viewing {activeFolderObj.name}
+            </Badge>
           )}
         </div>
 
-        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin">
+        <div className="flex gap-3 overflow-x-auto pb-2">
+          <button
+            onClick={() => setActiveFolder(null)}
+            className={`flex w-52 shrink-0 flex-col gap-2 rounded-2xl border p-4 text-left transition-all ${
+              !activeFolder
+                ? "border-primary/40 bg-primary/5"
+                : "border-border bg-card hover:border-border"
+            }`}
+          >
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted">
+              <StickyNote className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <p className="truncate text-sm font-semibold">All Notes</p>
+            <p className="text-xs text-muted-foreground">{allNotes.length} total</p>
+          </button>
+
           {foldersLoading
             ? Array.from({ length: 3 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="h-28 w-48 shrink-0 animate-pulse rounded-2xl bg-muted"
-                />
+                <div key={i} className="h-28 w-52 shrink-0 animate-pulse rounded-2xl bg-muted" />
               ))
             : folders.map((folder, idx) => {
                 const color = FOLDER_COLORS[idx % FOLDER_COLORS.length];
                 const isActive = activeFolder === folder._id;
+
                 return (
                   <div
                     key={folder._id}
-                    className={`group relative flex w-52 shrink-0 cursor-pointer flex-col gap-3 rounded-2xl border p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md ${
+                    className={`group relative flex w-52 shrink-0 cursor-pointer flex-col gap-3 rounded-2xl border p-4 transition-all hover:-translate-y-0.5 hover:shadow-sm ${
                       isActive
-                        ? "border-primary/50 bg-primary/5 shadow-md"
-                        : "border-border bg-primary-foreground hover:border-border hover:bg-primary-foreground/70 dark:bg-muted/30"
+                        ? "border-primary/40 bg-primary/5"
+                        : "border-border bg-card"
                     }`}
-                    onClick={() =>
-                      setActiveFolder(isActive ? null : folder._id)
-                    }
+                    onClick={() => setActiveFolder(isActive ? null : folder._id)}
                   >
                     <div className="flex items-start justify-between">
-                      <div
-                        className={`flex h-10 w-10 items-center justify-center rounded-xl ${color.bg}`}
-                      >
+                      <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${color.bg}`}>
                         <FolderOpen className={`h-5 w-5 ${color.icon}`} />
                       </div>
                       <DropdownMenu>
@@ -316,54 +372,42 @@ export default function NotesPage() {
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
+
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold">
-                        {folder.name}
-                      </p>
+                      <p className="truncate text-sm font-semibold">{folder.name}</p>
                       <p className="mt-0.5 text-xs text-muted-foreground">
-                        {folder.noteCount || 0} note
-                        {(folder.noteCount || 0) !== 1 ? "s" : ""}
+                        {folder.noteCount || 0} note{(folder.noteCount || 0) !== 1 ? "s" : ""}
                       </p>
                     </div>
                   </div>
                 );
               })}
 
-          {/* New Folder */}
-          <button
-            onClick={() => setIsCreateFolderOpen(true)}
-            className="flex h-31 w-48 shrink-0 flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-gray-300 text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
-          >
-            <Plus className="h-5 w-5" />
-            <span className="text-xs font-medium">New folder</span>
-          </button>
         </div>
       </section>
 
-      <hr className="border-border/50" />
-
-      {/* ═══════ NOTES ═══════ */}
-      <section>
-        <div className="mb-5 flex items-center justify-between">
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-lg font-semibold tracking-tight">
-            {activeFolder ? `Notes in "${activeFolderObj?.name}"` : "All Notes"}
-            <span className="ml-2 text-sm font-normal text-muted-foreground">
-              ({displayedNotes.length})
-            </span>
+            {activeFolder ? `Notes in \"${activeFolderObj?.name}\"` : "All Notes"}
+            <span className="ml-2 text-sm font-normal text-muted-foreground">({displayedNotes.length})</span>
           </h2>
+
+          {searchQuery.trim() && (
+            <p className="text-sm text-muted-foreground">
+              Results for <span className="font-medium text-foreground">“{searchQuery.trim()}”</span>
+            </p>
+          )}
         </div>
 
         {notesLoading ? (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div
-                key={i}
-                className="h-56 animate-pulse rounded-2xl bg-muted"
-              />
+              <div key={i} className="h-56 animate-pulse rounded-2xl bg-muted" />
             ))}
           </div>
         ) : displayedNotes.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/40 py-20 text-center">
+          <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/60 bg-card py-20 text-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
               <StickyNote className="h-7 w-7 text-muted-foreground" />
             </div>
@@ -372,15 +416,12 @@ export default function NotesPage() {
             </h3>
             <p className="mt-1.5 max-w-sm text-sm text-muted-foreground">
               {activeFolder
-                ? "Create a note inside this folder or move existing notes here."
-                : "Create your first note to start writing."}
+                ? "Create a note here or move one from another folder."
+                : "Create your first note to start writing and organizing ideas."}
             </p>
-            <Button
-              className="mt-6 gap-2 rounded-xl"
-              onClick={() => setIsCreateNoteOpen(true)}
-            >
+            <Button className="mt-6 gap-2 rounded-xl" onClick={() => setIsCreateChooserOpen(true)}>
               <Plus className="h-4 w-4" />
-              Create Note
+              Add
             </Button>
           </div>
         ) : (
@@ -401,48 +442,117 @@ export default function NotesPage() {
                 onMove={handleMoveNote}
               />
             ))}
-
-            {/* New Note card */}
-            <button
-              onClick={() => setIsCreateNoteOpen(true)}
-              className="flex min-h-[220px] flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-gray-300 text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
-            >
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-muted">
-                <Plus className="h-5 w-5" />
-              </div>
-              <span className="text-sm font-medium">New Note</span>
-            </button>
           </div>
         )}
       </section>
 
       {/* ═══════ DIALOGS ═══════ */}
-      <Dialog open={isCreateNoteOpen} onOpenChange={setIsCreateNoteOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create note</DialogTitle>
-            <DialogDescription>
-              {activeFolder
-                ? `This note will be added to "${activeFolderObj?.name}".`
-                : "Add a title to create your new note."}
-            </DialogDescription>
+      <Dialog open={isCreateChooserOpen} onOpenChange={setIsCreateChooserOpen}>
+        <DialogContent className="modal-surface p-0 sm:max-w-[520px]">
+          <DialogHeader className="flex flex-row items-start gap-3 border-b border-border/60 bg-gradient-to-r from-primary/10 via-muted/40 to-transparent px-6 py-5">
+            <div className="flex size-12 items-center justify-center rounded-lg bg-primary/15 text-primary shadow-inner ring-1 ring-primary/20">
+              <Plus className="h-5 w-5" />
+            </div>
+            <div className="space-y-1 text-left">
+              <DialogTitle className="text-xl">Add to notes</DialogTitle>
+              <DialogDescription>
+                Choose what you want to create.
+              </DialogDescription>
+            </div>
           </DialogHeader>
-          <Input
-            value={noteTitle}
-            onChange={(e) => setNoteTitle(e.target.value)}
-            placeholder="Note title"
-            autoFocus
-            onKeyDown={(e) => e.key === "Enter" && handleCreateNote()}
-          />
-          <DialogFooter>
+
+          <div className="space-y-4 px-6 pb-6 pt-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Button
+                variant="default"
+                className="h-full justify-between border border-yellow/60 bg-yellow text-foreground shadow-[0_12px_30px_rgba(255,215,0,0.35)] transition-transform hover:scale-[1.01] hover:shadow-[0_16px_36px_rgba(255,215,0,0.4)]"
+                onClick={() => {
+                  setIsCreateChooserOpen(false);
+                  setIsCreateNoteOpen(true);
+                }}
+              >
+                <div className="flex flex-col items-start gap-1 text-left">
+                  <span className="font-semibold">New Note</span>
+                  <span className="text-xs text-foreground/80">
+                    Start writing instantly.
+                  </span>
+                </div>
+                <FileText className="h-4 w-4" />
+              </Button>
+
+              <Button
+                variant="secondary"
+                className="h-full justify-between border border-pink/60 bg-pink text-foreground shadow-[0_12px_30px_rgba(255,182,251,0.35)] transition-transform hover:scale-[1.01] hover:shadow-[0_16px_36px_rgba(255,182,251,0.45)]"
+                onClick={() => {
+                  setIsCreateChooserOpen(false);
+                  setIsCreateFolderOpen(true);
+                }}
+              >
+                <div className="flex flex-col items-start gap-1 text-left">
+                  <span className="font-semibold">New Folder</span>
+                  <span className="text-xs text-foreground/80">
+                    Organize notes by topic.
+                  </span>
+                </div>
+                <FolderPlus className="h-4 w-4" />
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              You can move notes between folders anytime.
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isCreateNoteOpen} onOpenChange={setIsCreateNoteOpen}>
+        <DialogContent className="modal-surface p-0 sm:max-w-[560px]">
+          <DialogHeader className="flex flex-row items-start gap-3 border-b border-border/60 bg-gradient-to-r from-primary/10 via-muted/40 to-transparent px-6 py-5">
+            <div className="flex size-12 items-center justify-center rounded-lg bg-primary/15 text-primary shadow-inner ring-1 ring-primary/20">
+              <FileText className="h-5 w-5" />
+            </div>
+            <div className="space-y-1 text-left">
+              <DialogTitle className="text-xl">Create note</DialogTitle>
+              <DialogDescription>
+                {activeFolder
+                  ? `This note will be added to "${activeFolderObj?.name}".`
+                  : "Give your note a clear title so it’s easy to find later."}
+              </DialogDescription>
+            </div>
+          </DialogHeader>
+
+          <div className="space-y-3 px-6 pb-5 pt-4">
+            <div className="space-y-1.5">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Note title
+              </p>
+              <Input
+                value={noteTitle}
+                onChange={(e) => setNoteTitle(e.target.value)}
+                placeholder="e.g., Biology - Chapter 3 Summary"
+                autoFocus
+                className="h-11 rounded-xl border-border bg-background"
+                onKeyDown={(e) => e.key === "Enter" && handleCreateNote()}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Press Enter to create quickly.
+            </p>
+          </div>
+
+          <DialogFooter className="border-t border-border/60 bg-background/60 px-6 py-4 sm:justify-between">
             <Button
               variant="outline"
+              className="rounded-xl"
               onClick={() => setIsCreateNoteOpen(false)}
             >
               Cancel
             </Button>
-            <Button onClick={handleCreateNote} disabled={createNote.isPending}>
-              {createNote.isPending ? "Creating..." : "Create"}
+            <Button
+              className="rounded-xl"
+              onClick={handleCreateNote}
+              disabled={createNote.isPending}
+            >
+              {createNote.isPending ? "Creating..." : "Create Note"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -476,32 +586,52 @@ export default function NotesPage() {
       </Dialog>
 
       <Dialog open={isCreateFolderOpen} onOpenChange={setIsCreateFolderOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create folder</DialogTitle>
-            <DialogDescription>
-              Add a folder for organizing notes.
-            </DialogDescription>
+        <DialogContent className="modal-surface p-0 sm:max-w-[560px]">
+          <DialogHeader className="flex flex-row items-start gap-3 border-b border-border/60 bg-gradient-to-r from-primary/10 via-muted/40 to-transparent px-6 py-5">
+            <div className="flex size-12 items-center justify-center rounded-lg bg-primary/15 text-primary shadow-inner ring-1 ring-primary/20">
+              <FolderPlus className="h-5 w-5" />
+            </div>
+            <div className="space-y-1 text-left">
+              <DialogTitle className="text-xl">Create folder</DialogTitle>
+              <DialogDescription>
+                Group related notes in one place for faster navigation.
+              </DialogDescription>
+            </div>
           </DialogHeader>
-          <Input
-            value={folderName}
-            onChange={(e) => setFolderName(e.target.value)}
-            placeholder="Folder name"
-            autoFocus
-            onKeyDown={(e) => e.key === "Enter" && handleCreateFolder()}
-          />
-          <DialogFooter>
+
+          <div className="space-y-3 px-6 pb-5 pt-4">
+            <div className="space-y-1.5">
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                Folder name
+              </p>
+              <Input
+                value={folderName}
+                onChange={(e) => setFolderName(e.target.value)}
+                placeholder="e.g., Project Notes"
+                autoFocus
+                className="h-11 rounded-xl border-border bg-background"
+                onKeyDown={(e) => e.key === "Enter" && handleCreateFolder()}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Keep folder names short and descriptive.
+            </p>
+          </div>
+
+          <DialogFooter className="border-t border-border/60 bg-background/60 px-6 py-4 sm:justify-between">
             <Button
               variant="outline"
+              className="rounded-xl"
               onClick={() => setIsCreateFolderOpen(false)}
             >
               Cancel
             </Button>
             <Button
+              className="rounded-xl"
               onClick={handleCreateFolder}
               disabled={createFolder.isPending}
             >
-              {createFolder.isPending ? "Creating..." : "Create"}
+              {createFolder.isPending ? "Creating..." : "Create Folder"}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -727,7 +727,7 @@ const DecksPageContent = () => {
   );
 
   return (
-    <div className="min-h-screen p-4 md:p-6 lg:p-8 px-2">
+    <div className="min-h-screen p-4 md:p-6 px-2">
       <div className="mx-auto  space-y-5">
         <ConfirmDeleteModal
           isOpen={deleteModalOpen}
@@ -740,309 +740,315 @@ const DecksPageContent = () => {
 
         <div className="flex flex-col gap-2 mb-2">
           <div className="hidden md:flex items-center justify-between gap-3 flex-wrap">
-          <div>
-            <p className="text-sm text-muted-foreground mb-1">Overview</p>
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground">
-              Decks
-            </h1>
+            <div>
+              <p className="text-sm text-muted-foreground mb-1">Overview</p>
+              <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+                Decks
+              </h1>
+            </div>
+            <div className="gap-2 hidden md:flex">
+              <Button
+                className="bg-yellow text-foreground border-2 border-foreground"
+                onClick={() =>
+                  currentFolderId
+                    ? setIsAddDeckModalOpen(true)
+                    : setIsCreateChooserOpen(true)
+                }
+              >
+                <Plus className="h-4 w-4 mr-2 text-foreground" /> Add
+              </Button>
+            </div>
           </div>
-          <div className="gap-2 hidden md:flex">
-            <Button
-              className="bg-yellow text-foreground border-2 border-foreground"
-              onClick={() =>
-                currentFolderId
-                  ? setIsAddDeckModalOpen(true)
-                  : setIsCreateChooserOpen(true)
-              }
-            >
-              <Plus className="h-4 w-4 mr-2 text-foreground" /> Add
-            </Button>
-          </div>
-        </div>
 
-        {/* Folder Breadcrumb */}
-        {currentFolderId && (
-          <div className="flex items-center gap-1 text-sm">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="px-2 h-7 text-muted-foreground hover:text-foreground"
-              onClick={() => handleFolderNavigate(null)}
-            >
-              <FolderOpen className="h-3 w-3 mr-1" />
-              Home
-            </Button>
-            {folderPath.map((folder, index) => (
-              <div key={folder._id} className="flex items-center">
-                <ChevronRight className="h-3 w-3 text-muted-foreground mx-1" />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="px-2 h-7"
-                  onClick={() => handleFolderNavigate(folder._id)}
-                >
-                  <Folder className="h-3 w-3 mr-1" />
-                  {folder.name}
-                </Button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Search and Filter Bar */}
-      <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder={`Search ${activeTab}...`}
-            className="pl-9"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          {searchQuery && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6"
-              onClick={() => setSearchQuery("")}
-            >
-              <X className="h-3 w-3" />
-            </Button>
+          {/* Folder Breadcrumb */}
+          {currentFolderId && (
+            <div className="flex items-center gap-1 text-sm">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="px-2 h-7 text-muted-foreground hover:text-foreground"
+                onClick={() => handleFolderNavigate(null)}
+              >
+                <FolderOpen className="h-3 w-3 mr-1" />
+                Home
+              </Button>
+              {folderPath.map((folder, index) => (
+                <div key={folder._id} className="flex items-center">
+                  <ChevronRight className="h-3 w-3 text-muted-foreground mx-1" />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="px-2 h-7"
+                    onClick={() => handleFolderNavigate(folder._id)}
+                  >
+                    <Folder className="h-3 w-3 mr-1" />
+                    {folder.name}
+                  </Button>
+                </div>
+              ))}
+            </div>
           )}
         </div>
 
-        <div className="flex gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2">
-                <Filter className="h-3 w-3" />
-                Sort by:{" "}
-                {sortBy === "name"
-                  ? "Name"
-                  : sortBy === "updated"
-                    ? "Last Updated"
-                    : "Date Created"}
+        {/* Search and Filter Bar */}
+        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder={`Search ${activeTab}...`}
+              className="pl-9"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6"
+                onClick={() => setSearchQuery("")}
+              >
+                <X className="h-3 w-3" />
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setSortBy("date")}>
-                Date Created
-                {sortBy === "date" && <Check className="h-3 w-3 ml-2" />}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setSortBy("updated")}>
-                Last Updated
-                {sortBy === "updated" && <Check className="h-3 w-3 ml-2" />}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setSortBy("name")}>
-                Name A-Z
-                {sortBy === "name" && <Check className="h-3 w-3 ml-2" />}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-
-      {/* Tab Navigation */}
-      {!isInFolder && (
-        <div className="flex gap-2 overflow-x-auto pb-2 border-b border-border/50">
-          {[
-            { key: "workspace" as DeckTab, label: "Workspace" },
-            { key: "favorites" as DeckTab, label: "Favorites" },
-            { key: "recent" as DeckTab, label: "Recent" },
-          ].map((tab) => (
-            <Button
-              key={tab.key}
-              variant={activeTab === tab.key ? "default" : "ghost"}
-              size="sm"
-              className="shrink-0 rounded-full px-4"
-              onClick={() => setActiveTab(tab.key)}
-            >
-              {tab.label}
-            </Button>
-          ))}
-        </div>
-      )}
-
-      {/* Tab Content */}
-      <div className="rounded-2xl border-2 border-black dark:border-accent bg-card backdrop-blur-sm shadow-sm p-4 md:p-6">
-        <div className="flex flex-col gap-1 mb-4">
-          <div className="flex items-center justify-between flex-wrap gap-2">
-            <h2 className="text-xl md:text-2xl font-semibold text-foreground font-sora">
-              {isInFolder && currentFolderName}
-              {!isInFolder && activeTab === "workspace" && currentFolderName}
-              {!isInFolder && activeTab === "favorites" && "Favorites"}
-              {!isInFolder && activeTab === "recent" && "Recently Accessed"}
-            </h2>
-            {(searchQuery || sortBy !== "date") && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                {searchQuery && (
-                  <Badge variant="secondary" className="gap-1">
-                    Search: "{searchQuery}"
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-3 w-3 ml-1"
-                      onClick={() => setSearchQuery("")}
-                    >
-                      <X className="h-2 w-2" />
-                    </Button>
-                  </Badge>
-                )}
-                {sortBy !== "date" && (
-                  <Badge variant="secondary">
-                    Sorted by: {sortBy === "name" ? "Name" : "Last Updated"}
-                  </Badge>
-                )}
-              </div>
             )}
           </div>
-          <p className="text-sm text-muted-foreground">
-            {(isInFolder || activeTab === "workspace") &&
-              (currentFolderId
-                ? "Decks inside this folder."
-                : "Folders and decks you own.")}
-            {!isInFolder &&
-              activeTab === "favorites" &&
-              "Decks you've starred for quick access."}
-            {!isInFolder &&
-              activeTab === "recent" &&
-              "Jump back into the decks you opened most recently."}
-          </p>
-        </div>
 
-        {isInFolder ? (
-          renderWorkspaceTab()
-        ) : (
-          <AnimatePresence mode="wait">
-            {activeTab === "workspace" && renderWorkspaceTab()}
-            {activeTab === "favorites" && renderFavoritesTab()}
-            {activeTab === "recent" && renderRecentTab()}
-          </AnimatePresence>
-        )}
-      </div>
-
-      {/* Drag overlay */}
-      {dragItem && (
-        <div className="fixed inset-0 pointer-events-none z-50">
-          <div className="absolute top-4 right-4 bg-primary text-primary-foreground px-3 py-2 rounded-lg shadow-lg">
-            <div className="flex items-center gap-2">
-              <Move className="h-4 w-4 animate-pulse" />
-              <span>Drag to move "{dragItem.deckName}"</span>
-            </div>
+          <div className="flex gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Filter className="h-3 w-3" />
+                  Sort by:{" "}
+                  {sortBy === "name"
+                    ? "Name"
+                    : sortBy === "updated"
+                      ? "Last Updated"
+                      : "Date Created"}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setSortBy("date")}>
+                  Date Created
+                  {sortBy === "date" && <Check className="h-3 w-3 ml-2" />}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortBy("updated")}>
+                  Last Updated
+                  {sortBy === "updated" && <Check className="h-3 w-3 ml-2" />}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setSortBy("name")}>
+                  Name A-Z
+                  {sortBy === "name" && <Check className="h-3 w-3 ml-2" />}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
-      )}
 
-      <div className="fixed bottom-6 right-6 md:hidden">
-        <Button
-          size="lg"
-          className="rounded-full w-14 h-14 shadow-lg"
-          onClick={() =>
-            currentFolderId
-              ? setIsAddDeckModalOpen(true)
-              : setIsCreateChooserOpen(true)
-          }
-        >
-          <Plus className="h-6 w-6" />
-        </Button>
-      </div>
-
-      <AddDeckModal
-        open={isAddDeckModalOpen}
-        onOpenChange={setIsAddDeckModalOpen}
-        onAddDeck={handleAddDeck}
-        folders={folders}
-        defaultFolderId={currentFolderId}
-      />
-
-      <AddFolderModal
-        open={isAddFolderModalOpen}
-        onOpenChange={setIsAddFolderModalOpen}
-        onCreate={handleCreateFolder}
-      />
-
-      {folderToEdit && (
-        <EditFolderModal
-          open={isEditFolderModalOpen}
-          onOpenChange={setIsEditFolderModalOpen}
-          initialName={folderToEdit.name}
-          onSubmit={(name) => {
-            setFolderToEdit((prev) => (prev ? { ...prev, name } : prev));
-            renameFolder.mutate(
-              { folderId: folderToEdit.id, name },
-              {
-                onSuccess: () => {
-                  showToast("Folder renamed");
-                  setIsEditFolderModalOpen(false);
-                  setFolderToEdit(null);
-                },
-                onError: (err: any) =>
-                  showToast(err?.message || "Failed to rename folder", "error"),
-              },
-            );
-          }}
-        />
-      )}
-
-      <Dialog open={isCreateChooserOpen} onOpenChange={setIsCreateChooserOpen}>
-        <DialogContent className="modal-surface sm:max-w-[520px] p-0">
-          <DialogHeader className="flex flex-row items-start gap-3 border-b border-border/60 bg-gradient-to-r from-primary/10 via-muted/40 to-transparent px-6 py-5">
-            <div className="flex size-12 items-center justify-center rounded-lg bg-primary/15 text-primary shadow-inner ring-1 ring-primary/20">
-              <Plus className="h-5 w-5" />
-            </div>
-            <div className="space-y-1 text-left">
-              <DialogTitle className="text-xl">
-                Create something new
-              </DialogTitle>
-              <DialogDescription>
-                Pick what to add to your workspace.
-              </DialogDescription>
-            </div>
-          </DialogHeader>
-
-          <div className="px-6 pb-6 pt-4 space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {/* Tab Navigation */}
+        {!isInFolder && (
+          <div className="flex gap-2 overflow-x-auto pb-2 border-b border-border/50">
+            {[
+              { key: "workspace" as DeckTab, label: "Workspace" },
+              { key: "favorites" as DeckTab, label: "Favorites" },
+              { key: "recent" as DeckTab, label: "Recent" },
+            ].map((tab) => (
               <Button
-                variant="default"
-                className="h-full justify-between bg-yellow text-foreground border border-yellow/60 shadow-[0_12px_30px_rgba(255,215,0,0.35)] hover:scale-[1.01] hover:shadow-[0_16px_36px_rgba(255,215,0,0.4)] transition-transform"
-                onClick={() => {
-                  setIsCreateChooserOpen(false);
-                  setIsAddDeckModalOpen(true);
-                }}
+                key={tab.key}
+                variant={activeTab === tab.key ? "default" : "ghost"}
+                size="sm"
+                className="shrink-0 rounded-full px-4"
+                onClick={() => setActiveTab(tab.key)}
               >
-                <div className="flex flex-col items-start text-left gap-1">
-                  <span className="font-semibold">New Deck</span>
-                  <span className="text-xs text-foreground/80">
-                    Create flashcards fast.
-                  </span>
-                </div>
-                <Plus className="h-4 w-4" />
+                {tab.label}
               </Button>
-              <Button
-                variant="secondary"
-                className="h-full justify-between bg-pink text-foreground border border-pink/60 shadow-[0_12px_30px_rgba(255,182,251,0.35)] hover:scale-[1.01] hover:shadow-[0_16px_36px_rgba(255,182,251,0.45)] transition-transform"
-                onClick={() => {
-                  setIsCreateChooserOpen(false);
-                  setIsAddFolderModalOpen(true);
-                }}
-              >
-                <div className="flex flex-col items-start text-left gap-1">
-                  <span className="font-semibold">New Folder</span>
-                  <span className="text-xs text-foreground/80">
-                    Group decks by topic.
-                  </span>
+            ))}
+          </div>
+        )}
+
+        {/* Tab Content */}
+        <div className="rounded-2xl border-2 border-black dark:border-accent bg-card backdrop-blur-sm shadow-sm p-4 md:p-6">
+          <div className="flex flex-col gap-1 mb-4">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <h2 className="text-xl md:text-2xl font-semibold text-foreground font-sora">
+                {isInFolder && currentFolderName}
+                {!isInFolder && activeTab === "workspace" && currentFolderName}
+                {!isInFolder && activeTab === "favorites" && "Favorites"}
+                {!isInFolder && activeTab === "recent" && "Recently Accessed"}
+              </h2>
+              {(searchQuery || sortBy !== "date") && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  {searchQuery && (
+                    <Badge variant="secondary" className="gap-1">
+                      Search: "{searchQuery}"
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-3 w-3 ml-1"
+                        onClick={() => setSearchQuery("")}
+                      >
+                        <X className="h-2 w-2" />
+                      </Button>
+                    </Badge>
+                  )}
+                  {sortBy !== "date" && (
+                    <Badge variant="secondary">
+                      Sorted by: {sortBy === "name" ? "Name" : "Last Updated"}
+                    </Badge>
+                  )}
                 </div>
-                <Plus className="h-4 w-4" />
-              </Button>
+              )}
             </div>
-            <p className="text-xs text-muted-foreground">
-              You can always rearrange decks into folders later.
+            <p className="text-sm text-muted-foreground">
+              {(isInFolder || activeTab === "workspace") &&
+                (currentFolderId
+                  ? "Decks inside this folder."
+                  : "Folders and decks you own.")}
+              {!isInFolder &&
+                activeTab === "favorites" &&
+                "Decks you've starred for quick access."}
+              {!isInFolder &&
+                activeTab === "recent" &&
+                "Jump back into the decks you opened most recently."}
             </p>
           </div>
-        </DialogContent>
-      </Dialog>
+
+          {isInFolder ? (
+            renderWorkspaceTab()
+          ) : (
+            <AnimatePresence mode="wait">
+              {activeTab === "workspace" && renderWorkspaceTab()}
+              {activeTab === "favorites" && renderFavoritesTab()}
+              {activeTab === "recent" && renderRecentTab()}
+            </AnimatePresence>
+          )}
+        </div>
+
+        {/* Drag overlay */}
+        {dragItem && (
+          <div className="fixed inset-0 pointer-events-none z-50">
+            <div className="absolute top-4 right-4 bg-primary text-primary-foreground px-3 py-2 rounded-lg shadow-lg">
+              <div className="flex items-center gap-2">
+                <Move className="h-4 w-4 animate-pulse" />
+                <span>Drag to move "{dragItem.deckName}"</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="fixed bottom-6 right-6 md:hidden">
+          <Button
+            size="lg"
+            className="rounded-full w-14 h-14 shadow-lg"
+            onClick={() =>
+              currentFolderId
+                ? setIsAddDeckModalOpen(true)
+                : setIsCreateChooserOpen(true)
+            }
+          >
+            <Plus className="h-6 w-6" />
+          </Button>
+        </div>
+
+        <AddDeckModal
+          open={isAddDeckModalOpen}
+          onOpenChange={setIsAddDeckModalOpen}
+          onAddDeck={handleAddDeck}
+          folders={folders}
+          defaultFolderId={currentFolderId}
+        />
+
+        <AddFolderModal
+          open={isAddFolderModalOpen}
+          onOpenChange={setIsAddFolderModalOpen}
+          onCreate={handleCreateFolder}
+        />
+
+        {folderToEdit && (
+          <EditFolderModal
+            open={isEditFolderModalOpen}
+            onOpenChange={setIsEditFolderModalOpen}
+            initialName={folderToEdit.name}
+            onSubmit={(name) => {
+              setFolderToEdit((prev) => (prev ? { ...prev, name } : prev));
+              renameFolder.mutate(
+                { folderId: folderToEdit.id, name },
+                {
+                  onSuccess: () => {
+                    showToast("Folder renamed");
+                    setIsEditFolderModalOpen(false);
+                    setFolderToEdit(null);
+                  },
+                  onError: (err: any) =>
+                    showToast(
+                      err?.message || "Failed to rename folder",
+                      "error",
+                    ),
+                },
+              );
+            }}
+          />
+        )}
+
+        <Dialog
+          open={isCreateChooserOpen}
+          onOpenChange={setIsCreateChooserOpen}
+        >
+          <DialogContent className="modal-surface sm:max-w-[520px] p-0">
+            <DialogHeader className="flex flex-row items-start gap-3 border-b border-border/60 bg-gradient-to-r from-primary/10 via-muted/40 to-transparent px-6 py-5">
+              <div className="flex size-12 items-center justify-center rounded-lg bg-primary/15 text-primary shadow-inner ring-1 ring-primary/20">
+                <Plus className="h-5 w-5" />
+              </div>
+              <div className="space-y-1 text-left">
+                <DialogTitle className="text-xl">
+                  Create something new
+                </DialogTitle>
+                <DialogDescription>
+                  Pick what to add to your workspace.
+                </DialogDescription>
+              </div>
+            </DialogHeader>
+
+            <div className="px-6 pb-6 pt-4 space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Button
+                  variant="default"
+                  className="h-full justify-between bg-yellow text-foreground border border-yellow/60 shadow-[0_12px_30px_rgba(255,215,0,0.35)] hover:scale-[1.01] hover:shadow-[0_16px_36px_rgba(255,215,0,0.4)] transition-transform"
+                  onClick={() => {
+                    setIsCreateChooserOpen(false);
+                    setIsAddDeckModalOpen(true);
+                  }}
+                >
+                  <div className="flex flex-col items-start text-left gap-1">
+                    <span className="font-semibold">New Deck</span>
+                    <span className="text-xs text-foreground/80">
+                      Create flashcards fast.
+                    </span>
+                  </div>
+                  <Plus className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="secondary"
+                  className="h-full justify-between bg-pink text-foreground border border-pink/60 shadow-[0_12px_30px_rgba(255,182,251,0.35)] hover:scale-[1.01] hover:shadow-[0_16px_36px_rgba(255,182,251,0.45)] transition-transform"
+                  onClick={() => {
+                    setIsCreateChooserOpen(false);
+                    setIsAddFolderModalOpen(true);
+                  }}
+                >
+                  <div className="flex flex-col items-start text-left gap-1">
+                    <span className="font-semibold">New Folder</span>
+                    <span className="text-xs text-foreground/80">
+                      Group decks by topic.
+                    </span>
+                  </div>
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                You can always rearrange decks into folders later.
+              </p>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
