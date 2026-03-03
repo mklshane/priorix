@@ -1,8 +1,9 @@
 "use client";
 
-import { ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
+import { ChangeEvent, CSSProperties, MouseEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { EditorContent, useEditor } from "@tiptap/react";
+import Document from "@tiptap/extension-document";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import Highlight from "@tiptap/extension-highlight";
@@ -11,7 +12,7 @@ import { TextStyle } from "@tiptap/extension-text-style";
 import Color from "@tiptap/extension-color";
 import TextAlign from "@tiptap/extension-text-align";
 import Image from "@tiptap/extension-image";
-import { Extension } from "@tiptap/core";
+import { Extension, JSONContent, Node as TiptapNode } from "@tiptap/core";
 import Cropper, { Area } from "react-easy-crop";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -74,6 +75,56 @@ import { useNote, useNoteMutations } from "@/hooks/useNotes";
 interface NoteEditorProps {
   noteId: string;
 }
+
+const PAGE_HEIGHT = 1056; // US Letter at 96dpi
+const PAGE_GAP = 40;
+const PAGE_TOP_PADDING = 40;
+const PAGE_BOTTOM_PADDING = 40;
+const MIN_BLOCK_HEIGHT = 24;
+const PAGE_OVERFLOW_TOLERANCE = 6;
+
+const createEmptyParagraph = (): JSONContent => ({ type: "paragraph" });
+
+const createEmptyPage = (): JSONContent => ({
+  type: "page",
+  content: [createEmptyParagraph()],
+});
+
+const PagedDocument = Document.extend({
+  content: "page+",
+});
+
+const PageNode = TiptapNode.create({
+  name: "page",
+  group: "block",
+  content: "block+",
+  defining: true,
+  draggable: false,
+  parseHTML() {
+    return [{ tag: 'div[data-page-node="true"]' }];
+  },
+  renderHTML({ HTMLAttributes }) {
+    return ["div", { ...HTMLAttributes, "data-page-node": "true" }, 0];
+  },
+});
+
+const buildInitialPagedDoc = (): JSONContent => ({
+  type: "doc",
+  content: [createEmptyPage()],
+});
+
+const wrapLegacyHtmlAsPagedDocument = (html: string) => {
+  const trimmed = html.trim();
+  if (!trimmed) {
+    return '<div data-page-node="true"><p></p></div>';
+  }
+
+  if (trimmed.includes('data-page-node="true"')) {
+    return trimmed;
+  }
+
+  return `<div data-page-node="true">${trimmed}</div>`;
+};
 
 const FontSize = Extension.create({
   name: "fontSize",
@@ -228,12 +279,13 @@ export default function NoteEditor({ noteId }: NoteEditorProps) {
   const [imageToolbarPos, setImageToolbarPos] = useState<{ top: number; left: number; width: number } | null>(null);
   const [pageCount, setPageCount] = useState(1);
 
-  const PAGE_HEIGHT = 1056; // US Letter at 96dpi
-
   const initializedRef = useRef(false);
   const autosaveRef = useRef<NodeJS.Timeout | null>(null);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
   const editorContainerRef = useRef<HTMLDivElement | null>(null);
+  const rebalanceRafRef = useRef<number | null>(null);
+  const isRebalancingRef = useRef(false);
+  const rebalancePagesRef = useRef<() => void>(() => {});
   const lastSavedSnapshotRef = useRef<{ title: string; html: string }>({
     title: "",
     html: "",
@@ -241,7 +293,10 @@ export default function NoteEditor({ noteId }: NoteEditorProps) {
 
   const editor = useEditor({
     extensions: [
+      PagedDocument,
+      PageNode,
       StarterKit.configure({
+        document: false,
         heading: { levels: [1, 2, 3] },
       }),
       Underline,
@@ -255,7 +310,7 @@ export default function NoteEditor({ noteId }: NoteEditorProps) {
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       ResizableImage.configure({ allowBase64: true }),
     ],
-    content: "<p></p>",
+    content: buildInitialPagedDoc(),
     editorProps: {
       attributes: {
         class:
@@ -268,8 +323,21 @@ export default function NoteEditor({ noteId }: NoteEditorProps) {
     onSelectionUpdate: ({ editor: e }) => {
       updateImageToolbar(e);
     },
-    onTransaction: ({ editor: e }) => {
+    onTransaction: ({ editor: e, transaction }) => {
       updateImageToolbar(e);
+
+      if (!transaction.docChanged || isRebalancingRef.current) {
+        return;
+      }
+
+      if (rebalanceRafRef.current !== null) {
+        cancelAnimationFrame(rebalanceRafRef.current);
+      }
+
+      rebalanceRafRef.current = requestAnimationFrame(() => {
+        rebalanceRafRef.current = null;
+        rebalancePagesRef.current();
+      });
     },
     immediatelyRender: false,
   });
@@ -301,23 +369,238 @@ export default function NoteEditor({ noteId }: NoteEditorProps) {
     []
   );
 
-  // Track content height and calculate page count
+  const syncPageCount = useCallback(
+    (fallback?: number) => {
+      if (typeof fallback === "number") {
+        setPageCount(Math.max(1, fallback));
+        return;
+      }
+
+      if (!editor) {
+        setPageCount(1);
+        return;
+      }
+
+      const pages = (editor.getJSON().content || []).filter((node) => node.type === "page");
+      setPageCount(Math.max(1, pages.length));
+    },
+    [editor]
+  );
+
+  const getPageContentCapacity = (pageEl: HTMLElement) => {
+    const style = window.getComputedStyle(pageEl);
+    const paddingTop = Number.parseFloat(style.paddingTop || "0") || 0;
+    const paddingBottom = Number.parseFloat(style.paddingBottom || "0") || 0;
+    const contentCapacity = pageEl.clientHeight - paddingTop - paddingBottom;
+    return Math.max(contentCapacity, MIN_BLOCK_HEIGHT);
+  };
+
+  const getPageUsedHeight = (pageEl: HTMLElement) => {
+    const pageBlockEls = Array.from(pageEl.children) as HTMLElement[];
+    if (!pageBlockEls.length) {
+      return 0;
+    }
+
+    const pageRect = pageEl.getBoundingClientRect();
+
+    let minTop = Number.POSITIVE_INFINITY;
+    let maxBottom = Number.NEGATIVE_INFINITY;
+
+    pageBlockEls.forEach((blockEl) => {
+      const blockRect = blockEl.getBoundingClientRect();
+      minTop = Math.min(minTop, blockRect.top - pageRect.top);
+      maxBottom = Math.max(maxBottom, blockRect.bottom - pageRect.top);
+    });
+
+    if (!Number.isFinite(minTop) || !Number.isFinite(maxBottom)) {
+      return 0;
+    }
+
+    return Math.max(0, maxBottom - minTop);
+  };
+
+  const getPageNodePositions = useCallback(() => {
+    if (!editor) {
+      return [] as Array<{ pos: number; index: number }>;
+    }
+
+    const pages: Array<{ pos: number; index: number }> = [];
+    let index = 0;
+
+    editor.state.doc.forEach((node, offset) => {
+      if (node.type.name === "page") {
+        pages.push({ pos: offset, index });
+        index += 1;
+      }
+    });
+
+    return pages;
+  }, [editor]);
+
+  const moveLastBlockToNextPage = useCallback(
+    (sourcePageIndex: number) => {
+      if (!editor) {
+        return false;
+      }
+
+      const { state } = editor;
+      const pagePositions = getPageNodePositions();
+      const sourcePagePos = pagePositions[sourcePageIndex]?.pos;
+
+      if (sourcePagePos == null) {
+        return false;
+      }
+
+      const sourcePageNode = state.doc.nodeAt(sourcePagePos);
+      if (!sourcePageNode || sourcePageNode.type.name !== "page") {
+        return false;
+      }
+
+      if (sourcePageNode.childCount <= 1) {
+        return false;
+      }
+
+      const lastChildIndex = sourcePageNode.childCount - 1;
+      const movedNode = sourcePageNode.child(lastChildIndex);
+      let movedNodePos = sourcePagePos + 1;
+
+      for (let index = 0; index < lastChildIndex; index += 1) {
+        movedNodePos += sourcePageNode.child(index).nodeSize;
+      }
+
+      const sourcePageEndPos = sourcePagePos + sourcePageNode.nodeSize;
+      const nextPagePos = pagePositions[sourcePageIndex + 1]?.pos;
+
+      let tr = state.tr;
+      tr = tr.delete(movedNodePos, movedNodePos + movedNode.nodeSize);
+
+      if (nextPagePos != null) {
+        const mappedNextInsertPos = tr.mapping.map(nextPagePos + 1, 1);
+        tr = tr.insert(mappedNextInsertPos, movedNode);
+      } else {
+        const mappedSourceEnd = tr.mapping.map(sourcePageEndPos, 1);
+        const newPageNode = state.schema.nodes.page.create(null, [movedNode]);
+        tr = tr.insert(mappedSourceEnd, newPageNode);
+      }
+
+      isRebalancingRef.current = true;
+      editor.view.dispatch(tr);
+      isRebalancingRef.current = false;
+      syncPageCount();
+
+      return true;
+    },
+    [editor, getPageNodePositions, syncPageCount]
+  );
+
+  const rebalancePages = useCallback(() => {
+    if (!editor || !editorContainerRef.current || isRebalancingRef.current) {
+      return;
+    }
+
+    const pageEls = Array.from(
+      editorContainerRef.current.querySelectorAll('[data-page-node="true"]')
+    ) as HTMLElement[];
+
+    const pagePositions = getPageNodePositions();
+    if (!pageEls.length || !pagePositions.length) {
+      syncPageCount();
+      return;
+    }
+    const measurablePageCount = Math.min(pagePositions.length, pageEls.length);
+
+    for (let pageIndex = 0; pageIndex < measurablePageCount; pageIndex += 1) {
+      const pageEl = pageEls[pageIndex];
+      if (!pageEl) {
+        continue;
+      }
+
+      const usedHeight = getPageUsedHeight(pageEl);
+      const contentCapacity = getPageContentCapacity(pageEl);
+
+      if (usedHeight > contentCapacity + PAGE_OVERFLOW_TOLERANCE) {
+        const moved = moveLastBlockToNextPage(pageIndex);
+        if (moved) {
+          if (rebalanceRafRef.current !== null) {
+            cancelAnimationFrame(rebalanceRafRef.current);
+          }
+
+          rebalanceRafRef.current = requestAnimationFrame(() => {
+            rebalanceRafRef.current = null;
+            rebalancePagesRef.current();
+          });
+        }
+        return;
+      }
+    }
+
+    syncPageCount(pagePositions.length);
+  }, [editor, getPageNodePositions, moveLastBlockToNextPage, syncPageCount]);
+
   useEffect(() => {
-    if (!editorContainerRef.current) return;
+    rebalancePagesRef.current = rebalancePages;
+  }, [rebalancePages]);
+
+  const handlePageGapMouseDown = useCallback(
+    (event: MouseEvent<HTMLDivElement>) => {
+      if (!editor || !editorContainerRef.current) return;
+
+      const targetEl = event.target as HTMLElement;
+      if (targetEl.closest('[data-page-node="true"]')) return;
+
+      event.preventDefault();
+
+      const pageEls = Array.from(
+        editorContainerRef.current.querySelectorAll('[data-page-node="true"]')
+      ) as HTMLElement[];
+
+      if (!pageEls.length) {
+        editor.commands.focus("end");
+        return;
+      }
+
+      const pageEl =
+        pageEls.find((node) => {
+          const rect = node.getBoundingClientRect();
+          return event.clientY <= rect.bottom;
+        }) || pageEls[pageEls.length - 1];
+
+      const pageRect = pageEl.getBoundingClientRect();
+      const targetTop = Math.min(
+        pageRect.bottom - PAGE_BOTTOM_PADDING - 8,
+        Math.max(pageRect.top + PAGE_TOP_PADDING + 8, event.clientY)
+      );
+      const target = editor.view.posAtCoords({ left: event.clientX, top: targetTop });
+
+      if (target?.pos != null) {
+        editor.chain().focus().setTextSelection(target.pos).run();
+      } else {
+        editor.commands.focus("end");
+      }
+    },
+    [editor]
+  );
+
+  // Track page content size changes and keep page allocation in sync
+  useEffect(() => {
+    if (!editor || !editorContainerRef.current) return;
     const proseMirrorEl = editorContainerRef.current.querySelector(".ProseMirror") as HTMLElement | null;
     if (!proseMirrorEl) return;
 
     const observer = new ResizeObserver(() => {
-      const contentHeight = proseMirrorEl.scrollHeight;
-      const verticalPadding = 120; // 60px top + 60px bottom
-      const totalNeeded = contentHeight + verticalPadding;
-      const newPageCount = Math.max(1, Math.ceil(totalNeeded / PAGE_HEIGHT));
-      setPageCount(newPageCount);
+      if (rebalanceRafRef.current !== null) {
+        cancelAnimationFrame(rebalanceRafRef.current);
+      }
+
+      rebalanceRafRef.current = requestAnimationFrame(() => {
+        rebalanceRafRef.current = null;
+        rebalancePagesRef.current();
+      });
     });
 
     observer.observe(proseMirrorEl);
     return () => observer.disconnect();
-  }, [editor, PAGE_HEIGHT]);
+  }, [editor]);
 
   const plainTextLength = editor?.getText()?.length ?? 0;
 
@@ -396,7 +679,7 @@ export default function NoteEditor({ noteId }: NoteEditorProps) {
     }
 
     setTitle(initialTitle);
-    editor.commands.setContent(initialHtml, { emitUpdate: false });
+    editor.commands.setContent(wrapLegacyHtmlAsPagedDocument(initialHtml), { emitUpdate: false });
 
     lastSavedSnapshotRef.current = {
       title: initialTitle,
@@ -404,6 +687,7 @@ export default function NoteEditor({ noteId }: NoteEditorProps) {
     };
 
     initializedRef.current = true;
+    rebalancePagesRef.current();
   }, [note, editor]);
 
   useEffect(() => {
@@ -411,8 +695,17 @@ export default function NoteEditor({ noteId }: NoteEditorProps) {
       if (autosaveRef.current) {
         clearTimeout(autosaveRef.current);
       }
+
+      if (rebalanceRafRef.current !== null) {
+        cancelAnimationFrame(rebalanceRafRef.current);
+      }
     };
   }, []);
+
+  useEffect(() => {
+    if (!editor) return;
+    rebalancePagesRef.current();
+  }, [docMargin, isTwoColumn, editor]);
 
   const handleTitleBlur = async () => {
     try {
@@ -609,6 +902,14 @@ export default function NoteEditor({ noteId }: NoteEditorProps) {
     { color: "#fed7aa", label: "Orange" },
     { color: "#e9d5ff", label: "Purple" },
   ];
+
+  const pageContainerStyle: CSSProperties = {
+    ["--page-height" as string]: `${PAGE_HEIGHT}px`,
+    ["--page-gap" as string]: `${PAGE_GAP}px`,
+    ["--page-top-padding" as string]: `${PAGE_TOP_PADDING}px`,
+    ["--page-bottom-padding" as string]: `${PAGE_BOTTOM_PADDING}px`,
+    ["--doc-margin" as string]: `${docMargin}px`,
+  };
 
   return (
     <>
@@ -1099,31 +1400,12 @@ export default function NoteEditor({ noteId }: NoteEditorProps) {
         {/* ── Editor document ── */}
         <div
           ref={editorContainerRef}
-          className="note-page relative mx-auto w-full max-w-[816px] rounded-md border border-border/40 bg-card shadow-md"
-          style={{ minHeight: PAGE_HEIGHT * pageCount }}
+          className="note-pages relative mx-auto w-full max-w-[816px]"
+          style={pageContainerStyle}
           data-two-column={isTwoColumn || undefined}
+          onMouseDownCapture={handlePageGapMouseDown}
         >
-          <div style={{ paddingLeft: docMargin, paddingRight: docMargin, paddingTop: 60, paddingBottom: 60 }}>
-            <EditorContent editor={editor} />
-          </div>
-
-          {/* Page break overlays */}
-          {Array.from({ length: pageCount - 1 }, (_, i) => (
-            <div
-              key={i}
-              className="pointer-events-none absolute left-0 right-0 z-10"
-              style={{ top: PAGE_HEIGHT * (i + 1) - 1 }}
-            >
-              {/* Top shadow (bottom of previous page) */}
-              <div className="h-[3px] bg-gradient-to-b from-black/[0.06] to-transparent" />
-              {/* Page gap */}
-              <div className="flex h-6 items-center bg-background">
-                <div className="h-px w-full bg-border/60" />
-              </div>
-              {/* Bottom shadow (top of next page) */}
-              <div className="h-[3px] bg-gradient-to-t from-black/[0.06] to-transparent" />
-            </div>
-          ))}
+          <EditorContent editor={editor} />
 
           {/* Floating image toolbar */}
           {isImageSelected && imageToolbarPos && (
@@ -1166,7 +1448,9 @@ export default function NoteEditor({ noteId }: NoteEditorProps) {
         </div>
 
         <div className="mt-3 flex items-center justify-between border-t border-border/40 pt-3 text-xs text-muted-foreground">
-          <span>{plainTextLength} characters</span>
+          <span>
+            {plainTextLength} characters • {pageCount} {pageCount === 1 ? "page" : "pages"}
+          </span>
           <span>
             {updateNote.isPending
               ? "Saving..."
