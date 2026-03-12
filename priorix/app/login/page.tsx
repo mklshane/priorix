@@ -1,34 +1,54 @@
 "use client";
 import Link from "next/link";
 import React, { useState } from "react";
-import { signIn, useSession } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
 const LoginBox = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const router = useRouter();
 
-  const { data } = useSession();
-  const session = data;
-
-  //console.log("Session: ", session)
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+    setLoading(true);
 
-    const res = await signIn("credentials", {
-      email,
-      password,
-      redirect: false, // so we can handle errors manually
-    });
+    try {
+      // Validate credentials first to get the actual error message
+      const validateRes = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    if (res?.error) {
-      alert(res.error);
-    } else {
-      router.push("/dashboard");
+      const data = await validateRes.json();
+      if (!validateRes.ok) {
+        setError(data.message);
+        return;
+      }
+
+      // Credentials are valid, proceed with NextAuth sign-in
+      const res = await signIn("credentials", {
+        email,
+        password,
+        rememberMe: rememberMe ? "true" : "false",
+        redirect: false,
+      });
+
+      if (res?.error) {
+        setError("Sign-in failed. Please try again.");
+      } else {
+        router.push("/dashboard");
+      }
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -48,6 +68,11 @@ const LoginBox = () => {
 
         {/* Login Box */}
         <div className="w-full bg-green/80 noise rounded-[10px] border-2 border-primary p-8 shadow-lg">
+          {error && (
+            <div className="mb-4 p-3 rounded-xl bg-red-100 border border-red-300 text-red-800 text-sm">
+              {error}
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="flex flex-col space-y-5">
             {/* Email Input */}
             <div className="flex flex-col">
@@ -102,20 +127,21 @@ const LoginBox = () => {
                 </label>
               </div>
 
-              <a
-                href="#"
+              <Link
+                href="/forgot-password"
                 className="text-sm text-foreground hover:text-course-yellow transition"
               >
                 Forgot password?
-              </a>
+              </Link>
             </div>
 
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full bg-gradient-to-r bg-purple text-foreground py-3 px-4 rounded-2xl hover:bg-purple/80 focus:outline-none focus:ring-2 focus:ring-course-blue transition shadow-md hover:shadow-lg btn-base btn-hover btn-active"
+              disabled={loading}
+              className="w-full bg-gradient-to-r bg-purple text-foreground py-3 px-4 rounded-2xl hover:bg-purple/80 focus:outline-none focus:ring-2 focus:ring-course-blue transition shadow-md hover:shadow-lg btn-base btn-hover btn-active disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Sign in
+              {loading ? "Signing in..." : "Sign in"}
             </button>
           </form>
 

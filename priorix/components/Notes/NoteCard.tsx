@@ -64,7 +64,7 @@ export default function NoteCard({
 	return (
 		<div
 			className={cn(
-				"group relative flex h-full min-h-[200px] cursor-pointer flex-col rounded-2xl border border-gray-300 shadow-sm p-5 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg",
+				"group relative flex h-full min-h-[200px] cursor-pointer flex-col rounded-2xl border border-border/70 p-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-border hover:shadow-md",
 				colorClass
 			)}
 			onClick={() => onOpen(note._id)}
@@ -73,7 +73,7 @@ export default function NoteCard({
 			<div className="flex items-start justify-between gap-2">
 				<div className="flex items-center gap-2">
 					{folderName && (
-						<span className="inline-flex items-center gap-1 rounded-full bg-black/[0.06] px-2.5 py-0.5 text-[11px] font-medium dark:bg-white/[0.08]">
+						<span className="inline-flex items-center gap-1 rounded-full bg-foreground/10 px-2.5 py-0.5 text-[11px] font-medium text-foreground/80">
 							<Folder className="h-3 w-3" />
 							{folderName}
 						</span>
@@ -133,20 +133,20 @@ export default function NoteCard({
 			</h3>
 
 			{/* Excerpt */}
-			<p className="mt-2 flex-1 text-[13px] leading-relaxed opacity-65 line-clamp-3">
+			<p className="mt-2 line-clamp-3 flex-1 text-[13px] leading-relaxed text-foreground/70">
 				{note.excerpt || "Empty note"}
 			</p>
 
 			{/* Footer */}
-			<div className="mt-4 flex items-center justify-between border-t border-black/10 pt-3 dark:border-white/10">
-				<div className="flex items-center gap-1.5 text-[11px] font-medium opacity-55">
+			<div className="mt-4 flex items-center justify-between border-t border-border/50 pt-3">
+				<div className="flex items-center gap-1.5 text-[11px] font-medium text-foreground/60">
 					<Clock className="h-3 w-3" />
 					<span>{formatTime(note.updatedAt)}</span>
 					<span className="mx-1">&middot;</span>
 					<span>{formatDate(note.updatedAt)}</span>
 				</div>
 				<button
-					className="flex h-7 w-7 items-center justify-center rounded-lg bg-black/[0.06] opacity-0 transition-all hover:bg-black/10 group-hover:opacity-100 dark:bg-white/[0.08] dark:hover:bg-white/15"
+					className="flex h-7 w-7 items-center justify-center rounded-lg bg-foreground/10 opacity-0 transition-all hover:bg-foreground/15 group-hover:opacity-100"
 					onClick={(e) => {
 						e.stopPropagation();
 						onOpen(note._id);

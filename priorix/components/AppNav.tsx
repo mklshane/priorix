@@ -41,17 +41,13 @@ export default function AppNav() {
   const handleBack = () => {
     if (isOnStudyPage || isOnSrsPage) {
       const deckId = getDeckId();
-      console.log("Study page - deckId:", deckId);
 
       if (deckId && deckId !== "new") {
-        const targetUrl = `/decks/${deckId}`;
         sessionStorage.removeItem("fromDashboardRecent");
         sessionStorage.removeItem("lastDashboardPath");
         router.push(`/decks/${deckId}`);
         return;
       } else {
-        console.log("No valid deckId found, going to /decks");
-
         sessionStorage.removeItem("fromDashboardRecent");
         sessionStorage.removeItem("lastDashboardPath");
         router.push("/decks");
@@ -84,12 +80,10 @@ export default function AppNav() {
       }
       return;
     }
-    console.log("Navigating to /dashboard (fallback)");
     router.push("/dashboard");
   };
 
   const handleToggle = () => {
-    console.log("[v0] Burger menu clicked");
     toggleSidebar();
   };
 
@@ -187,6 +181,8 @@ export default function AppNav() {
     "/browse": "Browse",
     "/todo": "Tasks",
     "/notes": "Notes",
+    "/analytics": "Analytics",
+    "/settings/learning": "Learning Settings",
   };
 
   const getCurrentPage = () => {
@@ -223,7 +219,7 @@ export default function AppNav() {
   const currentPage = getCurrentPage();
 
   return (
-    <nav className="w-full h-16 bg-sidebar border-b border-sidebar-border px-4 lg:px-6 flex items-center justify-between">
+    <nav className="w-full h-16 bg-sidebar/95 backdrop-blur supports-[backdrop-filter]:bg-sidebar/80 border-b border-sidebar-border px-4 lg:px-6 flex items-center justify-between">
       <div className="flex items-center justify-between w-full relative">
         {/* Left - Hamburger Menu or Back Button */}
         <div className="flex-shrink-0">
@@ -231,7 +227,7 @@ export default function AppNav() {
             <Button
               variant="ghost"
               size="sm"
-              className="h-9 w-9 p-0 hover:bg-sidebar-accent text-sidebar-foreground rounded-lg transition-colors"
+              className="h-10 w-10 p-0 hover:bg-sidebar-accent text-sidebar-foreground rounded-xl transition-colors"
               onClick={() => {
                 if (isOnNotePage) {
                   router.push("/notes");
@@ -246,7 +242,7 @@ export default function AppNav() {
             <Button
               variant="ghost"
               size="sm"
-              className="h-9 w-9 p-0 lg:hidden hover:bg-sidebar-accent text-sidebar-foreground rounded-lg transition-colors"
+              className="h-10 w-10 p-0 lg:hidden hover:bg-sidebar-accent text-sidebar-foreground rounded-xl transition-colors"
               onClick={handleToggle}
             >
               <Menu className="h-5 w-5" />
@@ -256,7 +252,7 @@ export default function AppNav() {
 
         {/* Center - Page Name */}
         <div className="absolute left-1/2 transform -translate-x-1/2">
-          <h1 className="font-lora text-lg lg:text-xl text-sidebar-foreground whitespace-nowrap">
+          <h1 className="font-lora text-lg lg:text-xl text-sidebar-foreground whitespace-nowrap tracking-wide">
             {currentPage}
           </h1>
         </div>
@@ -267,7 +263,7 @@ export default function AppNav() {
           {user && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center space-x-2 h-9 bg-sidebar-accent hover:bg-sidebar-accent/80 border border-sidebar-border rounded-lg px-2 lg:px-3 transition-colors">
+                <button className="flex items-center space-x-2 h-10 bg-sidebar-accent/40 hover:bg-sidebar-accent border border-sidebar-border rounded-xl px-2.5 lg:px-3 transition-colors">
                   <span className="font-sora text-sm text-sidebar-foreground hidden sm:block">
                     {firstName}
                   </span>
@@ -282,37 +278,34 @@ export default function AppNav() {
                   </Avatar>
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="end"
-                className="w-48 dark:border-gray-700"
-              >
+              <DropdownMenuContent align="end" className="w-56">
                 <div className="px-2 py-1.5">
-                  <p className="font-sora text-sm font-medium text-gray-900 dark:text-white truncate">
+                  <p className="font-sora text-sm font-medium text-foreground truncate">
                     {user.name}
                   </p>
-                  <p className="font-sora text-xs text-gray-500 dark:text-gray-400 truncate">
+                  <p className="font-sora text-xs text-muted-foreground truncate">
                     {user.email}
                   </p>
                 </div>
-                <DropdownMenuSeparator className="dark:bg-gray-700" />
+                <DropdownMenuSeparator />
                 <DropdownMenuItem
                   disabled
-                  className="cursor-not-allowed font-sora text-muted-foreground opacity-60 dark:text-gray-500 dark:focus:bg-gray-700"
+                  className="cursor-not-allowed font-sora text-muted-foreground opacity-60"
                 >
                   <User className="mr-2 h-4 w-4" />
                   Profile
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  disabled
-                  className="cursor-not-allowed font-sora text-muted-foreground opacity-60 dark:text-gray-500 dark:focus:bg-gray-700"
+                  onClick={() => router.push("/settings/learning")}
+                  className="cursor-pointer font-sora"
                 >
                   <Settings className="mr-2 h-4 w-4" />
                   Settings
                 </DropdownMenuItem>
-                <DropdownMenuSeparator className="dark:bg-gray-700" />
+                <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => signOut({ callbackUrl: "/" })}
-                  className="cursor-pointer text-red-600 focus:text-red-600 font-sora dark:focus:bg-gray-700"
+                  className="cursor-pointer text-red-600 focus:text-red-600 font-sora"
                 >
                   <LogOut className="mr-2 h-4 w-4" />
                   Logout

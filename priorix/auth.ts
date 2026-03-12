@@ -13,28 +13,30 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       credentials: {
         email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
+        rememberMe: { label: "Remember Me", type: "text" },
       },
       authorize: async (credentials) => {
         try {
           await ConnectDB();
 
           const user = await User.findOne({ email: credentials?.email });
-          if (!user) throw new Error("Invalid credentials.");
+          if (!user || !user.password) return null;
 
           const isValidPassword = await bcrypt.compare(
             (credentials?.password as string) ?? "",
-            user.password ?? ""
+            user.password
           );
-          if (!isValidPassword) throw new Error("Invalid credentials.");
+          if (!isValidPassword) return null;
 
           return {
             id: (user._id as mongoose.Types.ObjectId).toString(),
             name: user.name,
             email: user.email,
+            rememberMe: credentials?.rememberMe === "true",
           };
         } catch (error) {
           console.error("Auth error:", error);
-          throw new Error("Authentication failed.");
+          return null;
         }
       },
     }),
@@ -71,15 +73,22 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
     async jwt({ token, user }) {
       if (user) {
-        // Store the user ID (MongoDB ID) in the token
         token.sub = user.id;
+        // Set token expiry based on remember me
+        const rememberMe = (user as any).rememberMe;
+        if (rememberMe) {
+          token.exp = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60; // 30 days
+        } else {
+          token.exp = Math.floor(Date.now() / 1000) + 24 * 60 * 60; // 1 day
+        }
       }
       return token;
     },
   },
   pages: {
-    signIn: "/auth/signin",
+    signIn: "/login",
   },
+  trustHost: true,
 });
 
 // Export the handlers for the API route

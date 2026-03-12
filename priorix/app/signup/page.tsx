@@ -9,39 +9,52 @@ const SignUp = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
 
     if (password !== confirmPassword) {
-      alert("Passwords do not match");
+      setError("Passwords do not match.");
       return;
     }
 
-    const res = await fetch("/api/auth/signup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name,
-        email,
-        password,
-      }),
-    });
+    setLoading(true);
 
-    const data = await res.json();
-    if (res.ok) {
-      alert(data.message);
+    try {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.message || "Something went wrong.");
+        return;
+      }
+
       // Auto-login after signup
-      await signIn("credentials", {
+      const signInRes = await signIn("credentials", {
         email,
         password,
         redirect: false,
       });
+
+      if (signInRes?.error) {
+        setError("Account created but auto-login failed. Please log in manually.");
+        return;
+      }
+
       router.push("/dashboard");
-    } else {
-      alert(data.message || "Something went wrong");
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
   
@@ -62,6 +75,11 @@ const SignUp = () => {
 
         {/* --- Signup Form --- */}
         <div className="w-full bg-green/80 noise rounded-[10px] border-2 border-primary p-8 shadow-lg">
+          {error && (
+            <div className="mb-4 p-3 rounded-xl bg-red-100 border border-red-300 text-red-800 text-sm">
+              {error}
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="flex flex-col space-y-5">
             {/* Name Input */}
             <div className="flex flex-col">
@@ -136,9 +154,10 @@ const SignUp = () => {
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full bg-purple text-foreground py-3 px-4 rounded-2xl hover:bg-purple/70 focus:outline-none focus:ring-2 focus:ring-course-blue transition shadow-md hover:shadow-lg btn-base btn-hover btn-active"
+              disabled={loading}
+              className="w-full bg-purple text-foreground py-3 px-4 rounded-2xl hover:bg-purple/70 focus:outline-none focus:ring-2 focus:ring-course-blue transition shadow-md hover:shadow-lg btn-base btn-hover btn-active disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Create Account
+              {loading ? "Creating account..." : "Create Account"}
             </button>
           </form>
           {/* Divider */}

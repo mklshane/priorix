@@ -15,10 +15,10 @@ export async function POST(req: Request) {
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return NextResponse.json(
-        { message: "User already exists" },
-        { status: 400 }
-      );
+      const message = existingUser.password
+        ? "An account with this email already exists."
+        : "This email is linked to a Google account. Please sign in with Google.";
+      return NextResponse.json({ message }, { status: 400 });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
