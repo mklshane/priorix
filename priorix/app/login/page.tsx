@@ -36,6 +36,7 @@ const LoginBox = () => {
       const res = await signIn("credentials", {
         email,
         password,
+        rememberMe: rememberMe ? "true" : "false",
         redirect: false,
       });
 
@@ -126,12 +127,12 @@ const LoginBox = () => {
                 </label>
               </div>
 
-              <a
-                href="#"
+              <Link
+                href="/forgot-password"
                 className="text-sm text-foreground hover:text-course-yellow transition"
               >
                 Forgot password?
-              </a>
+              </Link>
             </div>
 
             {/* Submit Button */}
