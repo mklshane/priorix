@@ -19,13 +19,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           await ConnectDB();
 
           const user = await User.findOne({ email: credentials?.email });
-          if (!user) throw new Error("Invalid credentials.");
+          if (!user || !user.password) return null;
 
           const isValidPassword = await bcrypt.compare(
             (credentials?.password as string) ?? "",
-            user.password ?? ""
+            user.password
           );
-          if (!isValidPassword) throw new Error("Invalid credentials.");
+          if (!isValidPassword) return null;
 
           return {
             id: (user._id as mongoose.Types.ObjectId).toString(),
@@ -34,7 +34,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           };
         } catch (error) {
           console.error("Auth error:", error);
-          throw new Error("Authentication failed.");
+          return null;
         }
       },
     }),
@@ -78,8 +78,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
   },
   pages: {
-    signIn: "/auth/signin",
+    signIn: "/login",
   },
+  trustHost: true,
 });
 
 // Export the handlers for the API route
