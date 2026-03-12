@@ -37,7 +37,6 @@ export default function TodoPage() {
 
   const rescheduleTask = useRescheduleTask();
 
-  // Calculate date range for fetching tasks based on view
   const { rangeStart, rangeEnd } = useMemo(() => {
     let start: Date;
     let end: Date;
@@ -61,16 +60,14 @@ export default function TodoPage() {
     };
   }, [currentDate, selectedDate, calendarView]);
 
-  // Fetch all tasks (active + completed) for the range
   const { data: tasks = [], isLoading } = useTasksForDateRange(
     rangeStart,
     rangeEnd,
-    "all"
+    "all",
   );
 
-  // DnD sensors
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
   );
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
@@ -88,7 +85,6 @@ export default function TodoPage() {
       const overId = String(over.id);
       const taskId = String(active.id).replace("task-", "");
 
-      // Dropped on a day cell in month view: "day-YYYY-MM-DD"
       if (overId.startsWith("day-") && overId.split("-").length === 4) {
         const dateStr = overId.replace("day-", "");
         if (dateStr && taskId) {
@@ -97,28 +93,11 @@ export default function TodoPage() {
         return;
       }
 
-      // Dropped on a week time slot: "week-YYYY-MM-DD-HH" or "week-YYYY-MM-DD-allday"
-      if (overId.startsWith("week-")) {
-        const raw = overId.replace("week-", "");
-        const lastDash = raw.lastIndexOf("-");
-        const dateStr = raw.substring(0, lastDash);
-        const timeOrAllDay = raw.substring(lastDash + 1);
-
-        if (timeOrAllDay === "allday") {
-          rescheduleTask.mutate({ taskId, dueDate: dateStr });
-        } else {
-          const hour = parseInt(timeOrAllDay, 10);
-          if (!isNaN(hour)) {
-            const dueTime = `${String(hour).padStart(2, "0")}:00`;
-            rescheduleTask.mutate({ taskId, dueDate: dateStr, dueTime });
-          }
-        }
-        return;
-      }
-
-      // Dropped on a day view time slot: "day-YYYY-MM-DD-HH" or "day-YYYY-MM-DD-allday"
-      if (overId.startsWith("day-") && overId.split("-").length > 4) {
-        const raw = overId.replace("day-", "");
+      if (
+        overId.startsWith("week-") ||
+        (overId.startsWith("day-") && overId.split("-").length > 4)
+      ) {
+        const raw = overId.replace(/^(week|day)-/, "");
         const lastDash = raw.lastIndexOf("-");
         const dateStr = raw.substring(0, lastDash);
         const timeOrAllDay = raw.substring(lastDash + 1);
@@ -134,81 +113,89 @@ export default function TodoPage() {
         }
       }
     },
-    [rescheduleTask]
+    [rescheduleTask],
   );
 
-  if (sessionStatus === "loading") {
-    return (
-      <div className="w-full max-w-[1400px] mx-auto p-4 md:p-6 space-y-5">
-        <div className="h-8 w-48 bg-muted rounded-lg animate-pulse" />
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_380px] gap-5">
-          <div className="h-[500px] bg-muted rounded-2xl animate-pulse" />
-          <div className="h-[500px] bg-muted rounded-2xl animate-pulse" />
-        </div>
-      </div>
-    );
-  }
-
-  if (sessionStatus === "unauthenticated") {
-    return (
-      <div className="w-full max-w-[1400px] mx-auto p-4 md:p-6">
-        <div className="text-center py-20">
-          <h1 className="text-2xl font-bold mb-2">To-Do</h1>
-          <p className="text-muted-foreground">
-            Please sign in to manage your tasks.
-          </p>
-        </div>
-      </div>
-    );
-  }
+  if (sessionStatus === "loading") return null;
 
   return (
-    <div className="w-full max-w-[1400px] mx-auto">
+    <>
+      {/* Scoped Typography Injection */}
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+        @import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Jost:ital,wght@0,300..700;1,300..700&display=swap');
+        .font-editorial { font-family: 'Bodoni Moda', serif; }
+        .font-sans-utility { font-family: 'Jost', sans-serif; }
+      `,
+        }}
+      />
 
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-      >
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_380px] lg:grid-cols-[1fr_420px] gap-5 items-start">
-          {/* Left: Calendar */}
-          <div className="bg-card border border-border rounded-2xl p-3 sm:p-4 md:p-5 min-h-0 md:min-h-[500px] shadow-sm">
-            <TodoCalendar
-              currentDate={currentDate}
-              selectedDate={selectedDate}
-              view={calendarView}
-              tasks={tasks}
-              onDateChange={setCurrentDate}
-              onSelectDate={(date) => {
-                setSelectedDate(date);
-                setCurrentDate(date);
-              }}
-              onViewChange={setCalendarView}
-            />
+      {/* 100dvh constraint wrapper with scoped colors */}
+      <div className="w-full h-[calc(100dvh-2rem)] md:h-[calc(100dvh-3rem)] flex flex-col mx-auto px-4 md:px-8 py-4 md:py-6 font-sans-utility bg-[#F6F4F0] dark:bg-[#111111] text-[#1A1A1A] dark:text-[#EFEFEF] selection:bg-[#D64045] selection:text-white rounded-xl md:rounded-2xl overflow-hidden border border-border/50">
+        {/* Adjusted Editorial Header */}
+        <header className="shrink-0 mb-6 pb-4 border-b-2 border-black/80 dark:border-white/80 flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <h1 className="text-5xl md:text-7xl font-editorial italic leading-none tracking-tighter pr-4">
+              Agenda
+            </h1>
+            <p className="text-xs md:text-sm uppercase tracking-[0.3em] mt-3 font-medium text-black/60 dark:text-white/60">
+              Master Ledger • Vol {format(new Date(), "yy")}
+            </p>
           </div>
-
-          {/* Right: Task List */}
-          <div className="bg-card border border-border rounded-2xl p-3 sm:p-4 md:p-5 min-h-0 md:min-h-[500px] max-h-[calc(100vh-180px)] md:sticky md:top-4 shadow-sm">
-            <TaskList
-              selectedDate={selectedDate}
-              tasks={tasks}
-              isLoading={isLoading}
-            />
+          <div className="text-left md:text-right hidden sm:block">
+            <p className="font-editorial text-2xl md:text-3xl">
+              {format(currentDate, "MMMM")}
+            </p>
+            <p className="text-sm uppercase tracking-widest">
+              {format(currentDate, "yyyy")}
+            </p>
           </div>
-        </div>
+        </header>
 
-        <DragOverlay>
-          {activeTask && (
-            <div className="bg-card border border-primary/30 shadow-xl rounded-xl p-3 text-sm max-w-[220px] opacity-95 backdrop-blur-sm">
-              <span className="font-medium truncate block">{activeTask.taskTitle}</span>
-              {activeTask.dueTime && (
-                <span className="text-xs text-muted-foreground mt-0.5 block">{activeTask.dueTime}</span>
-              )}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          {/* Main Grid: min-h-0 is crucial for inner scrolling in flex parents */}
+          <div className="flex-1 min-h-0 grid grid-cols-1 xl:grid-cols-[400px_1fr] gap-8 md:gap-12 items-start">
+            {/* Left Column: Calendar */}
+            <div className="h-full max-h-full flex flex-col border border-black/80 dark:border-white/80 p-4 md:p-6 bg-white dark:bg-[#1A1A1A] shadow-[4px_4px_0px_0px_#1A1A1A] dark:shadow-[4px_4px_0px_0px_#D64045]">
+              <TodoCalendar
+                currentDate={currentDate}
+                selectedDate={selectedDate}
+                view={calendarView}
+                tasks={tasks}
+                onDateChange={setCurrentDate}
+                onSelectDate={(date) => {
+                  setSelectedDate(date);
+                  setCurrentDate(date);
+                }}
+                onViewChange={setCalendarView}
+              />
             </div>
-          )}
-        </DragOverlay>
-      </DndContext>
-    </div>
+
+            {/* Right Column: Ledger Tasks (Internal Scroll) */}
+            <div className="h-full flex flex-col min-h-0">
+              <TaskList
+                selectedDate={selectedDate}
+                tasks={tasks}
+                isLoading={isLoading}
+              />
+            </div>
+          </div>
+
+          <DragOverlay>
+            {activeTask && (
+              <div className="border-2 border-[#D64045] bg-white dark:bg-black p-3 md:p-4 shadow-[4px_4px_0px_0px_#D64045] font-editorial text-base md:text-lg italic rotate-2">
+                {activeTask.taskTitle}
+              </div>
+            )}
+          </DragOverlay>
+        </DndContext>
+      </div>
+    </>
   );
 }

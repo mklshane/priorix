@@ -5,6 +5,7 @@ import DeckCard from "@/components/DeckCard";
 import { Deck } from "@/types/deck";
 import { useSession } from "next-auth/react";
 import { useQueryClient } from "@tanstack/react-query";
+import { FolderClosed } from "lucide-react";
 
 interface RecentDecksProps {
   onDeleteClick?: (deckId: string) => void;
@@ -13,7 +14,7 @@ interface RecentDecksProps {
     title: string,
     description: string,
     isPublic: boolean,
-    folderId: string | null
+    folderId: string | null,
   ) => void;
   showMenu?: boolean;
 }
@@ -33,10 +34,7 @@ export default function RecentDecks({
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
@@ -46,17 +44,16 @@ export default function RecentDecks({
     const handler = (event: Event) => {
       const custom = event as CustomEvent<{ deckId: string }>;
       if (custom.detail?.deckId) {
-        setRecentDecks((prev) => prev.filter((deck) => deck._id !== custom.detail.deckId));
+        setRecentDecks((prev) =>
+          prev.filter((deck) => deck._id !== custom.detail.deckId),
+        );
       }
     };
-
-    if (typeof window !== "undefined") {
+    if (typeof window !== "undefined")
       window.addEventListener("deck-deleted", handler);
-    }
     return () => {
-      if (typeof window !== "undefined") {
+      if (typeof window !== "undefined")
         window.removeEventListener("deck-deleted", handler);
-      }
     };
   }, []);
 
@@ -66,24 +63,16 @@ export default function RecentDecks({
         setLoading(false);
         return;
       }
-
       try {
         setError(null);
         const res = await fetch(
-          `/api/user-deck-activity/recent?userId=${session.user.id}&limit=4`
+          `/api/user-deck-activity/recent?userId=${session.user.id}&limit=4`,
         );
-
-        if (!res.ok) {
+        if (!res.ok)
           throw new Error(`Failed to fetch recent decks: ${res.statusText}`);
-        }
-
         const data = await res.json();
-
-        if (Array.isArray(data)) {
-          setRecentDecks(data);
-        } else {
-          throw new Error("Invalid data format received from API");
-        }
+        if (Array.isArray(data)) setRecentDecks(data);
+        else throw new Error("Invalid data format received from API");
       } catch (err: any) {
         console.error("Error loading recent decks:", err);
         setError(err.message);
@@ -91,23 +80,17 @@ export default function RecentDecks({
         setLoading(false);
       }
     };
-
-    if (session?.user?.id) {
-      fetchRecentDecks();
-    }
+    if (session?.user?.id) fetchRecentDecks();
   }, [session?.user?.id]);
 
   if (loading) {
     return (
-      <div className="grid gap-4 grid-cols-1 md:grid-cols-4">
+      <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, index) => (
           <div
             key={index}
-            className="animate-pulse bg-muted rounded-lg p-4 h-32"
-          >
-            <div className="h-4 bg-muted-foreground/20 rounded mb-2"></div>
-            <div className="h-3 bg-muted-foreground/20 rounded w-3/4"></div>
-          </div>
+            className="animate-pulse bento-card bg-muted/30 h-48"
+          />
         ))}
       </div>
     );
@@ -115,8 +98,8 @@ export default function RecentDecks({
 
   if (error) {
     return (
-      <p className="text-center text-red-500 text-sm">
-        Error loading recent decks: {error}
+      <p className="text-center text-destructive font-bold text-sm bg-destructive/10 border-2 border-destructive rounded-2xl p-4">
+        {error}
       </p>
     );
   }
@@ -124,38 +107,37 @@ export default function RecentDecks({
   const displayLimit = isMobile ? 2 : 4;
   const displayDecks = recentDecks.slice(0, displayLimit);
 
-  return (
-    <div className="grid gap-4 grid-cols-1 md:grid-cols-4">
-      {displayDecks.map((deck, index) => {
-        if (!deck || !deck._id) {
-          console.warn("Invalid deck data:", deck);
-          return null;
-        }
+  // We assign rhythmic pastel colors so they stack beautifully
+  const colors = ["bg-blush", "bg-mint", "bg-sky", "bg-citrus"];
 
+  return (
+    <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+      {displayDecks.map((deck, index) => {
+        if (!deck || !deck._id) return null;
         return (
           <DeckCard
             key={deck._id}
             deck={deck}
-            index={index}
-            onDeleteClick={onDeleteClick}
-            onEditClick={onEditClick}
-            showMenu={showMenu}
-            queryClient={queryClient}
+            accentColor={colors[index % colors.length]}
           />
         );
       })}
 
-      {Array.from({ length: displayLimit - displayDecks.length }).map((_, index) => (
-        <div
-          key={`placeholder-${index}`}
-          className="border-2 border-dashed border-muted-foreground/30 rounded-lg p-6 flex flex-col items-center justify-center text-muted-foreground/50 min-h-[150px]"
-        >
-          <div className="text-center">
-            <div className="text-2xl mb-2"></div>
-            <p className="text-sm">No recent deck</p>
+      {Array.from({ length: displayLimit - displayDecks.length }).map(
+        (_, index) => (
+          <div
+            key={`placeholder-${index}`}
+            className="bento-card bg-transparent border-dashed flex flex-col items-center justify-center text-muted-foreground min-h-[220px]"
+          >
+            <div className="w-12 h-12 rounded-full border-2 border-border/20 bg-muted/50 flex items-center justify-center mb-3">
+              <FolderClosed className="w-5 h-5 opacity-50" />
+            </div>
+            <p className="text-xs font-bold uppercase tracking-widest opacity-60">
+              Empty Slot
+            </p>
           </div>
-        </div>
-      ))}
+        ),
+      )}
     </div>
   );
 }

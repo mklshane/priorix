@@ -1,32 +1,26 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Lora, Sora } from "next/font/google";
+import { Outfit, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 import ClientProviders from "@/contexts/ClientProviders";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// 1. Clean, geometric sans-serif for the main UI
+const outfit = Outfit({
+  variable: "--font-sans",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+// 2. Playful, editorial serif for the large headings
+const instrumentSerif = Instrument_Serif({
+  variable: "--font-editorial",
+  weight: "400",
   subsets: ["latin"],
-});
-
-const lora = Lora({
-  variable: "--font-lora",
-  subsets: ["latin"],
-});
-
-const sora = Sora({
-  variable: "--font-sora",
-  subsets: ["latin"],
+  style: ["normal", "italic"],
 });
 
 export const metadata: Metadata = {
   title: "Priorix",
   description:
-    "Priorix – Your productivity companion for managing tasks, study sessions, and personal growth efficiently.",
+    "Priorix – Your playful productivity companion for managing tasks, study sessions, and personal growth efficiently.",
   icons: {
     icon: [
       { url: "/icon.ico", sizes: "any" },
@@ -43,12 +37,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <meta
-        name="google-site-verification"
-        content="fLVA7x1V2HOU8rArI_1pRCJ3Pma7Et6VVN0XA5otGpU"
-      />
+      <head>
+        <meta
+          name="google-site-verification"
+          content="fLVA7x1V2HOU8rArI_1pRCJ3Pma7Et6VVN0XA5otGpU"
+        />
+      </head>
+      {/* Inject the new font variables into the body */}
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${lora.variable} ${sora.variable} antialiased`}
+        className={`${outfit.variable} ${instrumentSerif.variable} font-sans antialiased`}
       >
         <ClientProviders>{children}</ClientProviders>
       </body>

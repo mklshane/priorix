@@ -1,4 +1,5 @@
-import { Card, CardContent } from "@/components/ui/card";
+"use client";
+
 import { Lightbulb, TrendingUp, AlertCircle, Clock } from "lucide-react";
 
 interface Insight {
@@ -8,11 +9,7 @@ interface Insight {
   priority: "high" | "medium" | "low";
 }
 
-interface InsightsPanelProps {
-  insights: Insight[];
-}
-
-export default function InsightsPanel({ insights }: InsightsPanelProps) {
+export default function InsightsPanel({ insights }: { insights: Insight[] }) {
   const getIcon = (type: string) => {
     switch (type) {
       case "optimal_time":
@@ -26,51 +23,52 @@ export default function InsightsPanel({ insights }: InsightsPanelProps) {
     }
   };
 
-  const getPriorityColor = (priority: string) => {
+  const getPriorityStyle = (priority: string) => {
     switch (priority) {
       case "high":
-        return "bg-green/70 dark:bg-green/20 border-black/10 dark:border-white/10";
+        return "bg-mint border-border shadow-bento-sm";
       case "medium":
-        return "bg-purple/70 dark:bg-purple/20 border-black/10 dark:border-white/10";
+        return "bg-lilac border-border shadow-bento-sm";
       default:
-        return "bg-pink/70 dark:bg-pink/20 border-black/10 dark:border-white/10";
+        return "bg-blush border-border shadow-bento-sm";
     }
   };
 
   return (
-    <Card className="border-2 border-black dark:border-darkborder rounded-xl">
-      <CardContent className="py-2 px-6">
-        <div className="flex items-center space-x-2 mb-4">
-          <Lightbulb className="h-5 w-5 text-yellow" />
-          <h3 className="text-lg font-semibold font-sora">Learning Insights</h3>
+    <div className="space-y-6 font-sans">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl bg-citrus border-2 border-border flex items-center justify-center shadow-bento-sm">
+          <Lightbulb className="h-5 w-5" />
         </div>
-        {insights.length === 0 ? (
-          <p className="text-center text-muted-foreground py-8">
-            Complete more study sessions to unlock personalized insights
-          </p>
-        ) : (
-          <div className="space-y-4">
-            {insights.map((insight, index) => (
-              <div
-                key={index}
-                className={`p-4 border-2 rounded-xl ${getPriorityColor(
-                  insight.priority
-                )} transition-all hover:shadow-md`}
-              >
-                <div className="flex items-start space-x-3">
-                  <div className="mt-0.5">{getIcon(insight.type)}</div>
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-sm mb-1 font-sora">
-                      {insight.title}
-                    </h4>
-                    <p className="text-sm">{insight.description}</p>
-                  </div>
-                </div>
+        <h3 className="text-2xl font-editorial italic">Learning Insights</h3>
+      </div>
+
+      {insights.length === 0 ? (
+        <div className="bento-card bg-muted/30 border-dashed text-center py-12 text-muted-foreground font-medium italic">
+          Complete more study sessions to unlock personalized insights
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {insights.map((insight, index) => (
+            <div
+              key={index}
+              className={`p-5 border-2 rounded-2xl flex items-start gap-4 transition-all hover:-translate-y-1 ${getPriorityStyle(insight.priority)}`}
+            >
+              <div className="p-2 bg-background/50 rounded-xl border-2 border-border/20 shrink-0">
+                {getIcon(insight.type)}
               </div>
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+              <div className="space-y-1">
+                <h4 className="font-bold text-sm uppercase tracking-wider leading-tight">
+                  {insight.title}
+                </h4>
+                <p className="text-sm font-medium leading-relaxed opacity-90">
+                  {insight.description}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

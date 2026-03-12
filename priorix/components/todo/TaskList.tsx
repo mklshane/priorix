@@ -1,18 +1,21 @@
+"use strict";
 "use client";
 
 import { useMemo, useState } from "react";
 import { format, isSameDay } from "date-fns";
-import { Plus, ListTodo, Filter } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { AnimatePresence } from "framer-motion";
 import TaskCard from "./TaskCard";
-import CompletedTasksPanel from "./CompletedTasksPanel";
 import AddEditTaskDialog from "./AddEditTaskDialog";
-import { useCompleteTask, useRestoreTask, useDeleteTask } from "@/hooks/useTasks";
+import {
+  useCompleteTask,
+  useRestoreTask,
+  useDeleteTask,
+} from "@/hooks/useTasks";
 import type { Task } from "@/types/task";
 
 interface TaskListProps {
@@ -34,20 +37,17 @@ export default function TaskList({
   const restoreTask = useRestoreTask();
   const deleteTask = useDeleteTask();
 
-  // Split tasks for selected date into active and completed
   const { activeTasks, completedTasks } = useMemo(() => {
     const dateTasks = tasks.filter(
-      (t) => t.dueDate && isSameDay(new Date(t.dueDate), selectedDate)
+      (t) => t.dueDate && isSameDay(new Date(t.dueDate), selectedDate),
     );
 
     let active = dateTasks.filter((t) => t.status !== "completed");
     const completed = dateTasks.filter((t) => t.status === "completed");
 
-    if (filterPriority !== "all") {
+    if (filterPriority !== "all")
       active = active.filter((t) => t.priority === filterPriority);
-    }
 
-    // Sort: urgent first, then by dueTime
     active.sort((a, b) => {
       const priorityOrder = { urgent: 0, high: 1, medium: 2, low: 3 };
       const pDiff =
@@ -62,100 +62,77 @@ export default function TaskList({
     return { activeTasks: active, completedTasks: completed };
   }, [tasks, selectedDate, filterPriority]);
 
-  // Also collect all completed tasks (not just for selected date) for history
-  const allCompleted = useMemo(
-    () => tasks.filter((t) => t.status === "completed"),
-    [tasks]
-  );
-
   const activeTaskIds = activeTasks.map((t) => t._id);
 
-  const handleComplete = (taskId: string) => {
-    completeTask.mutate(taskId);
-  };
-
-  const handleRestore = (taskId: string) => {
-    restoreTask.mutate(taskId);
-  };
-
-  const handleDelete = (taskId: string) => {
-    deleteTask.mutate(taskId);
-  };
-
-  const handleEdit = (task: Task) => {
-    setEditingTask(task);
-    setIsAddDialogOpen(true);
-  };
-
-  const dateLabel = format(selectedDate, "EEEE, MMMM d");
-
   return (
-    <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4 pb-3 border-b border-border/60">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10">
-            <ListTodo className="h-4 w-4 text-primary shrink-0" />
-          </div>
-          <div className="min-w-0">
-            <h3 className="text-base font-semibold truncate leading-tight">{dateLabel}</h3>
-          </div>
+    <div className="flex flex-col h-full min-h-0 font-sans-utility relative">
+      {/* Header (Shrinks 0 to protect space) */}
+      <div className="shrink-0 flex flex-col lg:flex-row lg:items-end justify-between mb-6 pb-4 border-b-2 border-black/80 dark:border-white/80 gap-4">
+        <div>
+          <p className="text-[10px] md:text-xs uppercase tracking-[0.2em] font-bold text-[#D64045] mb-1">
+            Manifest
+          </p>
+          <h3 className="text-2xl md:text-3xl font-editorial italic tracking-tight">
+            {format(selectedDate, "EEEE, MMMM do")}
+          </h3>
         </div>
-        <div className="flex items-center gap-1.5">
-          {/* Priority filter */}
-          <select
-            value={filterPriority}
-            onChange={(e) => setFilterPriority(e.target.value)}
-            className="text-xs bg-muted/50 border border-border rounded-lg px-2 py-1.5 text-muted-foreground hover:bg-muted transition-colors cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary/30"
-          >
-            <option value="all">All</option>
-            <option value="urgent">Urgent</option>
-            <option value="high">High</option>
-            <option value="medium">Medium</option>
-            <option value="low">Low</option>
-          </select>
 
-          <Button size="sm" className="h-8 rounded-lg text-xs gap-1" onClick={() => { setEditingTask(null); setIsAddDialogOpen(true); }}>
+        <div className="flex items-center gap-3">
+          <div className="relative border border-black/80 dark:border-white/80 bg-transparent">
+            <select
+              value={filterPriority}
+              onChange={(e) => setFilterPriority(e.target.value)}
+              className="appearance-none bg-transparent pl-3 pr-8 py-1.5 text-xs md:text-sm uppercase tracking-widest font-bold focus:outline-none focus:ring-0 cursor-pointer"
+            >
+              <option value="all">All Priorities</option>
+              <option value="urgent">Urgent</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+            <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-[10px]">
+              ▼
+            </div>
+          </div>
+
+          <button
+            className="group flex items-center gap-2 bg-black dark:bg-white text-white dark:text-black px-4 md:px-5 py-1.5 uppercase text-xs md:text-sm tracking-widest font-bold hover:bg-[#D64045] hover:text-white dark:hover:bg-[#D64045] transition-colors border border-black dark:border-white shrink-0"
+            onClick={() => {
+              setEditingTask(null);
+              setIsAddDialogOpen(true);
+            }}
+          >
             <Plus className="h-3.5 w-3.5" />
-            Add
-          </Button>
+            <span>Append</span>
+          </button>
         </div>
       </div>
 
-      {/* Task list */}
-      <div className="flex-1 overflow-y-auto pr-0.5 -mr-0.5">
+      {/* Internal Scrolling Container */}
+      <div className="flex-1 min-h-0 overflow-y-auto relative pl-6 md:pl-8 before:absolute before:inset-y-0 before:left-0 before:w-[1px] before:bg-black/20 dark:before:bg-white/20 pr-2 pb-6">
         {isLoading ? (
-          <div className="space-y-2">
+          <div className="space-y-6">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-start gap-3 p-3 rounded-xl border border-border/40">
-                <div className="w-[18px] h-[18px] rounded-full bg-muted animate-pulse mt-0.5 shrink-0" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 w-3/4 bg-muted rounded animate-pulse" />
-                  <div className="h-3 w-1/2 bg-muted rounded animate-pulse" />
+              <div
+                key={i}
+                className="flex gap-4 md:gap-6 animate-pulse border-b border-black/10 pb-6 relative before:absolute before:left-[-28px] md:before:left-[-36px] before:top-2 before:w-2 before:h-2 before:bg-black/20 before:rotate-45"
+              >
+                <div className="w-12 md:w-16 h-4 bg-black/10 dark:bg-white/10" />
+                <div className="flex-1 space-y-3">
+                  <div className="h-6 w-3/4 bg-black/10 dark:bg-white/10" />
+                  <div className="h-4 w-1/2 bg-black/10 dark:bg-white/10" />
                 </div>
               </div>
             ))}
           </div>
         ) : activeTasks.length === 0 && completedTasks.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-14 px-4">
-            <div className="w-14 h-14 rounded-2xl bg-muted/50 flex items-center justify-center mb-4">
-              <ListTodo className="h-6 w-6 text-muted-foreground/30" />
-            </div>
-            <p className="text-sm font-medium text-foreground/70 mb-1">
-              No tasks yet
+          <div className="h-full flex flex-col items-center justify-center py-12">
+            <span className="font-editorial italic text-3xl md:text-4xl text-black/20 dark:text-white/20 mb-3">
+              Void
+            </span>
+            <p className="uppercase tracking-[0.2em] text-xs md:text-sm text-black/50 dark:text-white/50 text-center px-4">
+              No directives documented for this date.
             </p>
-            <p className="text-muted-foreground text-xs text-center mb-4">
-              Nothing scheduled for {format(selectedDate, "MMM d")}
-            </p>
-            <Button
-              variant="outline"
-              size="sm"
-              className="rounded-lg h-8 text-xs gap-1"
-              onClick={() => { setEditingTask(null); setIsAddDialogOpen(true); }}
-            >
-              <Plus className="h-3.5 w-3.5" />
-              Add a task
-            </Button>
           </div>
         ) : (
           <>
@@ -163,34 +140,46 @@ export default function TaskList({
               items={activeTaskIds}
               strategy={verticalListSortingStrategy}
             >
-              <div className="space-y-1.5">
+              <div className="flex flex-col">
                 <AnimatePresence mode="popLayout">
                   {activeTasks.map((task) => (
                     <TaskCard
                       key={task._id}
                       task={task}
                       variant="active"
-                      onComplete={handleComplete}
-                      onDelete={handleDelete}
-                      onEdit={handleEdit}
+                      onComplete={completeTask.mutate}
+                      onDelete={deleteTask.mutate}
+                      onEdit={(t) => {
+                        setEditingTask(t);
+                        setIsAddDialogOpen(true);
+                      }}
                     />
                   ))}
                 </AnimatePresence>
               </div>
             </SortableContext>
 
-            {/* Completed tasks section */}
-            <CompletedTasksPanel
-              tasks={allCompleted}
-              onRestore={handleRestore}
-              onDelete={handleDelete}
-              onEdit={handleEdit}
-            />
+            {completedTasks.length > 0 && (
+              <div className="mt-8 md:mt-12 pt-6 md:pt-8 border-t border-dashed border-black/30 dark:border-white/30">
+                <h4 className="font-editorial italic text-xl md:text-2xl mb-4 md:mb-6 text-black/40 dark:text-white/40">
+                  Archived Directives
+                </h4>
+                {completedTasks.map((task) => (
+                  <TaskCard
+                    key={task._id}
+                    task={task}
+                    variant="completed"
+                    onRestore={restoreTask.mutate}
+                    onDelete={deleteTask.mutate}
+                    onEdit={() => {}}
+                  />
+                ))}
+              </div>
+            )}
           </>
         )}
       </div>
 
-      {/* Add/Edit Dialog */}
       <AddEditTaskDialog
         open={isAddDialogOpen}
         onOpenChange={(open) => {

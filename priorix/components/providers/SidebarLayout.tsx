@@ -11,37 +11,41 @@ interface SidebarLayoutProps {
   contentClassName?: string;
 }
 
-export default function SidebarLayout({ children, contentClassName }: SidebarLayoutProps) {
+export default function SidebarLayout({
+  children,
+  contentClassName,
+}: SidebarLayoutProps) {
   const { isOpen, isMobile, isVisible, closeSidebar } = useSidebar();
 
   return (
-    <div className="relative min-h-screen">
-      {/* Backdrop overlay - mobile only */}
+    <div className="relative min-h-screen bg-background font-sans selection:bg-mint selection:text-foreground">
+      {/* Mobile Backdrop Overlay */}
       {isMobile && isVisible && (
         <div
-          className="fixed inset-0 bg-black/20 backdrop-blur-[1px] z-40"
+          className="fixed inset-0 bg-background/60 backdrop-blur-sm z-40 transition-opacity"
           onClick={closeSidebar}
         />
       )}
 
-      {/* Sidebar - always rendered */}
+      {/* Edge-to-Edge Sidebar */}
       <Sidebar />
 
-      {/* Main content wrapper - adjusts based on sidebar state */}
+      {/* Main Content Wrapper - Shifts based on Sidebar Width */}
       <div
         className={cn(
-          "min-h-screen flex flex-col transition-all duration-300",
-          // Desktop: shift content based on sidebar width
-          !isMobile && (isOpen ? "lg:ml-56" : "lg:ml-20"),
-          // Mobile: no shift (sidebar is overlay)
-          isMobile && "ml-0"
+          "min-h-screen flex flex-col transition-all duration-300 ease-in-out",
+          !isMobile && (isOpen ? "lg:ml-64" : "lg:ml-20"),
+          isMobile && "ml-0",
         )}
       >
+        {/* Edge-to-Edge Top Navigation */}
         <AppNav />
+
+        {/* Main Workspace Area */}
         <main
           className={cn(
-            "flex-1 overflow-y-auto",
-            contentClassName || "mx-auto w-full max-w-[1400px] px-4 py-6 md:px-6 md:py-8"
+            "flex-1 w-full max-w-[1600px] mx-auto px-4 md:px-6 py-6 md:py-8",
+            contentClassName,
           )}
         >
           {children}

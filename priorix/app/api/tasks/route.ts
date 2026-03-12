@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ConnectDB } from "@/lib/config/db";
 import Task from "@/lib/models/Task";
+import "@/lib/models/Note";
+import "@/lib/models/Deck";
 
 export async function GET(request: NextRequest) {
   try {
@@ -44,7 +46,8 @@ export async function GET(request: NextRequest) {
     const tasks = await Task.find(query)
       .populate("linkedDeck", "title _id")
       .populate("linkedNote", "title _id")
-      .sort({ dueDate: 1, priority: -1, createdAt: -1 });
+      .sort({ dueDate: 1, priority: -1, createdAt: -1 })
+      .lean();
 
     return NextResponse.json(tasks);
   } catch (error) {

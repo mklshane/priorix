@@ -10,17 +10,9 @@ import {
   eachDayOfInterval,
   addMonths,
   subMonths,
-  addWeeks,
-  subWeeks,
-  addDays,
-  subDays,
   isSameDay,
 } from "date-fns";
-import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import CalendarDayCell from "./CalendarDayCell";
-import CalendarWeekView from "./CalendarWeekView";
-import CalendarDayView from "./CalendarDayView";
 import type { Task } from "@/types/task";
 
 type CalendarView = "month" | "week" | "day";
@@ -46,166 +38,99 @@ export default function TodoCalendar({
 }: TodoCalendarProps) {
   const activeTasks = tasks.filter((t) => t.status !== "completed");
 
-  const navigateBack = () => {
-    if (view === "month") onDateChange(subMonths(currentDate, 1));
-    else if (view === "week") onDateChange(subWeeks(currentDate, 1));
-    else onDateChange(subDays(currentDate, 1));
-  };
-
-  const navigateForward = () => {
-    if (view === "month") onDateChange(addMonths(currentDate, 1));
-    else if (view === "week") onDateChange(addWeeks(currentDate, 1));
-    else onDateChange(addDays(currentDate, 1));
-  };
-
-  const goToToday = () => {
-    const today = new Date();
-    onDateChange(today);
-    onSelectDate(today);
-  };
-
-  const headerLabel = useMemo(() => {
-    if (view === "month") return format(currentDate, "MMMM yyyy");
-    if (view === "week") {
-      const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
-      const weekEnd = endOfWeek(currentDate, { weekStartsOn: 0 });
-      return `${format(weekStart, "MMM d")} – ${format(weekEnd, "MMM d, yyyy")}`;
-    }
-    return format(currentDate, "EEEE, MMMM d, yyyy");
-  }, [currentDate, view]);
-
-  return (
-    <div className="flex flex-col h-full">
-      {/* Calendar Header */}
-      <div className="flex items-center justify-between gap-2 mb-4">
-        <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={navigateBack}
-            className="h-8 w-8 rounded-full shrink-0 hover:bg-muted"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <h2 className="text-sm sm:text-base font-semibold text-center truncate min-w-[120px]">
-            {headerLabel}
-          </h2>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={navigateForward}
-            className="h-8 w-8 rounded-full shrink-0 hover:bg-muted"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-
-        <div className="flex items-center gap-2 shrink-0">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={goToToday}
-            className="text-xs h-8 px-3 rounded-lg font-medium"
-          >
-            Today
-          </Button>
-          <div className="flex rounded-lg bg-muted/50 p-0.5">
-            {(["month", "week", "day"] as CalendarView[]).map((v) => (
-              <button
-                key={v}
-                onClick={() => onViewChange(v)}
-                className={`px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium capitalize rounded-md transition-all duration-150 ${
-                  view === v
-                    ? "bg-card text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {v}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Calendar Body */}
-      <div className="flex-1 min-h-0">
-        {view === "month" && (
-          <MonthView
-            currentDate={currentDate}
-            selectedDate={selectedDate}
-            tasks={activeTasks}
-            onSelectDate={onSelectDate}
-          />
-        )}
-        {view === "week" && (
-          <CalendarWeekView
-            currentDate={currentDate}
-            selectedDate={selectedDate}
-            tasks={activeTasks}
-            onSelectDate={onSelectDate}
-          />
-        )}
-        {view === "day" && (
-          <CalendarDayView
-            selectedDate={selectedDate}
-            tasks={activeTasks.filter(
-              (t) =>
-                t.dueDate && isSameDay(new Date(t.dueDate), selectedDate)
-            )}
-          />
-        )}
-      </div>
-    </div>
-  );
-}
-
-function MonthView({
-  currentDate,
-  selectedDate,
-  tasks,
-  onSelectDate,
-}: {
-  currentDate: Date;
-  selectedDate: Date;
-  tasks: Task[];
-  onSelectDate: (date: Date) => void;
-}) {
   const calendarDays = useMemo(() => {
     const monthStart = startOfMonth(currentDate);
     const monthEnd = endOfMonth(currentDate);
-    const calStart = startOfWeek(monthStart, { weekStartsOn: 0 });
-    const calEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
-    return eachDayOfInterval({ start: calStart, end: calEnd });
-  }, [currentDate.getMonth(), currentDate.getFullYear()]);
-
-  const dayHeaders = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    return eachDayOfInterval({
+      start: startOfWeek(monthStart, { weekStartsOn: 0 }),
+      end: endOfWeek(monthEnd, { weekStartsOn: 0 }),
+    });
+  }, [currentDate]);
 
   return (
-    <div>
-      {/* Day name headers */}
-      <div className="grid grid-cols-7 mb-0.5 sm:mb-1">
-        {dayHeaders.map((day) => (
-          <div
-            key={day}
-            className="text-[11px] sm:text-xs font-medium text-muted-foreground text-center py-1 sm:py-2 uppercase tracking-wide"
+    <div className="flex flex-col h-full min-h-0 font-sans-utility">
+      {/* Editorial Calendar Header */}
+      <div className="shrink-0 flex items-center justify-between mb-4 md:mb-6 pb-3 md:pb-4 border-b-2 border-black/80 dark:border-white/80">
+        <h2 className="text-xl md:text-2xl font-editorial italic tracking-wider">
+          {format(currentDate, "MMMM yyyy")}
+        </h2>
+        <div className="flex gap-2">
+          <button
+            onClick={() => onDateChange(subMonths(currentDate, 1))}
+            className="p-1.5 md:p-2 border border-black/80 dark:border-white/80 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors"
           >
-            {day}
-          </div>
-        ))}
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => onDateChange(addMonths(currentDate, 1))}
+            className="p-1.5 md:p-2 border border-black/80 dark:border-white/80 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
-      {/* Day cells */}
-      <div className="grid grid-cols-7 gap-px md:gap-[2px] bg-border/30 rounded-lg overflow-hidden md:border md:border-border/40">
-        {calendarDays.map((date) => (
-          <CalendarDayCell
-            key={date.toISOString()}
-            date={date}
-            isCurrentMonth={date.getMonth() === currentDate.getMonth()}
-            selectedDate={selectedDate}
-            tasks={tasks}
-            onSelectDate={onSelectDate}
-          />
+      {/* Calendar Grid (Uses auto-rows 1fr to share remaining height equally) */}
+      <div
+        className="flex-1 min-h-0 grid grid-cols-7 border-t border-l border-black/80 dark:border-white/80 bg-black/80 dark:bg-white/80 gap-[1px]"
+        style={{ gridTemplateRows: "auto repeat(6, minmax(0, 1fr))" }}
+      >
+        {/* Days Header */}
+        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+          <div
+            key={day}
+            className="bg-white dark:bg-[#1A1A1A] flex items-center justify-center py-2 text-[9px] md:text-[10px] uppercase tracking-[0.2em] font-bold shrink-0"
+          >
+            <span className="hidden md:inline">{day}</span>
+            <span className="inline md:hidden">{day.charAt(0)}</span>
+          </div>
         ))}
+
+        {/* Day Cells */}
+        {calendarDays.map((date) => {
+          const isCurrentMonth = date.getMonth() === currentDate.getMonth();
+          const isSelected = isSameDay(date, selectedDate);
+          const isToday = isSameDay(date, new Date());
+          const dayTasks = activeTasks.filter(
+            (t) => t.dueDate && isSameDay(new Date(t.dueDate), date),
+          );
+
+          return (
+            <div
+              key={date.toISOString()}
+              onClick={() => onSelectDate(date)}
+              className={`
+                bg-white dark:bg-[#1A1A1A] p-1 md:p-2 cursor-pointer transition-all duration-200 flex flex-col relative overflow-hidden
+                ${!isCurrentMonth ? "opacity-30" : "hover:bg-black/[0.03] dark:hover:bg-white/[0.03]"}
+                ${isSelected ? "bg-black text-white dark:bg-white dark:text-black" : ""}
+              `}
+            >
+              <div className="flex justify-between items-start">
+                <span
+                  className={`font-editorial text-sm md:text-xl leading-none ${isToday && !isSelected ? "text-[#D64045] italic font-bold" : ""}`}
+                >
+                  {format(date, "d")}
+                </span>
+                {dayTasks.length > 0 && (
+                  <span
+                    className={`text-[8px] md:text-[10px] px-1 md:px-1.5 py-0.5 border leading-none ${isSelected ? "border-white/40 dark:border-black/40" : "border-black/20 dark:border-white/20"}`}
+                  >
+                    {dayTasks.length}
+                  </span>
+                )}
+              </div>
+
+              <div className="mt-auto pt-1 flex flex-wrap gap-0.5 md:gap-1">
+                {dayTasks.slice(0, 3).map((_, i) => (
+                  <div
+                    key={i}
+                    className={`w-1 h-1 md:w-1.5 md:h-1.5 ${isSelected ? "bg-white dark:bg-black" : "bg-[#D64045]"}`}
+                  />
+                ))}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
