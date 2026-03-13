@@ -11,12 +11,12 @@ export default function Features() {
   return (
     <section
       id="features"
-      className="py-24 px-4 max-w-7xl mx-auto selection:bg-citrus selection:text-foreground"
+      className="py-0 md:py-24 px-4 max-w-7xl mx-auto selection:bg-citrus selection:text-foreground"
     >
       <div className="text-center mb-16 space-y-4">
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border-2 border-border bg-tangerine shadow-bento text-xs font-bold uppercase tracking-widest mx-auto rotate-[-2deg]">
           <Sparkles className="w-4 h-4" />
-          The Arsenal
+          Features
         </div>
         <h2 className="text-5xl md:text-7xl font-editorial tracking-tight">
           Everything you need. <br className="hidden md:block" />
@@ -63,9 +63,9 @@ export default function Features() {
             <div className="w-14 h-14 rounded-full border-2 border-border bg-background flex items-center justify-center shadow-bento mb-6">
               <CheckSquare className="w-7 h-7" />
             </div>
-            <h3 className="text-3xl font-editorial mb-3">Master Ledger</h3>
+            <h3 className="text-3xl font-editorial mb-3">To Do</h3>
             <p className="text-foreground/80 font-medium leading-relaxed">
-              A heavily structured, print-inspired daily agenda to track
+              A heavily structured daily agenda to track
               assignments, exams, and study sessions.
             </p>
           </div>

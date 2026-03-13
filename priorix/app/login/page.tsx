@@ -4,11 +4,12 @@ import Link from "next/link";
 import React, { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -55,7 +56,14 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 selection:bg-mint selection:text-foreground">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 selection:bg-mint selection:text-foreground relative">
+      <Link
+        href="/"
+        className="absolute top-6 left-6 font-editorial italic text-3xl font-bold tracking-tight hover:opacity-80 transition-opacity"
+      >
+        Priorix
+      </Link>
+
       <div className="w-full max-w-md bento-card relative overflow-hidden bg-card">
         {/* Decorative corner accent */}
         <div className="absolute -top-12 -right-12 w-32 h-32 bg-citrus rounded-full blur-2xl opacity-50 pointer-events-none" />
@@ -108,15 +116,24 @@ export default function LoginPage() {
                   Forgot?
                 </Link>
               </div>
-              <input
-                id="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-background border-2 border-border rounded-2xl px-4 py-3 text-foreground focus:outline-none focus:-translate-y-1 focus:shadow-bento transition-all placeholder:text-muted-foreground/50"
-                placeholder="••••••••"
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full bg-background border-2 border-border rounded-2xl px-4 py-3 pr-12 text-foreground focus:outline-none focus:-translate-y-1 focus:shadow-bento transition-all placeholder:text-muted-foreground/50"
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
             </div>
 
             <div className="flex items-center pl-1">

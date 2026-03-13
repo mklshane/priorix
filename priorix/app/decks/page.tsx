@@ -742,13 +742,13 @@ const DecksPageContent = () => {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 flex-wrap">
             <div>
               <p className="text-xs uppercase tracking-widest font-bold text-muted-foreground mb-2">Overview</p>
-              <h1 className="text-3xl md:text-4xl font-bold text-foreground font-editorial tracking-tight">
+              <h1 className="text-3xl md:text-4xl font-bold text-foreground font-editorial tracking-wide">
                 Decks
               </h1>
             </div>
             <div className="gap-3 hidden md:flex">
               <Button
-                className="h-12 px-6 rounded-full bg-primary text-primary-foreground font-bold border-2 border-border shadow-bento-sm hover:-translate-y-1 hover:shadow-bento transition-all duration-300"
+                className="h-10 px-6 rounded-full bg-mint text-primary font-bold border-2 border-border hover:-translate-y-1 transition-all duration-300"
                 onClick={() =>
                   currentFolderId
                     ? setIsAddDeckModalOpen(true)
@@ -762,7 +762,7 @@ const DecksPageContent = () => {
 
           {/* Folder Breadcrumb */}
           {currentFolderId && (
-            <div className="flex items-center gap-2 text-sm mt-4 bento-card p-3 bg-muted/30 border-border inline-flex w-fit rounded-full px-5">
+            <div className="flex items-center gap-2 text-sm mt-4 bento-card shadow-none p-3 bg-muted/30 border-border inline-flex w-fit rounded-full px-5">
               <Button
                 variant="ghost"
                 size="sm"
@@ -816,7 +816,7 @@ const DecksPageContent = () => {
           <div className="flex gap-3">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="h-14 px-6 rounded-full border-2 border-border shadow-bento-sm font-bold gap-2 hover:-translate-y-1 transition-all bg-card">
+                <Button variant="outline" className="h-14 px-6 rounded-full border-2 border-border font-bold gap-2 hover:-translate-y-1 transition-all bg-card">
                   <Filter className="h-4 w-4" />
                   Sort:{" "}
                   {sortBy === "name"
@@ -826,7 +826,7 @@ const DecksPageContent = () => {
                       : "Newest"}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="rounded-2xl border-2 border-border p-2 min-w-[200px] shadow-bento-lg">
+              <DropdownMenuContent align="end" className="rounded-2xl border-2 border-border p-2 min-w-[200px]">
                 <DropdownMenuItem onClick={() => setSortBy("date")} className="rounded-xl font-medium cursor-pointer p-3">
                   Date Created
                   {sortBy === "date" && <Check className="h-4 w-4 ml-auto" />}
@@ -869,10 +869,10 @@ const DecksPageContent = () => {
         )}
 
         {/* Tab Content */}
-        <div className="bento-card bg-card border-border p-6 md:p-8">
-          <div className="flex flex-col gap-2 mb-8">
-            <div className="flex items-center justify-between flex-wrap gap-4">
-              <h2 className="text-xl md:text-2xl font-bold font-editorial tracking-tight text-foreground">
+        <div className="bento-card bg-card border-border p-6 md:p-6">
+          <div className="flex flex-col gap-2 mb-6">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <h2 className="text-xl md:text-2xl font-bold font-sans tracking-tight text-foreground">
                 {isInFolder && currentFolderName}
                 {!isInFolder && activeTab === "workspace" && currentFolderName}
                 {!isInFolder && activeTab === "favorites" && "Favorites"}
@@ -901,7 +901,7 @@ const DecksPageContent = () => {
                 </div>
               )}
             </div>
-            <p className="text-sm font-medium text-muted-foreground mt-2">
+            <p className="text-md font-medium text-muted-foreground">
                 {(isInFolder || activeTab === "workspace") &&
                 (currentFolderId
                   ? "Decks inside this folder."

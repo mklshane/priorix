@@ -170,7 +170,7 @@ export default function AppNav() {
       </div>
 
       <div className="absolute left-1/2 transform -translate-x-1/2 overflow-hidden px-4">
-        <h1 className="font-sans text-xl tracking-wide text-foreground truncate max-w-[200px] sm:max-w-md">
+        <h1 className="font-sans text-xl font-semibold tracking-wide text-foreground truncate max-w-[200px] sm:max-w-md">
           {getCurrentPage()}
         </h1>
       </div>

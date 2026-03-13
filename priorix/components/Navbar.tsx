@@ -3,15 +3,41 @@
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Menu, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Navbar() {
   const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      // If we scroll down and are past the top threshold, hide the navbar
+      if (currentScrollY > lastScrollY && currentScrollY > 60) {
+        setIsVisible(false);
+        setIsOpen(false); // Close mobile menu if it was open when scrolling down
+      } else {
+        // If we scroll up, show the navbar
+        setIsVisible(true);
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [lastScrollY]);
 
   return (
-    <nav className="fixed top-4 left-1/2 -translate-x-1/2 w-[95%] max-w-6xl z-50 font-sans">
-      <div className="bg-background border-2 border-border rounded-full px-6 py-2 flex items-center justify-between shadow-bento transition-all">
+    <nav 
+      className={`fixed top-4 left-1/2 -translate-x-1/2 w-[95%] max-w-6xl z-50 font-sans transition-transform duration-300 ${
+        isVisible ? "translate-y-0" : "-translate-y-[150%]"
+      }`}
+    >
+      <div className="bg-background border-2 border-border rounded-full px-6 py-2 flex items-center justify-between transition-all">
         <Link
           href="/"
           className="font-editorial italic text-3xl font-bold tracking-tight hover:opacity-80 transition-opacity"

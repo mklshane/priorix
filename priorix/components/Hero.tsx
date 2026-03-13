@@ -4,16 +4,15 @@ import { ArrowRight, Sparkles, BookOpen } from "lucide-react";
 export default function Hero() {
   return (
     <section className="relative min-h-[85vh] flex flex-col items-center justify-center px-4 overflow-hidden pt-30">
-
       <div className="absolute top-30 left-[10%] hidden lg:flex flex-col gap-4 animate-fade-in">
         <div className="bg-mint border-2 border-border rounded-3xl p-4 shadow-bento rotate-[-6deg] w-48 hover:rotate-0 transition-transform duration-300">
           <Sparkles className="w-6 h-6 mb-2" />
           <p className="font-bold text-sm">Spaced Repetition</p>
-        </div> 
+        </div>
       </div>
 
       <div
-        className="absolute bottom-32 right-[10%] hidden lg:flex flex-col gap-4 animate-fade-in"
+        className="absolute bottom-30 right-[10%] hidden lg:flex flex-col gap-4 animate-fade-in"
         style={{ animationDelay: "200ms" }}
       >
         <div className="bg-citrus border-2 border-border rounded-3xl p-4 shadow-bento rotate-[8deg] w-56 hover:rotate-0 transition-transform duration-300">
@@ -23,16 +22,14 @@ export default function Hero() {
       </div>
 
       <div className="max-w-4xl mx-auto text-center z-10 space-y-8">
-        {/* Playful Pill Badge */}
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border-2 border-border bg-lilac shadow-bento text-sm font-bold uppercase tracking-wider mb-4 hover:-translate-y-1 hover:shadow-bento-lg transition-all cursor-default">
           <span className="w-2 h-2 rounded-full bg-border animate-pulse" />
           Priorix is here
         </div>
 
-        {/* Editorial Heading */}
-        <h1 className="text-6xl md:text-8xl lg:text-[7rem] leading-[0.9] tracking-tight">
-          Master your studies. <br />
-          <span className="italic text-muted-foreground/80">Playfully.</span>
+        <h1 className="text-5xl md:text-7xl lg:text-[6rem] leading-[0.9] tracking-tight">
+          Prior to everything else <br />
+          <span className="italic text-muted-foreground/80">—learn what matters.</span>
         </h1>
 
         <p className="max-w-2xl mx-auto text-lg md:text-xl font-medium text-muted-foreground mt-6">
@@ -40,7 +37,6 @@ export default function Hero() {
           tasks. Stop fighting your tools and start absorbing knowledge.
         </p>
 
-        {/* Tactile Buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
           <Link
             href="/signup"
