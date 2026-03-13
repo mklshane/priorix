@@ -89,8 +89,21 @@ export default function RecentDecks({
         {Array.from({ length: 4 }).map((_, index) => (
           <div
             key={index}
-            className="animate-pulse bento-card bg-muted/30 h-48"
-          />
+            className="animate-pulse bento-card bg-muted/30 h-48 flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex justify-between items-start mb-4">
+                <div className="w-10 h-10 rounded-xl bg-black/5 dark:bg-white/5"></div>
+                <div className="w-6 h-6 rounded-md bg-black/5 dark:bg-white/5"></div>
+              </div>
+              <div className="h-5 bg-black/5 dark:bg-white/5 w-3/4 rounded mb-2"></div>
+              <div className="h-3 bg-black/5 dark:bg-white/5 w-1/2 rounded mb-4"></div>
+            </div>
+            <div className="flex justify-between items-center mt-auto">
+              <div className="h-3 bg-black/5 dark:bg-white/5 w-1/4 rounded"></div>
+              <div className="h-3 bg-black/5 dark:bg-white/5 w-1/4 rounded"></div>
+            </div>
+          </div>
         ))}
       </div>
     );
@@ -107,7 +120,6 @@ export default function RecentDecks({
   const displayLimit = isMobile ? 2 : 4;
   const displayDecks = recentDecks.slice(0, displayLimit);
 
-  // We assign rhythmic pastel colors so they stack beautifully
   const colors = ["bg-blush", "bg-mint", "bg-sky", "bg-citrus"];
 
   return (
@@ -118,7 +130,6 @@ export default function RecentDecks({
           <DeckCard
             key={deck._id}
             deck={deck}
-            accentColor={colors[index % colors.length]}
           />
         );
       })}

@@ -727,8 +727,8 @@ const DecksPageContent = () => {
   );
 
   return (
-    <div className="min-h-screen p-4 md:p-6 px-2">
-      <div className="mx-auto  space-y-5">
+    <div className="min-h-[100dvh] p-4 md:p-8 max-w-7xl mx-auto">
+      <div className="space-y-8">
         <ConfirmDeleteModal
           isOpen={deleteModalOpen}
           onClose={handleDeleteCancel}
@@ -739,49 +739,49 @@ const DecksPageContent = () => {
         />
 
         <div className="flex flex-col gap-2 mb-2">
-          <div className="hidden md:flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 flex-wrap">
             <div>
-              <p className="text-sm text-muted-foreground mb-1">Overview</p>
-              <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+              <p className="text-xs uppercase tracking-widest font-bold text-muted-foreground mb-2">Overview</p>
+              <h1 className="text-3xl md:text-4xl font-bold text-foreground font-editorial tracking-tight">
                 Decks
               </h1>
             </div>
-            <div className="gap-2 hidden md:flex">
+            <div className="gap-3 hidden md:flex">
               <Button
-                className="bg-yellow text-foreground border-2 border-foreground"
+                className="h-12 px-6 rounded-full bg-primary text-primary-foreground font-bold border-2 border-border shadow-bento-sm hover:-translate-y-1 hover:shadow-bento transition-all duration-300"
                 onClick={() =>
                   currentFolderId
                     ? setIsAddDeckModalOpen(true)
                     : setIsCreateChooserOpen(true)
                 }
               >
-                <Plus className="h-4 w-4 mr-2 text-foreground" /> Add
+                <Plus className="h-5 w-5 mr-2" /> Create New
               </Button>
             </div>
           </div>
 
           {/* Folder Breadcrumb */}
           {currentFolderId && (
-            <div className="flex items-center gap-1 text-sm">
+            <div className="flex items-center gap-2 text-sm mt-4 bento-card p-3 bg-muted/30 border-border inline-flex w-fit rounded-full px-5">
               <Button
                 variant="ghost"
                 size="sm"
-                className="px-2 h-7 text-muted-foreground hover:text-foreground"
+                className="px-2 h-7 font-bold text-muted-foreground hover:text-foreground rounded-full hover:bg-background"
                 onClick={() => handleFolderNavigate(null)}
               >
-                <FolderOpen className="h-3 w-3 mr-1" />
+                <FolderOpen className="h-4 w-4 mr-2" />
                 Home
               </Button>
               {folderPath.map((folder, index) => (
                 <div key={folder._id} className="flex items-center">
-                  <ChevronRight className="h-3 w-3 text-muted-foreground mx-1" />
+                  <ChevronRight className="h-4 w-4 text-muted-foreground/50 mx-1" />
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="px-2 h-7"
+                    className="px-3 h-7 font-bold rounded-full hover:bg-background"
                     onClick={() => handleFolderNavigate(folder._id)}
                   >
-                    <Folder className="h-3 w-3 mr-1" />
+                    <Folder className="h-4 w-4 mr-2 text-pink" />
                     {folder.name}
                   </Button>
                 </div>
@@ -791,13 +791,13 @@ const DecksPageContent = () => {
         </div>
 
         {/* Search and Filter Bar */}
-        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+        <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
               type="search"
               placeholder={`Search ${activeTab}...`}
-              className="pl-9"
+              className="pl-12 h-12 rounded-full border-2 border-border shadow-bento-sm focus-visible:ring-0 focus-visible:border-primary text-sm font-medium transition-all"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -805,39 +805,39 @@ const DecksPageContent = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6"
+                className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full hover:bg-muted"
                 onClick={() => setSearchQuery("")}
               >
-                <X className="h-3 w-3" />
+                <X className="h-4 w-4" />
               </Button>
             )}
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2">
-                  <Filter className="h-3 w-3" />
-                  Sort by:{" "}
+                <Button variant="outline" className="h-14 px-6 rounded-full border-2 border-border shadow-bento-sm font-bold gap-2 hover:-translate-y-1 transition-all bg-card">
+                  <Filter className="h-4 w-4" />
+                  Sort:{" "}
                   {sortBy === "name"
-                    ? "Name"
+                    ? "A-Z"
                     : sortBy === "updated"
-                      ? "Last Updated"
-                      : "Date Created"}
+                      ? "Recent"
+                      : "Newest"}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setSortBy("date")}>
+              <DropdownMenuContent align="end" className="rounded-2xl border-2 border-border p-2 min-w-[200px] shadow-bento-lg">
+                <DropdownMenuItem onClick={() => setSortBy("date")} className="rounded-xl font-medium cursor-pointer p-3">
                   Date Created
-                  {sortBy === "date" && <Check className="h-3 w-3 ml-2" />}
+                  {sortBy === "date" && <Check className="h-4 w-4 ml-auto" />}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSortBy("updated")}>
+                <DropdownMenuItem onClick={() => setSortBy("updated")} className="rounded-xl font-medium cursor-pointer p-3">
                   Last Updated
-                  {sortBy === "updated" && <Check className="h-3 w-3 ml-2" />}
+                  {sortBy === "updated" && <Check className="h-4 w-4 ml-auto" />}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSortBy("name")}>
+                <DropdownMenuItem onClick={() => setSortBy("name")} className="rounded-xl font-medium cursor-pointer p-3">
                   Name A-Z
-                  {sortBy === "name" && <Check className="h-3 w-3 ml-2" />}
+                  {sortBy === "name" && <Check className="h-4 w-4 ml-auto" />}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -846,7 +846,7 @@ const DecksPageContent = () => {
 
         {/* Tab Navigation */}
         {!isInFolder && (
-          <div className="flex gap-2 overflow-x-auto pb-2 border-b border-border/50">
+          <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
             {[
               { key: "workspace" as DeckTab, label: "Workspace" },
               { key: "favorites" as DeckTab, label: "Favorites" },
@@ -854,9 +854,12 @@ const DecksPageContent = () => {
             ].map((tab) => (
               <Button
                 key={tab.key}
-                variant={activeTab === tab.key ? "default" : "ghost"}
-                size="sm"
-                className="shrink-0 rounded-full px-4"
+                variant={activeTab === tab.key ? "default" : "outline"}
+                className={`shrink-0 h-10 rounded-full px-6 font-bold text-xs uppercase tracking-wider border-2 transition-all duration-300 ${
+                  activeTab === tab.key
+                    ? "bg-primary text-primary-foreground border-border shadow-bento-sm hover:-translate-y-1"
+                    : "border-transparent bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground hover:border-border/50"
+                }`}
                 onClick={() => setActiveTab(tab.key)}
               >
                 {tab.label}
@@ -866,10 +869,10 @@ const DecksPageContent = () => {
         )}
 
         {/* Tab Content */}
-        <div className="rounded-2xl border-2 border-black dark:border-accent bg-card backdrop-blur-sm shadow-sm p-4 md:p-6">
-          <div className="flex flex-col gap-1 mb-4">
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <h2 className="text-xl md:text-2xl font-semibold text-foreground font-sora">
+        <div className="bento-card bg-card border-border p-6 md:p-8">
+          <div className="flex flex-col gap-2 mb-8">
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <h2 className="text-xl md:text-2xl font-bold font-editorial tracking-tight text-foreground">
                 {isInFolder && currentFolderName}
                 {!isInFolder && activeTab === "workspace" && currentFolderName}
                 {!isInFolder && activeTab === "favorites" && "Favorites"}
@@ -898,8 +901,8 @@ const DecksPageContent = () => {
                 </div>
               )}
             </div>
-            <p className="text-sm text-muted-foreground">
-              {(isInFolder || activeTab === "workspace") &&
+            <p className="text-sm font-medium text-muted-foreground mt-2">
+                {(isInFolder || activeTab === "workspace") &&
                 (currentFolderId
                   ? "Decks inside this folder."
                   : "Folders and decks you own.")}
@@ -993,57 +996,54 @@ const DecksPageContent = () => {
           open={isCreateChooserOpen}
           onOpenChange={setIsCreateChooserOpen}
         >
-          <DialogContent className="modal-surface sm:max-w-[520px] p-0">
-            <DialogHeader className="flex flex-row items-start gap-3 border-b border-border/60 bg-gradient-to-r from-primary/10 via-muted/40 to-transparent px-6 py-5">
-              <div className="flex size-12 items-center justify-center rounded-lg bg-primary/15 text-primary shadow-inner ring-1 ring-primary/20">
-                <Plus className="h-5 w-5" />
+          <DialogContent className="sm:max-w-md !rounded-[2rem] border-2 border-border p-0 overflow-hidden bg-card shadow-bento-lg">
+            <DialogHeader className="px-6 pt-6 pb-4 bg-pink/20 border-b-2 border-border flex flex-col items-center text-center">
+              <div className="flex size-14 items-center justify-center rounded-2xl bg-background border-2 border-border shadow-bento-sm mb-4">
+                <Plus className="h-6 w-6 text-foreground" />
               </div>
-              <div className="space-y-1 text-left">
-                <DialogTitle className="text-xl">
-                  Create something new
-                </DialogTitle>
-                <DialogDescription>
-                  Pick what to add to your workspace.
-                </DialogDescription>
-              </div>
+              <DialogTitle className="text-2xl font-editorial tracking-tight font-bold text-foreground">Create something new
+              </DialogTitle>
+              <DialogDescription className="text-muted-foreground mt-2 font-medium">
+                Pick what to add to your workspace.
+              </DialogDescription>
             </DialogHeader>
 
-            <div className="px-6 pb-6 pt-4 space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="p-8 space-y-6 bg-muted/10">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Button
                   variant="default"
-                  className="h-full justify-between bg-yellow text-foreground border border-yellow/60 shadow-[0_12px_30px_rgba(255,215,0,0.35)] hover:scale-[1.01] hover:shadow-[0_16px_36px_rgba(255,215,0,0.4)] transition-transform"
+                  className="h-auto p-5 flex-col items-start gap-4 rounded-2xl bg-yellow hover:bg-yellow/90 text-foreground border-2 border-border shadow-bento-sm hover:-translate-y-1 hover:shadow-bento transition-all duration-300"
                   onClick={() => {
                     setIsCreateChooserOpen(false);
                     setIsAddDeckModalOpen(true);
                   }}
                 >
-                  <div className="flex flex-col items-start text-left gap-1">
-                    <span className="font-semibold">New Deck</span>
-                    <span className="text-xs text-foreground/80">
-                      Create flashcards fast.
-                    </span>
+                  <div className="flex w-full justify-between items-center">
+                    <span className="font-bold text-lg font-editorial tracking-tight">New Deck</span>
+                    <Plus className="h-5 w-5 opacity-70" />
                   </div>
-                  <Plus className="h-4 w-4" />
+                  <span className="text-sm font-medium opacity-80 text-left">
+                    Create flashcards fast.
+                  </span>
                 </Button>
                 <Button
                   variant="secondary"
-                  className="h-full justify-between bg-pink text-foreground border border-pink/60 shadow-[0_12px_30px_rgba(255,182,251,0.35)] hover:scale-[1.01] hover:shadow-[0_16px_36px_rgba(255,182,251,0.45)] transition-transform"
+                  className="h-auto p-5 flex-col items-start gap-4 rounded-2xl bg-pink hover:bg-pink/90 text-foreground border-2 border-border shadow-bento-sm hover:-translate-y-1 hover:shadow-bento transition-all duration-300"
                   onClick={() => {
                     setIsCreateChooserOpen(false);
                     setIsAddFolderModalOpen(true);
                   }}
                 >
-                  <div className="flex flex-col items-start text-left gap-1">
-                    <span className="font-semibold">New Folder</span>
-                    <span className="text-xs text-foreground/80">
-                      Group decks by topic.
-                    </span>
+                  <div className="flex w-full justify-between items-center">
+                    <span className="font-bold text-lg font-editorial tracking-tight">New Folder</span>
+                    <Plus className="h-5 w-5 opacity-70" />
                   </div>
-                  <Plus className="h-4 w-4" />
+                  <span className="text-sm font-medium opacity-80 text-left">
+                    Group decks by topic.
+                  </span>
                 </Button>
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs uppercase tracking-widest font-bold text-muted-foreground text-center pt-2">
                 You can always rearrange decks into folders later.
               </p>
             </div>
@@ -1061,3 +1061,6 @@ const DecksPage = () => (
 );
 
 export default DecksPage;
+
+
+

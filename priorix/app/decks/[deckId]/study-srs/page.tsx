@@ -149,33 +149,33 @@ const ratingConfig = {
   again: {
     label: "Again",
     description: "I forgot this card.",
-    color: "text-red-700 dark:text-red-200",
-    bgColor: "bg-red-50 dark:bg-red-950/30",
-    borderColor: "border-red-200 dark:border-red-800",
+    color: "text-foreground",
+    bgColor: "bg-blush hover:bg-blush/90",
+    borderColor: "border-border",
     icon: RotateCcw,
   },
   hard: {
     label: "Hard",
-    description: "I remembered, but it was difficult.",
-    color: "text-orange-700 dark:text-orange-200",
-    bgColor: "bg-orange-50 dark:bg-orange-950/30",
-    borderColor: "border-orange-200 dark:border-orange-800",
+    description: "I remembered, but with effort.",
+    color: "text-foreground",
+    bgColor: "bg-tangerine hover:bg-tangerine/90",
+    borderColor: "border-border",
     icon: Target,
   },
   good: {
     label: "Good",
     description: "I remembered easily.",
-    color: "text-blue-700 dark:text-blue-200",
-    bgColor: "bg-blue-50 dark:bg-blue-950/30",
-    borderColor: "border-blue-200 dark:border-blue-800",
+    color: "text-foreground",
+    bgColor: "bg-sky hover:bg-sky/90",
+    borderColor: "border-border",
     icon: Check,
   },
   easy: {
     label: "Easy",
-    description: "This was very easy to recall.",
-    color: "text-green-700 dark:text-green-200",
-    bgColor: "bg-green-50 dark:bg-green-950/30",
-    borderColor: "border-green-200 dark:border-green-800",
+    description: "This was very easy.",
+    color: "text-foreground",
+    bgColor: "bg-mint hover:bg-mint/90",
+    borderColor: "border-border",
     icon: Zap,
   },
 } as const;
@@ -528,28 +528,28 @@ const StudySrsPage = () => {
   const pendingReviewCount = pendingCards.length - pendingNewCount;
 
   const renderPreRound = () => (
-    <div className="min-h-screen p-4 md:p-4 lg:p-8 px-2 bg-gradient-to-b from-background via-background to-primary/5">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-[100dvh] md:min-h-[calc(100dvh-5rem)] p-4 md:p-6 bg-gradient-to-b from-background via-background to-primary/5 flex items-center justify-center">
+      <div className="w-full max-w-3xl mx-auto flex-1 flex flex-col pb-4 h-full justify-center">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="space-y-2 md:space-y-4"
+          className="space-y-2 max-w-3xl mx-auto w-full"
         >
           {/* Header Section */}
           <div className="space-y-1">
             
-            <div className="hidden md:block bg-yellow/30 dark:bg-violet/20 rounded-lg p-4 border-2 border-primary">
+            <div className="hidden md:block bg-citrus dark:bg-citrus rounded-md p-4 border-2 border-border shadow-0 text-foreground">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                    <Zap className="h-5 w-5 text-primary" />
+                  <div className="w-12 h-12 rounded-md bg-background border-2 border-border flex items-center justify-center">
+                    <Zap className="h-5 w-5 text-foreground" />
                   </div>
                   <div>
-                    <p className="font-medium">Ready to study</p>
-                    <p className="text-2xl font-bold">{pendingCards.length}</p>
+                    <p className="text-sm font-bold uppercase tracking-wider text-black/70 dark:text-black/70">Ready to study</p>
+                    <p className="text-2xl font-editorial italic text-black dark:text-black">{pendingCards.length}</p>
                     {pendingCards.length > 0 && (
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-black/60 dark:text-black/60 font-medium">
                         {pendingReviewCount} review{pendingReviewCount !== 1 ? "s" : ""}
                         {pendingNewCount > 0 && (
                           <> + {pendingNewCount} new</>
@@ -558,29 +558,28 @@ const StudySrsPage = () => {
                     )}
                   </div>
                 </div>
-                <Button
+                <button
                   onClick={startRound}
                   disabled={isReviewing || pendingCards.length === 0}
-                  size="lg"
-                  className="gap-2 shadow-lg"
+                  className="btn-primary flex items-center gap-2 px-6 py-3"
                 >
                   <Zap className="h-5 w-5" />
-                   Study
-                </Button>
+                  STUDY NOW
+                </button>
               </div>
             </div>
           </div>
 
           {/* Main Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Left Column: Session Settings */}
-            <div className="lg:col-span-2 space-y-6">
-              <Card className="border-2">
+            <div className="md:col-span-2 space-y-3">
+              <Card className="border-2 border-border shadow-bento-sm bento-card">
                 <CardContent>
-                  <div className="space-y-6">
+                  <div className="space-y-4">
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <h2 className="text-lg md:text-xl font-semibold flex items-center gap-2">
+                        <h2 className="text-lg font-bold font-editorial flex items-center gap-2">
                           <Target className="h-5 w-5 text-primary" />
                           Session Size
                         </h2>
@@ -602,27 +601,24 @@ const StudySrsPage = () => {
                           whileTap={{ scale: 0.97 }}
                           className="relative"
                         >
-                          <Button
-                            variant={
-                              sessionSize === size ? "default" : "outline"
-                            }
+                          <button
                             onClick={() => setSessionSize(size)}
                             disabled={roundActive || isReviewing}
                             className={cn(
-                              "w-full h-15 flex flex-col gap-0 transition-all duration-200",
+                              "w-full h-15 flex flex-col gap-0 transition-all duration-200 rounded-md border-2",
                               sessionSize === size
-                                ? "shadow-lg shadow-primary/20 bg-yellow/50 dark:bg-violet/30 border-2 border-primary text-black dark:text-foreground"
-                                : "hover:border-primary/50",
+                                ? "bg-tangerine border-border text-foreground -translate-y-1"
+                                : "border-border bg-card hover:-translate-y-0.5"
                             )}
                           >
-                            <span className="text-xl md:text-2xl font-bold">{size}</span>
-                            <span className="text-xs opacity-90">cards</span>
+                            <span className="text-lg font-bold">{size}</span>
+                            <span className="text-xs opacity-90 font-bold uppercase tracking-widest">cards</span>
                             {sessionSize === size && (
-                              <div className="absolute -top-1 -right-1 w-5 h-5 bg-primary rounded-full flex items-center justify-center">
+                              <div className="absolute -top-2 -right-2 w-6 h-6 bg-black rounded-full flex items-center justify-center border-2 border-border">
                                 <Check className="h-3 w-3 text-white" />
                               </div>
                             )}
-                          </Button>
+                          </button>
                         </motion.div>
                       ))}
                     </div>
@@ -633,7 +629,7 @@ const StudySrsPage = () => {
               </Card>
 
               {/* Progress Stats */}
-              <Card className="border-2">
+              <Card className="border-2 border-border shadow-bento-sm bento-card">
                 <CardContent>
                   <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
                     <BarChart3 className="h-5 w-5 text-primary" />
@@ -655,14 +651,14 @@ const StudySrsPage = () => {
                           %
                         </span>
                       </div>
-                      <div className="h-2 bg-muted rounded-full overflow-hidden">
+                      <div className="h-2 bg-muted rounded-full overflow-hidden border-2 border-border/20">
                         <motion.div
                           initial={{ width: 0 }}
                           animate={{
                             width: `${((deckCardsWithUpdates.length - preRoundSummary.notYet) / deckCardsWithUpdates.length) * 100}%`,
                           }}
                           transition={{ duration: 0.8, ease: "easeOut" }}
-                          className="h-full bg-gradient-to-r from-yellow to-primary rounded-full"
+                          className="h-full bg-foreground rounded-full"
                         />
                       </div>
                       <div className="flex justify-between text-xs text-muted-foreground">
@@ -676,27 +672,27 @@ const StudySrsPage = () => {
 
                     {/* Quick Stats */}
                     <div className="grid grid-cols-3 gap-4 pt-1">
-                      <div className="bg-yellow/20 dark:bg-violet/20 rounded-lg p-4 text-center border border-primary/20">
-                        <div className="text-2xl font-bold text-primary">
+                      <div className="bg-citrus rounded-md p-3 text-center border-2 border-border">
+                        <div className="text-2xl font-bold font-editorial text-foreground">
                           {preRoundSummary.learning}
                         </div>
-                        <div className="text-sm text-muted-foreground">
+                        <div className="text-xs uppercase tracking-widest font-bold text-foreground/70 font-sans mt-0.5">
                           Learning
                         </div>
                       </div>
-                      <div className="bg-green/20 dark:bg-green/30 rounded-lg p-4 text-center border border-green/40">
-                        <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                      <div className="bg-mint rounded-md p-3 text-center border-2 border-border">
+                        <div className="text-2xl font-bold font-editorial text-foreground">
                           {preRoundSummary.mastered}
                         </div>
-                        <div className="text-sm text-muted-foreground">
+                        <div className="text-xs uppercase tracking-widest font-bold text-foreground/70 font-sans mt-0.5">
                           Mastered
                         </div>
                       </div>
-                      <div className="bg-red-50 dark:bg-red-950/30 rounded-lg p-4 text-center border border-red-200 dark:border-red-800">
-                        <div className="text-2xl font-bold text-red-600 dark:text-red-400">
+                      <div className="bg-blush rounded-md p-3 text-center border-2 border-border">
+                        <div className="text-2xl font-bold font-editorial text-foreground">
                           {preRoundSummary.hard}
                         </div>
-                        <div className="text-sm text-muted-foreground">
+                        <div className="text-xs uppercase tracking-widest font-bold text-foreground/70 font-sans mt-0.5">
                           Hard
                         </div>
                       </div>
@@ -708,103 +704,103 @@ const StudySrsPage = () => {
 
             {/* Right Column: Status Overview */}
             <div className="space-y-6 mb-15">
-              <Card className="border-2 h-full">
-                <CardContent className=" h-full">
-                  <div className="space-y-2 h-full flex flex-col">
+              <Card className="bento-card p-0 py-2">
+                <CardContent>
+                  <div className="space-y-2 flex flex-col">
                     <div>
-                      <h2 className="text-xl font-semibold flex items-center gap-2">
-                        <Check className="h-5 w-5 text-primary" />
+                      <h2 className="text-xl font-bold font-editorial flex items-center gap-2">
+                        <Check className="h-5 w-5 text-foreground" />
                         Status Overview
                       </h2>
                     </div>
 
-                    <div className="space-y-2 flex-1">
+                    <div className="space-y-2 pt-2">
                       {/* Not Yet Studied */}
-                      <div className="flex items-center justify-between p-3 rounded-lg bg-muted/30 border border-muted">
+                      <div className="flex items-center justify-between p-3 rounded-md bg-background border-2 border-border">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-                            <Clock className="h-4 w-4 text-muted-foreground" />
+                          <div className="w-8 h-8 rounded-md border-2 border-border bg-card flex items-center justify-center">
+                            <Clock className="h-4 w-4 text-foreground/70" />
                           </div>
                           <div>
-                            <p className="font-medium">Not Yet</p>
+                            <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Not Yet</p>
                             <p className="text-xs text-muted-foreground">
                               Never reviewed
                             </p>
                           </div>
                         </div>
-                        <div className="text-2xl font-bold">
+                        <div className="text-xl font-editorial font-bold">
                           {preRoundSummary.notYet}
                         </div>
                       </div>
 
                       {/* Learning */}
-                      <div className="flex items-center justify-between p-3 rounded-lg bg-yellow/20 dark:bg-violet/20 border-2 border-primary/30">
+                      <div className="flex items-center justify-between p-3 rounded-md bg-citrus border-2 border-border">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                            <RotateCcw className="h-4 w-4 text-primary" />
+                          <div className="w-8 h-8 rounded-md bg-background border-2 border-border flex items-center justify-center">
+                            <RotateCcw className="h-4 w-4 text-foreground" />
                           </div>
                           <div>
-                            <p className="font-medium">Learning</p>
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-sm font-bold uppercase tracking-wider text-black/70 dark:text-black/70">Learning</p>
+                            <p className="text-xs text-black/60 dark:text-black/60 font-medium">
                               In learning steps
                             </p>
                           </div>
                         </div>
-                        <div className="text-2xl font-bold text-primary">
+                        <div className="text-2xl font-bold font-editorial text-foreground">
                           {preRoundSummary.learning}
                         </div>
                       </div>
 
                       {/* Hard */}
-                      <div className="flex items-center justify-between p-3 rounded-lg bg-red-50 dark:bg-red-950/30 border-2 border-red-200 dark:border-red-800">
+                      <div className="flex items-center justify-between p-3 rounded-md bg-blush border-2 border-border">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900 flex items-center justify-center">
-                            <Target className="h-4 w-4 text-red-600 dark:text-red-400" />
+                          <div className="w-8 h-8 rounded-md bg-background border-2 border-border flex items-center justify-center">
+                            <Target className="h-4 w-4 text-foreground" />
                           </div>
                           <div>
-                            <p className="font-medium">Hard</p>
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-sm font-bold uppercase tracking-wider text-black/70 dark:text-black/70">Hard</p>
+                            <p className="text-xs text-black/60 dark:text-black/60 font-medium">
                               Unstable memory
                             </p>
                           </div>
                         </div>
-                        <div className="text-2xl font-bold text-red-600 dark:text-red-400">
+                        <div className="text-2xl font-bold font-editorial text-foreground">
                           {preRoundSummary.hard}
                         </div>
                       </div>
 
                       {/* Good */}
-                      <div className="flex items-center justify-between p-3 rounded-lg bg-blue/20 dark:bg-blue/30 border-2 border-blue/40">
+                      <div className="flex items-center justify-between p-3 rounded-md bg-sky border-2 border-border">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-blue/30 flex items-center justify-center">
-                            <Check className="h-4 w-4 text-blue" />
+                          <div className="w-8 h-8 rounded-md bg-background border-2 border-border flex items-center justify-center">
+                            <Check className="h-4 w-4 text-foreground" />
                           </div>
                           <div>
-                            <p className="font-medium">Good</p>
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-sm font-bold uppercase tracking-wider text-black/70 dark:text-black/70">Good</p>
+                            <p className="text-xs text-black/60 dark:text-black/60 font-medium">
                               Progressing well
                             </p>
                           </div>
                         </div>
-                        <div className="text-2xl font-bold text-blue">
+                        <div className="text-2xl font-bold font-editorial text-foreground">
                           {preRoundSummary.good}
                         </div>
                       </div>
 
                       {/* Mastered */}
-                      <div className="flex items-center justify-between p-3 rounded-lg bg-green/20 dark:bg-green/30 border-2 border-green/40">
+                      <div className="flex items-center justify-between p-3 rounded-md bg-mint border-2 border-border">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-green/30 flex items-center justify-center">
-                            <Zap className="h-4 w-4 text-green" />
+                          <div className="w-8 h-8 rounded-md bg-background border-2 border-border flex items-center justify-center">
+                            <Zap className="h-4 w-4 text-foreground" />
                           </div>
                           <div>
-                            <p className="font-medium">Mastered</p>
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-sm font-bold uppercase tracking-wider text-black/70 dark:text-black/70">Mastered</p>
+                            <p className="text-xs text-black/60 dark:text-black/60 font-medium">
                               Long-term retention
                             </p>
                           </div>
                         </div>
-                        <div className="text-2xl font-bold text-green">
+                        <div className="text-2xl font-bold font-editorial text-foreground">
                           {preRoundSummary.mastered}
                         </div>
                       </div>
@@ -816,25 +812,24 @@ const StudySrsPage = () => {
           </div>
 
           {/* Mobile Action Footer */}
-          <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t-2 border-primary/20 p-4 sm:hidden">
+          <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t-2 border-border p-4 sm:hidden">
             <div className="max-w-4xl mx-auto space-y-1">
               {pendingCards.length > 0 && (
-                <p className="text-xs text-center text-muted-foreground">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-center text-muted-foreground pb-1">
                   {pendingReviewCount} review{pendingReviewCount !== 1 ? "s" : ""}
                   {pendingNewCount > 0 && (
                     <> + {pendingNewCount} new</>
                   )}
                 </p>
               )}
-              <Button
+              <button
                 onClick={startRound}
                 disabled={isReviewing || pendingCards.length === 0}
-                size="lg"
-                className="w-full gap-2 py-7 shadow-lg bg-yellow/50 dark:bg-violet/30 border-2 border-primary text-black dark:text-foreground"
+                className="w-full btn-primary bg-citrus hover:bg-citrus border-2 border-border text-foreground shadow-bento py-4"
               >
                 <Zap className="h-5 w-5" />
-                Start Studying {sessionSize} Cards
-              </Button>
+                START STUDYING {sessionSize} CARDS
+              </button>
             </div>
           </div>
         </motion.div>
@@ -890,8 +885,8 @@ const StudySrsPage = () => {
   if (!hasStartedRound) return renderPreRound();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-[100dvh] md:min-h-[calc(100dvh-5rem)] flex flex-col pt-4 bg-gradient-to-br from-background via-background to-primary/5 px-2">
+      <div className="w-full max-w-4xl mx-auto flex-1 flex flex-col pb-4 h-full justify-center">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -900,9 +895,9 @@ const StudySrsPage = () => {
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-3">
               <div>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
+                <div className="flex items-center gap-4 text-xs text-muted-foreground font-bold uppercase tracking-widest">
+                  <span className="flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
                     {roundTotal > 0 && currentCard
                       ? `Card ${cardPosition} of ${roundTotal}`
                       : "Round complete"}
@@ -913,15 +908,15 @@ const StudySrsPage = () => {
 
             <div className="flex items-center gap-4">
               <div className="text-right hidden sm:block">
-                <div className="text-sm font-medium">
+                <div className="text-sm font-bold uppercase tracking-widest text-foreground">
                   {Math.round(progress)}% Complete
                 </div>
-                <div className="text-xs text-muted-foreground">
+                <div className="text-xs text-muted-foreground font-medium">
                   {cardsRemaining} cards remaining
                 </div>
               </div>
-              <div className="w-24">
-                <Progress value={progress} className="h-2" />
+              <div className="w-24 border-2 border-border/20 rounded-full h-3 overflow-hidden bg-muted flex items-center">
+                <div className="h-full bg-foreground" style={{ width: `${progress}%` }} />
               </div>
             </div>
           </div>
@@ -934,36 +929,33 @@ const StudySrsPage = () => {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 1.05 }}
             transition={{ duration: 0.2 }}
-            className="mb-8"
+            className="flex-1 min-h-[50vh] md:min-h-[60vh] relative mb-6"
           >
-            <Card
+            <div
               onClick={toggleReveal}
               className={cn(
-                "border-2 shadow-2xl overflow-hidden transition-all duration-300 cursor-pointer",
-                isRevealed
-                  ? "border-primary bg-yellow/50 dark:bg-violet/50"
-                  : "border-primary bg-yellow/30 dark:bg-violet/20",
+                "absolute inset-0 border-2 border-border shadow-bento rounded-xl p-6 md:p-10 flex flex-col transition-all duration-300 ease-out cursor-pointer bg-card overflow-y-auto",
                 isFlipping && "transform-gpu",
               )}
             >
-              <CardContent className="p-4 md:p-8 md:pb-0">
+              <div className="flex-1 w-full flex flex-col">
                 {currentCard ? (
                   <>
-                    <div className="min-h-64 flex flex-col items-center justify-center text-center">
+                    <div className="flex-1 flex flex-col items-center justify-center text-center">
                       <AnimatePresence mode="wait">
                         <motion.div
                           key={isRevealed ? "answer" : "question"}
-                          initial={{ opacity: 0, y: 20 }}
+                          initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -20 }}
+                          exit={{ opacity: 0, y: -10 }}
                           className="space-y-6 w-full"
                         >
                           <div
                             className={cn(
-                              "whitespace-pre-line break-words",
+                              "whitespace-pre-wrap break-words text-center flex items-center justify-center tracking-tight w-full max-w-3xl mx-auto leading-relaxed",
                               isRevealed
-                                ? "text-2xl md:text-3xl font-bold leading-tight"
-                                : "text-lg md:text-xl font-semibold leading-relaxed",
+                                ? "text-xl md:text-2xl text-foreground"
+                                : "text-xl md:text-2xl text-foreground/90",
                             )}
                           >
                             {isRevealed
@@ -995,35 +987,34 @@ const StudySrsPage = () => {
                               return (
                                 <motion.div
                                   key={rating}
-                                  whileHover={{ scale: 1.05 }}
-                                  whileTap={{ scale: 0.95 }}
+                                  whileHover={{ scale: 1.02 }}
+                                  whileTap={{ scale: 0.98 }}
                                 >
                                   <Button
-                                    onClick={() =>
-                                      handleRating(rating as SrsRating)
-                                    }
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleRating(rating as SrsRating);
+                                    }}
                                     variant="outline"
                                     disabled={isReviewing}
                                     className={cn(
-                                      "h-20 w-full flex flex-col gap-0.5 border-2 text-left bg-white dark:bg-card",
+                                      "h-full p-3 w-full flex flex-col items-center justify-center gap-1 rounded-lg border-2 transition-all hover:shadow-bento hover:-translate-y-1 active:translate-y-0 active:shadow-none border-border",
                                       config.bgColor,
-                                      config.borderColor,
-                                      config.color,
-                                      "hover:shadow-md transition-all",
+                                      config.color
                                     )}
                                   >
                                     <Icon
-                                      className={cn("h-4 w-4", config.color)}
+                                      className={cn("h-4 w-4 mb-0.5", config.color)}
                                     />
                                     <div
                                       className={cn(
-                                        "font-semibold text-sm",
+                                        "font-bold text-xs tracking-wider uppercase",
                                         config.color,
                                       )}
                                     >
                                       {config.label}
                                     </div>
-                                    <div className="text-[9px] opacity-60 font-medium leading-tight text-center">
+                                    <div className="text-[10px] opacity-80 font-medium leading-tight text-center max-w-[90%]">
                                       {config.description}
                                     </div>
                                   </Button>
@@ -1044,19 +1035,19 @@ const StudySrsPage = () => {
                     </p>
                   </div>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </motion.div>
         </AnimatePresence>
 
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="mb-8"
+          className="pb-2 md:pb-4 mt-auto"
         >
-          <Card className="border">
-            <CardContent className="p-4">
-              <div className="grid grid-cols-4 gap-2">
+          <Card className="border-2 border-border shadow-sm bento-card">
+            <CardContent className="p-3">
+              <div className="grid grid-cols-4 gap-3">
                 {srsRatings.map((rating) => {
                   const config = ratingConfig[rating];
                   const count = stats[rating];
@@ -1064,18 +1055,17 @@ const StudySrsPage = () => {
                     <div
                       key={rating}
                       className={cn(
-                        "p-3 rounded-lg text-center transition-all",
+                        "p-2 rounded-md text-center border-2",
                         config.bgColor,
                         config.borderColor,
-                        "border",
                       )}
                     >
                       <div
-                        className={cn("text-2xl font-bold mb-1", config.color)}
+                        className={cn("text-xl font-bold font-editorial mb-0.5", config.color)}
                       >
                         {count}
                       </div>
-                      <div className={cn("text-xs font-medium", config.color)}>
+                      <div className={cn("text-[10px] uppercase tracking-widest font-bold", config.color)}>
                         {config.label}
                       </div>
                     </div>
@@ -1100,67 +1090,67 @@ const StudySrsPage = () => {
 
           <div className="space-y-3">
             <div className="grid grid-cols-2 sm:grid-cols-2 gap-3">
-              <div className="p-3 rounded-lg border bg-muted/40">
-                <div className="text-xs text-muted-foreground">
+              <div className="p-3 rounded-lg border-2 border-border bg-background shadow-sm">
+                <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                   Not Yet Studied
                 </div>
-                <div className="text-xl font-bold">{roundSummary.notYet}</div>
-                <p className="text-[9px] text-muted-foreground mt-1">
+                <div className="text-xl font-bold font-editorial">{roundSummary.notYet}</div>
+                <p className="text-[9px] font-medium text-muted-foreground mt-1">
                   Never reviewed
                 </p>
               </div>
-              <div className="p-3 rounded-lg border bg-slate-50 dark:bg-slate-900/40">
-                <div className="text-xs text-muted-foreground">Forgotten</div>
-                <div className="text-xl font-bold">
+              <div className="p-3 rounded-lg border-2 border-border bg-background shadow-sm">
+                <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Forgotten</div>
+                <div className="text-xl font-bold font-editorial">
                   {roundSummary.forgotten}
                 </div>
-                <p className="text-[9px] text-muted-foreground mt-1">
-                  No review in the last 14 days
+                <p className="text-[9px] font-medium text-muted-foreground mt-1">
+                  No review in 14+ days
                 </p>
               </div>
-              <div className="p-3 rounded-lg border bg-yellow/20 dark:bg-violet/20">
-                <div className="text-xs text-muted-foreground">
+              <div className="p-3 rounded-lg border-2 border-border bg-citrus shadow-sm">
+                <div className="text-[10px] font-bold uppercase tracking-widest text-foreground/70">
                   Learning 
                 </div>
-                <div className="text-xl font-bold">
+                <div className="text-xl font-bold font-editorial text-foreground">
                   {roundSummary.learning}
                 </div>
-                <p className="text-[9px] text-muted-foreground mt-1">
-                  In learning steps or rated Again
+                <p className="text-[9px] font-medium text-foreground/60 mt-1">
+                  In learning steps
                 </p>
               </div>
-              <div className="p-3 rounded-lg border bg-orange-50 dark:bg-orange-950/30">
-                <div className="text-xs text-muted-foreground">
-                  Hard (unstable)
+              <div className="p-3 rounded-lg border-2 border-border bg-blush shadow-sm">
+                <div className="text-[10px] font-bold uppercase tracking-widest text-foreground/70">
+                  Hard
                 </div>
-                <div className="text-xl font-bold">{roundSummary.hard}</div>
-                <p className="text-[9px] text-muted-foreground mt-1">
-                  Low ease (&lt;2.0) or 3+ lapses
+                <div className="text-xl font-bold font-editorial text-foreground">{roundSummary.hard}</div>
+                <p className="text-[9px] font-medium text-foreground/60 mt-1">
+                  Unstable memory
                 </p>
               </div>
-              <div className="p-3 rounded-lg border bg-blue-50 dark:bg-blue-950/30">
-                <div className="text-xs text-muted-foreground">
-                  Good (progressing)
+              <div className="p-3 rounded-lg border-2 border-border bg-sky shadow-sm">
+                <div className="text-[10px] font-bold uppercase tracking-widest text-foreground/70">
+                  Good
                 </div>
-                <div className="text-xl font-bold">{roundSummary.good}</div>
-                <p className="text-[9px] text-muted-foreground mt-1">
-                  Graduated, progressing well (1-13 days)
+                <div className="text-xl font-bold font-editorial text-foreground">{roundSummary.good}</div>
+                <p className="text-[9px] font-medium text-foreground/60 mt-1">
+                  Progressing well
                 </p>
               </div>
-              <div className="p-3 rounded-lg border bg-green-50 dark:bg-green-950/30">
-                <div className="text-xs text-muted-foreground">
-                  Mastered (stable)
+              <div className="p-3 rounded-lg border-2 border-border bg-mint shadow-sm">
+                <div className="text-[10px] font-bold uppercase tracking-widest text-foreground/70">
+                  Mastered
                 </div>
-                <div className="text-xl font-bold">
+                <div className="text-xl font-bold font-editorial text-foreground">
                   {roundSummary.mastered}
                 </div>
-                <p className="text-[9px] text-muted-foreground mt-1">
-                  Interval ≥ 14 days, 4+ reps, ease ≥ 2.2
+                <p className="text-[9px] font-medium text-foreground/60 mt-1">
+                  Stable retention
                 </p>
               </div>
             </div>
 
-            <div className="rounded-lg bg-muted/50 p-4 space-y-2">
+            <div className="rounded-lg border-2 border-border bg-card shadow-sm p-4 space-y-2">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">
                   Cards reviewed this round
@@ -1203,3 +1193,5 @@ const StudySrsPage = () => {
 };
 
 export default StudySrsPage;
+
+

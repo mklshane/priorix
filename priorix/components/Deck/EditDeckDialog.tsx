@@ -1,4 +1,3 @@
-// components/decks/EditDeckDialog.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -54,7 +53,7 @@ const EditDeckDialog: React.FC<EditDeckDialogProps> = ({
   const [error, setError] = useState("");
 
   const fieldStyles =
-    "rounded-lg border border-border/60 bg-background/80 px-3 py-2 shadow-inner focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/30 disabled:opacity-60";
+    "min-h-[48px] rounded-xl border-2 border-border bg-background px-4 py-2 font-medium focus-visible:outline-none focus-visible:ring-0 focus-visible:border-foreground disabled:opacity-60 transition-colors";
 
   // Update form fields when initial values change
   useEffect(() => {
@@ -94,22 +93,22 @@ const EditDeckDialog: React.FC<EditDeckDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="modal-surface sm:max-w-[520px] p-0">
-        <DialogHeader className="flex flex-row items-start gap-3 border-b border-border/60 bg-gradient-to-r from-primary/10 via-muted/40 to-transparent px-6 py-5">
-          <div className="flex size-12 items-center justify-center rounded-lg bg-primary/15 text-primary shadow-inner ring-1 ring-primary/20">
-            <PencilLine className="h-5 w-5" />
+      <DialogContent className="sm:max-w-[480px] p-0 overflow-hidden border-2 border-border shadow-bento !rounded-[2rem] bg-card">
+        <DialogHeader className="flex flex-col items-center justify-center gap-3 border-b-2 border-border bg-tangerine px-6 py-8">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-border bg-white shadow-bento-sm">
+            <PencilLine className="h-8 w-8 text-foreground" />
           </div>
-          <div className="space-y-1 text-left">
-            <DialogTitle className="text-xl">Edit Deck</DialogTitle>
-            <DialogDescription>
+          <div className="space-y-1 text-center">
+            <DialogTitle className="font-editorial text-4xl text-foreground">Edit Deck</DialogTitle>
+            <DialogDescription className="text-foreground/70 font-medium text-sm">
               Fine-tune the details, privacy, and folder for this deck.
             </DialogDescription>
           </div>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="px-6 py-5 space-y-5">
-          <div className="grid gap-2">
-            <Label htmlFor="edit-title">Title</Label>
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="edit-title" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Title</Label>
             <Input
               id="edit-title"
               value={title}
@@ -122,8 +121,9 @@ const EditDeckDialog: React.FC<EditDeckDialogProps> = ({
               className={fieldStyles}
             />
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="edit-description">Description</Label>
+          
+          <div className="space-y-2">
+            <Label htmlFor="edit-description" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Description</Label>
             <Textarea
               id="edit-description"
               value={description}
@@ -133,32 +133,17 @@ const EditDeckDialog: React.FC<EditDeckDialogProps> = ({
               placeholder="Enter deck description"
               rows={3}
               disabled={isLoading}
-              className="rounded-lg border border-border/60 bg-background/80 px-3 py-2 shadow-inner focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/30 disabled:opacity-60"
+              className={fieldStyles}
             />
           </div>
-          <div className="flex items-center gap-3 rounded-lg border border-border/60 bg-background/60 px-4 py-3 shadow-inner">
-            <Switch
-              id="edit-isPublic"
-              checked={isPublic}
-              onCheckedChange={setIsPublic}
-              disabled={isLoading}
-            />
-            <div>
-              <Label htmlFor="edit-isPublic" className="cursor-pointer">
-                Make this deck public
-              </Label>
-              <p className="text-sm text-muted-foreground">
-                Share knowledge with the community.
-              </p>
-            </div>
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="edit-folder">Folder</Label>
+
+          <div className="space-y-2">
+            <Label htmlFor="edit-folder" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Folder</Label>
             <div className="relative">
-              <FolderGit2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <FolderGit2 className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
               <select
                 id="edit-folder"
-                className="w-full rounded-lg border border-border/60 bg-background/80 px-3 py-2 pl-9 text-foreground shadow-inner focus:outline-hidden focus:ring-2 focus:ring-primary/30 disabled:opacity-60"
+                className="w-full min-h-[48px] rounded-xl border-2 border-border bg-background px-4 py-2 pl-11 font-medium focus-visible:outline-none focus-visible:ring-0 focus-visible:border-foreground disabled:opacity-60 transition-colors"
                 value={selectedFolderId ?? ""}
                 onChange={(e) => setSelectedFolderId(e.target.value)}
                 disabled={isLoading}
@@ -172,25 +157,46 @@ const EditDeckDialog: React.FC<EditDeckDialogProps> = ({
               </select>
             </div>
           </div>
+
+          <div className="flex items-center gap-4 rounded-2xl border-2 border-border bg-card p-4 transition-colors">
+            <Switch
+              id="edit-isPublic"
+              checked={isPublic}
+              onCheckedChange={setIsPublic}
+              disabled={isLoading}
+              className="data-[state=checked]:bg-foreground"
+            />
+            <div>
+              <Label htmlFor="edit-isPublic" className="font-bold cursor-pointer text-base">
+                Public Deck
+              </Label>
+              <p className="text-xs text-muted-foreground font-medium mt-0.5">
+                Share knowledge with the community.
+              </p>
+            </div>
+          </div>
+
           {error && (
-            <div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            <div className="rounded-xl border-2 border-red-500 bg-red-100 px-4 py-3 text-sm font-bold text-red-900">
               {error}
             </div>
           )}
-          <DialogFooter className="border-t border-border/60 bg-background/40 px-1 pt-4">
-            <div className="flex w-full items-center justify-end gap-2">
+
+          <DialogFooter className="pt-2">
+            <div className="flex w-full items-center justify-end gap-3">
               <Button
                 type="button"
-                variant="outline"
+                variant="ghost"
                 onClick={() => onOpenChange(false)}
                 disabled={isLoading}
+                className="h-12 px-6 rounded-xl font-bold hover:bg-muted"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="shadow-[0_12px_30px_rgba(139,92,246,0.35)]"
+                className="h-12 px-8 rounded-xl border-2 border-border bg-foreground text-background font-bold hover:bg-foreground/90 hover:-translate-y-0.5 transition-transform"
               >
                 {isLoading ? "Saving..." : "Save Changes"}
               </Button>

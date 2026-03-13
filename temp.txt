@@ -1,0 +1,161 @@
+>   const renderPreRound = () => (
+      <div className="min-h-screen p-4 md:p-4 lg:p-8 px-2 bg-gradient-to-b from-background via-background to-primary/5">
+        <div className="w-full max-w-4xl mx-auto flex-1 flex flex-col pb-4 h-full">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="space-y-2 md:space-y-4"
+          >
+            {/* Header Section */}
+            <div className="space-y-1">
+              
+              <div className="hidden md:block bg-yellow/30 dark:bg-violet/20 rounded-lg p-4 border-2 border-primary">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                      <Zap className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-medium">Ready to study</p>
+                      <p className="text-2xl font-bold">{pendingCards.length}</p>
+                      {pendingCards.length > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          {pendingReviewCount} review{pendingReviewCount !== 1 ? "s" : ""}
+                          {pendingNewCount > 0 && (
+                            <> + {pendingNewCount} new</>
+                          )}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <Button
+                    onClick={startRound}
+                    disabled={isReviewing || pendingCards.length === 0}
+                    size="lg"
+                    className="gap-2 shadow-lg"
+                  >
+                    <Zap className="h-5 w-5" />
+                     Study
+                  </Button>
+                </div>
+              </div>
+            </div>
+  
+            {/* Main Content Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Left Column: Session Settings */}
+              <div className="lg:col-span-2 space-y-6">
+                <Card className="border-2">
+                  <CardContent>
+                    <div className="space-y-6">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <h2 className="text-lg md:text-xl font-semibold flex items-center gap-2">
+                            <Target className="h-5 w-5 text-primary" />
+                            Session Size
+                          </h2>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <Clock className="h-4 w-4" />
+                            <span>Pick your goal</span>
+                          </div>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Choose how many cards you want to study in this session
+                        </p>
+                      </div>
+  
+                      <div className="grid grid-cols-4 sm:grid-cols-4 gap-3">
+                        {srsSessionSizes.map((size) => (
+                          <motion.div
+                            key={size}
+                            whileHover={{ scale: 1.03 }}
+                            whileTap={{ scale: 0.97 }}
+                            className="relative"
+                          >
+                            <Button
+                              variant={
+                                sessionSize === size ? "default" : "outline"
+                              }
+                              onClick={() => setSessionSize(size)}
+                              disabled={roundActive || isReviewing}
+                              className={cn(
+                                "w-full h-15 flex flex-col gap-0 transition-all duration-200",
+                                sessionSize === size
+                                  ? "shadow-lg shadow-primary/20 bg-yellow/50 dark:bg-violet/30 border-2 border-primary text-black dark:text-foreground"
+                                  : "hover:border-primary/50",
+                              )}
+                            >
+                              <span className="text-xl md:text-2xl font-bold">{size}</span>
+                              <span className="text-xs opacity-90">cards</span>
+                              {sessionSize === size && (
+                                <div className="absolute -top-1 -right-1 w-5 h-5 bg-primary rounded-full flex items-center justify-center">
+                                  <Check className="h-3 w-3 text-white" />
+                                </div>
+                              )}
+                            </Button>
+                          </motion.div>
+                        ))}
+                      </div>
+  
+                      
+                    </div>
+                  </CardContent>
+                </Card>
+  
+                {/* Progress Stats */}
+                <Card className="border-2">
+                  <CardContent>
+                    <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
+                      <BarChart3 className="h-5 w-5 text-primary" />
+                      Learning Progress
+                    </h2>
+  
+                    <div className="space-y-4">
+                      {/* Progress Bar */}
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="font-medium">Overall Mastery</span>
+                          <span className="font-bold">
+                            {Math.round(
+                              ((deckCardsWithUpdates.length -
+                                preRoundSummary.notYet) /
+                                deckCardsWithUpdates.length) *
+                                100,
+                            )}
+                            %
+                          </span>
+                        </div>
+                        <div className="h-2 bg-muted rounded-full overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{
+                              width: `${((deckCardsWithUpdates.length - preRoundSummary.notYet) / deckCardsWithUpdates.length) * 100}%`,
+                            }}
+                            transition={{ duration: 0.8, ease: "easeOut" }}
+                            className="h-full bg-gradient-to-r from-yellow to-primary rounded-full"
+                          />
+                        </div>
+                        <div className="flex justify-between text-xs text-muted-foreground">
+                          <span>{preRoundSummary.notYet} not studied</span>
+                          <span>
+                            {deckCardsWithUpdates.length - preRoundSummary.notYet}{" "}
+                            in progress
+                          </span>
+                        </div>
+                      </div>
+  
+                      {/* Quick Stats */}
+                      <div className="grid grid-cols-3 gap-4 pt-1">
+                        <div className="bg-yellow/20 dark:bg-violet/20 rounded-lg p-4 text-center border border-primary/20">
+                          <div className="text-2xl font-bold text-primary">
+                            {preRoundSummary.learning}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            Learning
+                          </div>
+                        </div>
+                        <div className="bg-green/20 dark:bg-green/30 rounded-lg p-4 text-center border border-green/40">
+                          <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                            {preRoundSummary.mastered}
+                          </div>

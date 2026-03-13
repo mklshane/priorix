@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -92,7 +92,7 @@ interface DeckCardProps {
   folders?: Folder[];
 }
 
-const colors = ["bg-pink", "bg-green", "bg-yellow", "bg-purple"];
+const colors = ["bg-sky", "bg-mint", "bg-blush", "bg-citrus", "bg-lilac", "bg-tangerine"];
 
 const DeckCard: React.FC<DeckCardProps> = ({
   deck,
@@ -281,29 +281,7 @@ const DeckCard: React.FC<DeckCardProps> = ({
 
   return (
     <>
-      <Card
-        onClick={() => handleDeckClick(deck._id)}
-        className={cn(
-          `
-    relative cursor-pointer overflow-hidden
-    ${colors[index % colors.length]}
-    border border-black/10 dark:border-white/10
-    rounded-xl
-    shadow-sm
-    transition-all duration-200 ease-out
-    hover:-translate-y-1 hover:shadow-lg
-    active:translate-y-0
-    `,
-          isClicked && "translate-y-0",
-          className,
-        )}
-      >
-        <div className="absolute inset-x-0 top-0 h-[6px] bg-black/5 dark:bg-white/5" />
-
-        <CardContent className="pt-4 pb-4 px-4 flex flex-col h-full">
-          {/* Header */}
-          <div className="flex justify-between items-start mb-1">
-            <h3 className="text-md font-semibold font-sora line-clamp-1">
+      <div onClick={() => handleDeckClick(deck._id)} className={cn("bento-card p-4 flex flex-col justify-between min-h-[140px] relative cursor-pointer group hover:shadow-bento-hover active:shadow-bento-active transition-all duration-300 border-2 border-border", colors[index % colors.length], isClicked && "translate-y-0 shadow-bento", className)}><div className="flex flex-col h-full z-10 relative">{/* Header */}<div className="flex justify-between items-start mb-2"><h3 className="text-lg font-sans line-clamp-1 text-foreground">
               {deck.title}
             </h3>
 
@@ -313,7 +291,7 @@ const DeckCard: React.FC<DeckCardProps> = ({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 -mt-1 -mr-2 hover:bg-black/10 dark:hover:bg-white/10"
+                    className="h-8 w-8 -mt-1 -mr-2 text-foreground/70 hover:bg-background/40 hover:text-foreground rounded-xl transition-colors shrink-0"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <MoreVertical className="h-4 w-4" />
@@ -372,26 +350,10 @@ const DeckCard: React.FC<DeckCardProps> = ({
             )}
           </div>
 
-          {/* Body */}
-          <div className="flex-grow mb-6">
-            {deck.description ? (
-              <p className="text-xs line-clamp-3">{deck.description}</p>
-            ) : (
-              <p className="text-xs opacity-60 italic">No description</p>
-            )}
-          </div>
+          {/* Body */}<div className="flex-grow mb-4 mt-1">{deck.description ? (<p className="text-[11px] font-medium text-foreground/80 line-clamp-2">{deck.description}</p>) : (<p className="text-[11px] font-medium text-foreground/50 italic">No description</p>)}</div>
 
-          {/* Footer */}
-          <div className="mt-auto flex items-center justify-between text-xs">
-            <span className="font-semibold">{deckLength} cards</span>
-
-            <span className="opacity-80">
-              {getDisplayName()}
-              {!isOwner && <span className="ml-1">• Shared</span>}
-            </span>
-          </div>
-        </CardContent>
-      </Card>
+          {/* Footer */}<div className="mt-auto flex items-center justify-between text-[9px] font-bold uppercase tracking-widest text-foreground"><span className="bg-background/50 px-2 py-1.5 rounded-md border border-border/20 inline-flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-border opacity-70" />{deckLength} cards</span><span className="opacity-80 flex items-center gap-1">{getDisplayName()}{!isOwner && <span className="ml-1 opacity-60">• Shared</span>}</span></div>
+        </div></div>
 
       {/* Share Dialog */}
       <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
@@ -498,3 +460,9 @@ const DeckCard: React.FC<DeckCardProps> = ({
 };
 
 export default DeckCard;
+
+
+
+
+
+

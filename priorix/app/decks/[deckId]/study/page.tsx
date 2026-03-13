@@ -7,7 +7,6 @@ import { IFlashcard } from "@/types/flashcard";
 import { useDeck } from "@/hooks/useDeck";
 import { useFlashcards } from "@/hooks/useFlashcards";
 import { useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   ChevronLeft,
   ChevronRight,
@@ -341,7 +340,7 @@ const StudyPage = () => {
     return text.split("\n").map((line, index) => (
       <p
         key={index}
-        className={`my-1 ${isTerm ? "text-2xl font-bold" : "text-xl"}`}
+        className={`my-1 tracking-tight ${isTerm ? "text-2xl md:text-3xl" : "text-xl md:text-2xl"}`}
       >
         {line}
       </p>
@@ -362,43 +361,37 @@ const StudyPage = () => {
   if (!isPending && ((deckError && !deck) || (flashcardsError && flashcards.length === 0))) {
     const errorMessage = deckError || flashcardsError || "Failed to load data";
     return (
-      <div className="min-h-screen p-4 md:p-6 px-2 max-w-3xl">
-        <Card>
-          <CardContent className="p-8 text-center">
-            <p>{errorMessage}</p>
-            <Button
-              onClick={() => window.location.reload()}
-              variant="outline"
-              className="mt-4"
-            >
-              Retry
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen p-4 md:p-6 px-2 max-w-3xl mx-auto">
+        <div className="bento-card text-center p-8">
+          <p className="text-lg font-bold">{errorMessage}</p>
+          <Button
+            onClick={() => window.location.reload()}
+            variant="outline"
+            className="mt-6 rounded-full border-2 border-border"
+          >
+            Retry
+          </Button>
+        </div>
       </div>
     );
   }
 
   if (!deck) {
     return (
-      <div className="mx-auto max-w-3xl">
-        <Card>
-          <CardContent className="p-8 text-center">
-            <p>Deck not found.</p>
-          </CardContent>
-        </Card>
+      <div className="mx-auto max-w-3xl p-4">
+        <div className="bento-card text-center p-8">
+          <p className="text-lg font-bold">Deck not found.</p>
+        </div>
       </div>
     );
   }
 
   if (flashcards.length === 0) {
     return (
-      <div className="mx-auto max-w-3xl">
-        <Card>
-          <CardContent className="p-8 text-center">
-            <p>No flashcards available to study.</p>
-          </CardContent>
-        </Card>
+      <div className="mx-auto max-w-3xl p-4">
+        <div className="bento-card text-center p-8">
+          <p className="text-lg font-bold">No flashcards available to study.</p>
+        </div>
       </div>
     );
   }
@@ -406,21 +399,20 @@ const StudyPage = () => {
   const currentCard = orderedFlashcards[currentCardIndex];
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <div className="mb-4 text-center flex justify-between items-center">
-        <p className="text-muted-foreground">
+    <div className="mx-auto w-full max-w-4xl h-[100dvh] md:h-[calc(100dvh-5rem)] flex flex-col py-4 md:py-8 px-4">
+      <div className="mb-6 text-center flex justify-between items-center px-4">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border-2 border-border bg-lilac shadow-bento-sm text-sm font-bold uppercase tracking-wider">
+          <span className="w-2 h-2 rounded-full bg-border" />
           Card {currentCardIndex + 1} of {orderedFlashcards.length}
-        </p>
+        </div>
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 onClick={handleShuffleToggle}
-                variant={isShuffled ? "default" : "outline"}
-                size="sm"
-                className="rounded-full btn-hover btn-active"
+                className={`rounded-full border-2 border-border h-10 w-10 p-0 transition-all ${isShuffled ? 'bg-primary text-primary-foreground shadow-bento-sm' : 'bg-background hover:bg-muted text-foreground hover:-translate-y-1 hover:shadow-bento-sm'}`}
               >
-                <Shuffle />
+                <Shuffle className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
             <TooltipContent>
@@ -431,17 +423,13 @@ const StudyPage = () => {
       </div>
 
       <div
-        className="mb-8 cursor-pointer transition-all duration-300 relative"
+        className="flex-1 min-h-0 cursor-pointer group perspective-1000 w-full mb-6 relative"
         onClick={handleCardClick}
       >
-        <Card
-          className={`h-135 sm:h-95 border-2 border-primary flex flex-col items-center justify-center relative ${
-            isFlipped
-              ? "bg-yellow/50 dark:bg-violet/50"
-              : "bg-yellow/30 dark:bg-violet/20"
-          }`}
+        <div
+          className={`absolute inset-0 bento-card shadow-none border-border bg-card p-8 md:p-12 overflow-y-auto flex flex-col items-center justify-center transition-all duration-500 ease-out `}
         >
-          <div className="absolute top-4 text-muted-foreground text-sm text-center w-full">
+          <div className="absolute top-6 text-muted-foreground text-xs uppercase tracking-widest font-bold w-full text-center opacity-60">
             {isFlipped
               ? frontContent === "term"
                 ? "Definition"
@@ -450,29 +438,28 @@ const StudyPage = () => {
               ? "Term"
               : "Definition"}
           </div>
-          <div className="absolute top-2 right-2 z-10">
+          <div className="absolute top-4 right-4 z-10">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
+                  className="h-10 w-10 rounded-xl hover:bg-muted/80 text-foreground/70 transition-colors"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <MoreVertical className="h-4 w-4" />
+                  <MoreVertical className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Front:</DropdownMenuLabel>
+              <DropdownMenuContent align="end" className="rounded-2xl border-2 border-border p-2">
+                <DropdownMenuLabel className="text-xs uppercase tracking-widest font-bold text-muted-foreground">Front Content</DropdownMenuLabel>
                 <DropdownMenuItem
                   onClick={(e) => {
                     e.stopPropagation();
                     handleFrontContentChange("term");
                   }}
-                  className={
-                    frontContent === "term"
-                      ? "bg-accent text-accent-foreground mb-1"
-                      : "mb-1"
-                  }
+                  className={`rounded-xl font-medium cursor-pointer ${
+                    frontContent === "term" ? "bg-primary text-primary-foreground focus:bg-primary focus:text-primary-foreground mb-1" : "mb-1 focus:bg-muted"
+                  }`}
                 >
                   Term
                 </DropdownMenuItem>
@@ -481,89 +468,79 @@ const StudyPage = () => {
                     e.stopPropagation();
                     handleFrontContentChange("definition");
                   }}
-                  className={
-                    frontContent === "definition"
-                      ? "bg-accent text-accent-foreground"
-                      : ""
-                  }
+                  className={`rounded-xl font-medium cursor-pointer ${
+                    frontContent === "definition" ? "bg-primary text-primary-foreground focus:bg-primary focus:text-primary-foreground" : "focus:bg-muted"
+                  }`}
                 >
                   Definition
                 </DropdownMenuItem>
                 {isOwner && (
-                  <div>
-                    <DropdownMenuSeparator />
+                  <>
+                    <DropdownMenuSeparator className="bg-border/20 my-2" />
                     <DropdownMenuItem
                       onClick={(e) => {
                         e.stopPropagation();
                         setEditingFlashcard(currentCard);
                       }}
-                      className="flex items-center"
+                      className="flex items-center rounded-xl cursor-pointer font-medium focus:bg-lilac"
                     >
                       <Edit className="h-4 w-4 mr-2" />
-                      Edit
+                      Edit Card
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDeleteFlashcard(currentCard._id);
                       }}
-                      className="flex items-center text-red-600 focus:text-red-600"
+                      className="flex items-center text-red-600 focus:text-red-600 focus:bg-red-50 rounded-xl cursor-pointer font-medium mt-1"
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
-                      Delete
+                      Delete Card
                     </DropdownMenuItem>
-                  </div>
+                  </>
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          <CardContent className="p-6 text-center">
+          
+          <div className="text-center w-full flex flex-col items-center justify-center animate-in fade-in zoom-in duration-300">
             {isFlipped ? (
-              <div className="flex flex-col items-center justify-center h-full">
+              <div className="flex flex-col items-center justify-center text-foreground">
                 {frontContent === "term"
                   ? renderText(currentCard.definition, false)
                   : renderText(currentCard.term, true)}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center h-full">
+              <div className="flex flex-col items-center justify-center text-foreground">
                 {frontContent === "term"
                   ? renderText(currentCard.term, true)
                   : renderText(currentCard.definition, false)}
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
-      <div className="flex justify-between">
+      <div className="flex justify-center gap-4 px-4">
         <Button
           onClick={handlePreviousCard}
-          variant="outline"
           disabled={orderedFlashcards.length <= 1}
-          className="border-2 border-black bg-green hover:bg-green/70 min-w-30 btn-hover btn-active"
+          className="flex-1 max-w-[200px] h-14 rounded-full border-2 border-border bg-background text-foreground font-bold text-lg hover:-translate-y-1 hover:shadow-bento transition-all duration-300 active:translate-y-0 active:shadow-none disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
         >
-          <ChevronLeft className="mr-2 h-4 w-4" /> Previous
+          <ChevronLeft className="mr-2 h-5 w-5" /> Prev
         </Button>
         <Button
           onClick={() => setIsFlipped(!isFlipped)}
-          variant="outline"
-          className="hidden sm:flex bg-pink border-2 border-primary btn-hover btn-active"
+          className="hidden sm:flex flex-1 max-w-[200px] h-14 rounded-full border-2 border-border bg-mint text-foreground font-bold text-lg hover:-translate-y-1 hover:shadow-bento transition-all duration-300 active:translate-y-0 active:shadow-none"
         >
-          {isFlipped
-            ? frontContent === "term"
-              ? "Show Term"
-              : "Show Definition"
-            : frontContent === "term"
-            ? "Show Definition"
-            : "Show Term"}
+          Flip Card
         </Button>
         <Button
           onClick={handleNextCard}
-          variant="outline"
           disabled={orderedFlashcards.length <= 1}
-          className="border-2 border-primary bg-green hover:bg-green/70 min-w-30 btn-hover btn-active"
+          className="flex-1 max-w-[200px] h-14 rounded-full border-2 border-border bg-primary text-primary-foreground font-bold text-lg hover:-translate-y-1 hover:shadow-bento transition-all duration-300 active:translate-y-0 active:shadow-none disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none"
         >
-          Next <ChevronRight className="ml-2 h-4 w-4" />
+          Next <ChevronRight className="ml-2 h-5 w-5" />
         </Button>
       </div>
 
@@ -580,3 +557,7 @@ const StudyPage = () => {
 };
 
 export default StudyPage;
+
+
+
+

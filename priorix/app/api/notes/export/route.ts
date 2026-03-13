@@ -153,7 +153,7 @@ export async function POST(req: NextRequest) {
 
 		if (format === "pdf") {
 			const bytes = await createPdf(title, content);
-			return new NextResponse(bytes, {
+			return new NextResponse(bytes as any, {
 				headers: {
 					"Content-Type": "application/pdf",
 					"Content-Disposition": `attachment; filename="${title.replace(/[^a-zA-Z0-9-_]/g, "_")}.pdf"`,
@@ -162,7 +162,7 @@ export async function POST(req: NextRequest) {
 		}
 
 		const buffer = await createDocx(title, content);
-		return new NextResponse(buffer, {
+		return new NextResponse(buffer as any, {
 			headers: {
 				"Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 				"Content-Disposition": `attachment; filename="${title.replace(/[^a-zA-Z0-9-_]/g, "_")}.docx"`,

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useMemo, useCallback } from "react";
 import { useSession } from "next-auth/react";
@@ -119,83 +119,64 @@ export default function TodoPage() {
   if (sessionStatus === "loading") return null;
 
   return (
-    <>
-      {/* Scoped Typography Injection */}
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-        @import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Jost:ital,wght@0,300..700;1,300..700&display=swap');
-        .font-editorial { font-family: 'Bodoni Moda', serif; }
-        .font-sans-utility { font-family: 'Jost', sans-serif; }
-      `,
-        }}
-      />
-
-      {/* 100dvh constraint wrapper with scoped colors */}
-      <div className="w-full h-[calc(100dvh-2rem)] md:h-[calc(100dvh-3rem)] flex flex-col mx-auto px-4 md:px-8 py-4 md:py-6 font-sans-utility bg-[#F6F4F0] dark:bg-[#111111] text-[#1A1A1A] dark:text-[#EFEFEF] selection:bg-[#D64045] selection:text-white rounded-xl md:rounded-2xl overflow-hidden border border-border/50">
-        {/* Adjusted Editorial Header */}
-        <header className="shrink-0 mb-6 pb-4 border-b-2 border-black/80 dark:border-white/80 flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div>
-            <h1 className="text-5xl md:text-7xl font-editorial italic leading-none tracking-tighter pr-4">
-              Agenda
-            </h1>
-            <p className="text-xs md:text-sm uppercase tracking-[0.3em] mt-3 font-medium text-black/60 dark:text-white/60">
-              Master Ledger • Vol {format(new Date(), "yy")}
-            </p>
-          </div>
-          <div className="text-left md:text-right hidden sm:block">
-            <p className="font-editorial text-2xl md:text-3xl">
-              {format(currentDate, "MMMM")}
-            </p>
-            <p className="text-sm uppercase tracking-widest">
-              {format(currentDate, "yyyy")}
-            </p>
-          </div>
-        </header>
-
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-        >
-          {/* Main Grid: min-h-0 is crucial for inner scrolling in flex parents */}
-          <div className="flex-1 min-h-0 grid grid-cols-1 xl:grid-cols-[400px_1fr] gap-8 md:gap-12 items-start">
-            {/* Left Column: Calendar */}
-            <div className="h-full max-h-full flex flex-col border border-black/80 dark:border-white/80 p-4 md:p-6 bg-white dark:bg-[#1A1A1A] shadow-[4px_4px_0px_0px_#1A1A1A] dark:shadow-[4px_4px_0px_0px_#D64045]">
-              <TodoCalendar
-                currentDate={currentDate}
-                selectedDate={selectedDate}
-                view={calendarView}
-                tasks={tasks}
-                onDateChange={setCurrentDate}
-                onSelectDate={(date) => {
-                  setSelectedDate(date);
-                  setCurrentDate(date);
-                }}
-                onViewChange={setCalendarView}
-              />
-            </div>
-
-            {/* Right Column: Ledger Tasks (Internal Scroll) */}
-            <div className="h-full flex flex-col min-h-0">
-              <TaskList
-                selectedDate={selectedDate}
-                tasks={tasks}
-                isLoading={isLoading}
-              />
-            </div>
-          </div>
-
-          <DragOverlay>
-            {activeTask && (
-              <div className="border-2 border-[#D64045] bg-white dark:bg-black p-3 md:p-4 shadow-[4px_4px_0px_0px_#D64045] font-editorial text-base md:text-lg italic rotate-2">
-                {activeTask.taskTitle}
-              </div>
-            )}
-          </DragOverlay>
-        </DndContext>
+    <div className="space-y-8 max-w-7xl mx-auto pb-12 font-sans selection:bg-mint selection:text-foreground">
+            {/* 1. Header Section */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-4">
+        <div>
+          <p className="font-bold text-xs uppercase tracking-wider mb-1 text-muted-foreground">
+            Agenda • {format(new Date(), "yyyy")}
+          </p>
+          <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-foreground">
+            Tasks
+          </h1>
+        </div>
+        <div className="text-left md:text-right hidden sm:block">
+          <p className="text-xl md:text-2xl font-semibold text-foreground">
+            {format(currentDate, "MMMM")}
+          </p>
+        </div>
       </div>
-    </>
+
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="grid grid-cols-1 xl:grid-cols-[360px_1fr] gap-6 md:gap-4 items-start">
+          <div className="bento-card bg-card p-6 h-full flex flex-col shrink-0 overflow-hidden shadow-sm">
+            <TodoCalendar
+              currentDate={currentDate}
+              selectedDate={selectedDate}
+              view={calendarView}
+              tasks={tasks}
+              onDateChange={setCurrentDate}
+              onSelectDate={(date) => {
+                setSelectedDate(date);
+                setCurrentDate(date);
+              }}
+              onViewChange={setCalendarView}
+            />
+          </div>
+
+          <div className="bento-card bg-card p-4 md:p-6 flex flex-col min-h-[500px] shadow-none">
+            <TaskList
+              selectedDate={selectedDate}
+              tasks={tasks}
+              isLoading={isLoading}
+            />
+          </div>
+        </div>
+
+        <DragOverlay>
+          {activeTask && (
+            <div className="bento-card bg-mint border-2 border-border p-3 md:p-4 shadow-bento font-editorial text-base md:text-lg italic rotate-2 opacity-90 scale-105">
+              {activeTask.taskTitle}
+            </div>
+          )}
+        </DragOverlay>
+      </DndContext>
+    </div>
   );
 }
+

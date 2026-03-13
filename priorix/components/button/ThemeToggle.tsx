@@ -37,7 +37,7 @@ const ThemeToggle = () => {
 
   return (
     <button
-      className="h-10 w-10 flex items-center justify-center rounded-xl border border-sidebar-border/60 bg-sidebar-accent/40 hover:bg-sidebar-accent text-sidebar-foreground transition-colors"
+      className="h-10 w-10 flex items-center justify-center rounded-xl border border-sidebar-border/60 bg-sidebar-accent hover:bg-sidebar-accent text-sidebar-foreground transition-colors"
       onClick={toggleDarkMode}
       aria-label="Toggle dark mode"
     >

@@ -124,7 +124,7 @@ export default function AppNav() {
     "/dashboard": "Dashboard",
     "/decks": "Flashcards",
     "/browse": "Browse",
-    "/todo": "Ledger",
+    "/todo": "Tasks",
     "/notes": "Notes",
     "/analytics": "Analytics",
     "/settings/learning": "Settings",
@@ -169,9 +169,8 @@ export default function AppNav() {
         ) : null}
       </div>
 
-      {/* Center - Editorial Page Title */}
       <div className="absolute left-1/2 transform -translate-x-1/2 overflow-hidden px-4">
-        <h1 className="font-editorial italic text-2xl md:text-3xl tracking-tight text-foreground truncate max-w-[200px] sm:max-w-md">
+        <h1 className="font-sans text-xl tracking-wide text-foreground truncate max-w-[200px] sm:max-w-md">
           {getCurrentPage()}
         </h1>
       </div>
@@ -183,7 +182,7 @@ export default function AppNav() {
         {user && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex items-center gap-2 border-2 border-border hover:border-primary bg-background rounded-full pl-3 pr-1 py-1 transition-all focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+              <button className="flex items-center gap-2 border-2 border-border hover:border-primary bg-background rounded-full md:pl-3 pl-1 pr-1 py-1 transition-all focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
                 <span className="font-bold text-xs uppercase tracking-widest hidden sm:block pt-0.5">
                   {getFirstName(user.name)}
                 </span>
@@ -200,7 +199,7 @@ export default function AppNav() {
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
-              className="w-64 bg-card border-2 border-border rounded-2xl p-2 shadow-bento font-sans mt-2"
+              className="w-64 bg-card border-2 border-border rounded-2xl p-2 font-sans mt-4"
             >
               <div className="px-3 py-2 bg-muted/50 rounded-xl mb-2 border-2 border-transparent">
                 <p className="font-bold text-sm text-foreground truncate">

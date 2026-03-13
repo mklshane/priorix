@@ -3,9 +3,10 @@ import * as folderController from "../controller";
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { folderId: string } }
+  { params }: { params: Promise<{ folderId: string }> }
 ) {
   try {
+    const { folderId } = await params;
     const body = await req.json();
     const { name, userId } = body;
     if (!name || !userId) {
@@ -16,7 +17,7 @@ export async function PATCH(
     }
 
     const folder = await folderController.updateFolder({
-      folderId: params.folderId,
+      folderId,
       name,
       userId,
     });
@@ -28,9 +29,10 @@ export async function PATCH(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { folderId: string } }
+  { params }: { params: Promise<{ folderId: string }> }
 ) {
   try {
+    const { folderId } = await params;
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get("userId");
     if (!userId) {
@@ -41,7 +43,7 @@ export async function DELETE(
     }
 
     const result = await folderController.deleteFolder({
-      folderId: params.folderId,
+      folderId,
       userId,
     });
     return NextResponse.json(result);

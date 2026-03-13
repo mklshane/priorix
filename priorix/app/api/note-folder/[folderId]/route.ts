@@ -7,9 +7,10 @@ const unauthorized = () =>
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { folderId: string } }
+  { params }: { params: Promise<{ folderId: string }> }
 ) {
   try {
+    const { folderId } = await params;
     const session = await auth();
     if (!session?.user?.id) {
       return unauthorized();
@@ -22,7 +23,7 @@ export async function PATCH(
 
     const folder = await controller.updateNoteFolder({
       userId: session.user.id,
-      folderId: params.folderId,
+      folderId,
       name: body.name,
     });
 
@@ -34,9 +35,10 @@ export async function PATCH(
 
 export async function DELETE(
   _req: NextRequest,
-  { params }: { params: { folderId: string } }
+  { params }: { params: Promise<{ folderId: string }> }
 ) {
   try {
+    const { folderId } = await params;
     const session = await auth();
     if (!session?.user?.id) {
       return unauthorized();
@@ -44,7 +46,7 @@ export async function DELETE(
 
     const result = await controller.deleteNoteFolder({
       userId: session.user.id,
-      folderId: params.folderId,
+      folderId,
     });
 
     return NextResponse.json(result);

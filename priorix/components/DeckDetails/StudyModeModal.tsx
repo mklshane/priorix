@@ -1,7 +1,6 @@
 "use client";
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Card, CardContent } from "@/components/ui/card";
 import { BookOpen, Brain, FileText, Lock } from "lucide-react";
 
 type StudyMode = "flashcards" | "srs" | "quiz";
@@ -20,9 +19,7 @@ const StudyModeModal = ({ isOpen, onClose, onSelectMode, hasCards }: StudyModeMo
       title: "Flashcards",
       emoji: "🎴",
       description: "Classic flip and review",
-      color: "bg-[#ffeb7c] dark:bg-yellow/40",
-      borderColor: "border-black dark:border-darkborder",
-      hoverScale: true,
+      color: "bg-sky",
       icon: BookOpen,
       disabled: false,
     },
@@ -31,9 +28,7 @@ const StudyModeModal = ({ isOpen, onClose, onSelectMode, hasCards }: StudyModeMo
       title: "Spaced Repetition",
       emoji: "🧠",
       description: "Optimized for long-term retention",
-      color: "bg-[#ffeb7c] dark:bg-green/40",
-      borderColor: "border-black dark:border-darkborder",
-      hoverScale: true,
+      color: "bg-mint",
       icon: Brain,
       disabled: false,
     },
@@ -42,9 +37,7 @@ const StudyModeModal = ({ isOpen, onClose, onSelectMode, hasCards }: StudyModeMo
       title: "Quiz Mode",
       emoji: "📝",
       description: "MCQ & True/False questions",
-      color: "bg-[#ffeb7c] dark:bg-purple/40",
-      borderColor: "border-black dark:border-darkborder",
-      hoverScale: true,
+      color: "bg-blush",
       icon: FileText,
       disabled: false,
     },
@@ -52,85 +45,79 @@ const StudyModeModal = ({ isOpen, onClose, onSelectMode, hasCards }: StudyModeMo
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-4xl border-2 border-black dark:border-darkborder rounded-xl bg-white dark:bg-card max-h-[95vh] overflow-y-auto">
-        <DialogHeader className="space-y-1 md:space-y-3">
-          <DialogTitle className="text-xl md:text-3xl font-bold font-sora text-center">
+      <DialogContent className="sm:max-w-4xl p-0 overflow-hidden border-2 border-border shadow-bento !rounded-[2rem] bg-card max-h-[95vh] overflow-y-auto">
+        <DialogHeader className="space-y-2 border-b-2 border-border bg-lilac/30 px-6 py-8">
+          <DialogTitle className="text-3xl md:text-5xl font-editorial text-center text-foreground">
             Choose Your Study Mode
           </DialogTitle>
-          <DialogDescription className="text-center text-sm md:text-base">
+          <DialogDescription className="text-center font-medium text-sm md:text-base text-foreground/70">
             Pick the best way to master your flashcards
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6 py-3 md:py-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 p-6">
           {modes.map((mode) => {
-            const Icon = mode.icon;
             const isClickable = !mode.disabled && hasCards;
 
             return (
-              <Card
+              <div
                 key={mode.id}
-                className={`relative border-2 ${mode.borderColor} rounded-xl overflow-hidden transition-all duration-200 ${mode.color} ${
+                className={`relative border-2 border-border rounded-3xl overflow-hidden transition-all duration-300 ${mode.color} ${
                   mode.disabled
                     ? "opacity-50 cursor-not-allowed"
                     : isClickable
-                    ? `cursor-pointer hover:shadow-xl ${mode.hoverScale ? "hover:scale-102" : ""} hover:border-black dark:hover:border-white`
-                    : "cursor-not-allowed"
+                    ? "cursor-pointer hover:shadow-bento-sm hover:-translate-y-2"
+                    : "cursor-not-allowed opacity-80 grayscale"
                 }`}
                 onClick={() => isClickable && onSelectMode(mode.id)}
               >
-                <CardContent className="p-4 md:p-6 flex flex-col items-center text-center h-full min-h-[180px] md:min-h-[250px] justify-between">
+                <div className="p-6 md:p-8 flex flex-col items-center text-center h-full min-h-[220px] md:min-h-[300px] justify-between">
                   {/* Top section */}
-                  <div className="w-full space-y-1 md:space-y-2">
+                  <div className="w-full flex-1 flex flex-col items-center justify-center space-y-4">
                     {mode.disabled && (
-                      <div className="flex justify-end mb-1 md:mb-2">
-                        <div className="inline-flex items-center gap-1 md:gap-1.5 px-2 py-1 md:px-3 md:py-1.5 rounded-full bg-muted border-2 border-black dark:border-darkborder text-[10px] md:text-xs font-bold">
-                          <Lock className="h-2.5 w-2.5 md:h-3 md:w-3" />
-                          COMING SOON
+                      <div className="absolute top-4 right-4">
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-background border-2 border-border text-[10px] font-bold uppercase tracking-widest">
+                          <Lock className="h-3 w-3" />
+                          Coming Soon
                         </div>
                       </div>
                     )}
 
                     {/* Emoji */}
-                    <div className="text-5xl md:text-7xl mb-1 md:mb-2">{mode.emoji}</div>
-
+                    <div className="text-6xl md:text-8xl mb-2 filter drop-shadow-sm">{mode.emoji}</div>
+                    
                     {/* Title */}
-                    <h3 className="text-lg md:text-xl font-bold font-sora text-foreground">
+                    <h3 className="text-xl md:text-2xl font-bold text-foreground">
                       {mode.title}
                     </h3>
 
                     {/* Description */}
-                    <p className="text-xs md:text-sm text-foreground/70 font-medium">
+                    <p className="text-sm font-medium text-foreground/80 leading-snug">
                       {mode.description}
                     </p>
                   </div>
 
                   {/* Bottom section */}
-                  <div className="w-full mt-3 md:mt-6">
-                    
-
-                    {/* Action hint */}
-                    {!mode.disabled && hasCards && (
-                      <div className="text-[10px] md:text-xs font-bold text-foreground/80 mt-2 md:mt-3 uppercase tracking-wide">
+                  <div className="w-full mt-6 flex justify-center">
+                    {!mode.disabled && hasCards ? (
+                      <div className="inline-block border-2 border-foreground/10 bg-foreground/5 rounded-full px-4 py-2 text-[10px] md:text-xs font-bold text-foreground uppercase tracking-widest">
                         Click to Start
                       </div>
-                    )}
-
-                    {!hasCards && !mode.disabled && (
-                      <div className="text-[10px] md:text-xs text-muted-foreground mt-2 md:mt-3">
+                    ) : (
+                      <div className="inline-block border-2 border-foreground/10 bg-foreground/5 rounded-full px-4 py-2 text-[10px] md:text-xs font-bold text-foreground/60 uppercase tracking-widest">
                         Add cards first
                       </div>
                     )}
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             );
           })}
         </div>
 
         {!hasCards && (
-          <div className="text-center pb-1 md:pb-2">
-            <p className="text-xs md:text-sm text-muted-foreground">
+          <div className="text-center px-6 pb-6">
+            <p className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-muted border-2 border-border text-xs md:text-sm font-bold text-muted-foreground">
               💡 Add some flashcards to this deck before studying
             </p>
           </div>

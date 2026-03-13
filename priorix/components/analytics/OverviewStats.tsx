@@ -1,86 +1,86 @@
 "use client";
 
-import { Clock, Target, Flame, BookOpen } from "lucide-react";
-
-interface OverviewStatsProps {
-  stats: {
-    totalCardsStudied: number;
-    totalStudyTime: number;
-    averageAccuracy: number;
-    averageRetention: number;
-    currentStreak: number;
-    longestStreak: number;
-    totalCards: number;
-    sessionsCompleted: number;
-  };
-  layout?: "grid" | "vertical" | "horizontal" | "compact";
-}
+import { BookOpen, Clock, Target, Flame, Activity } from "lucide-react";
 
 export default function OverviewStats({
   stats,
   layout = "grid",
-}: OverviewStatsProps) {
+}: {
+  stats: any;
+  layout?: string;
+}) {
   const colors = ["bg-citrus", "bg-mint", "bg-lilac", "bg-blush"];
-
-  const statCards = [
+  const items = [
     {
-      icon: <BookOpen className="h-5 w-5" />,
+      icon: <BookOpen className="h-4 w-4" />,
       label: "Studied Today",
-      value: stats.totalCardsStudied.toLocaleString(),
-      subtitle: `${stats.totalCards} total cards`,
+      value: stats.totalCardsStudied,
+      subtext: "Cards reviewed today",
     },
     {
-      icon: <Clock className="h-5 w-5" />,
-      label: "Time Today",
-      value: `${Math.floor(stats.totalStudyTime / 60)}h ${stats.totalStudyTime % 60}m`,
-      subtitle: `${stats.sessionsCompleted} sessions total`,
+      icon: <Clock className="h-4 w-4" />,
+      label: "Focus Time",
+      value: `${Math.round(stats.totalStudyTime)}m`,
+      subtext: "Total active study minutes",
     },
     {
-      icon: <Target className="h-5 w-5" />,
-      label: "Accuracy",
+      icon: <Target className="h-4 w-4" />,
+      label: "Avg Accuracy",
       value: `${stats.averageAccuracy}%`,
-      subtitle: `${stats.averageRetention}% retention`,
+      subtext: "Overall retention rate",
     },
     {
-      icon: <Flame className="h-5 w-5" />,
-      label: "Streak",
-      value: `${stats.currentStreak} days`,
-      subtitle: `Best: ${stats.longestStreak} days`,
+      icon: <Flame className="h-4 w-4" />,
+      label: "Current Streak",
+      value: `${stats.currentStreak}d`,
+      subtext: "Consecutive study days",
     },
   ];
 
-  const gridClass = {
-    grid: "grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6",
-    vertical: "flex flex-col gap-4",
-    horizontal: "flex overflow-x-auto gap-4 pb-2",
-    compact: "grid grid-cols-2 gap-4 h-full",
-  }[layout];
-
   return (
-    <div className={`grid ${gridClass} font-sans`}>
-      {statCards.map((stat, index) => (
+    <div className={`h-full flex flex-col ${layout === "vertical" ? "bento-card bg-card p-6 font-sans" : ""}`}>
+      {layout === "vertical" && (
+        <div className="flex items-center gap-3 mb-6 shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-citrus border-2 border-border flex items-center justify-center shadow-bento-sm">
+            <Activity className="h-5 w-5" />
+          </div>
+          <h3 className="text-2xl font-editorial italic">Overview Stats</h3>
+        </div>
+      )}
+      
+      <div
+        className={
+          layout === "compact"
+            ? "grid grid-cols-1 sm:grid-cols-2 gap-4 h-full"
+            : layout === "vertical"
+              ? "grid grid-cols-2 gap-3 flex-1 h-full"
+              : "grid grid-cols-1 md:grid-cols-4 gap-4"
+        }
+      >
+        {items.map((item, i) => (
         <div
-          key={index}
-          className={`bento-card ${colors[index % colors.length]} p-5 flex flex-col justify-between hover:-translate-y-1 transition-transform group`}
+          key={i}
+          className={`bento-card ${colors[i % colors.length]} p-4 py-7.5 flex-1 flex flex-col justify-between hover:-translate-y-1 transition-transform group relative overflow-hidden`}
         >
-          <div className="flex items-start justify-between mb-2">
-            <span className="text-[10px] font-bold uppercase tracking-widest leading-none pt-1">
-              {stat.label}
+          {/* Subtle background decor */}
+          <div className="absolute -right-6 -top-6 w-24 h-24 bg-background/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700 pointer-events-none" />
+          
+          <div className="flex justify-between items-start mb-2 relative z-10">
+            <span className="text-[10px] font-bold uppercase tracking-widest leading-tight opacity-90 pr-2">
+              {item.label}
             </span>
-            <div className="w-8 h-8 rounded-lg bg-background border-2 border-border flex items-center justify-center group-hover:rotate-12 transition-transform">
-              {stat.icon}
+            <div className="w-7 h-7 rounded-xl bg-background/60 backdrop-blur-sm border-2 border-border flex items-center justify-center shadow-sm group-hover:rotate-12 transition-transform shrink-0">
+              {item.icon}
             </div>
           </div>
-          <div>
-            <p className="text-3xl font-editorial leading-none mb-1">
-              {stat.value}
-            </p>
-            <p className="text-[10px] font-bold uppercase opacity-60 tracking-tighter">
-              {stat.subtitle}
+          <div className="relative z-10 mt-2">
+            <p className="text-3xl font-editorial leading-none">
+              {item.value}
             </p>
           </div>
         </div>
       ))}
+      </div>
     </div>
   );
 }

@@ -74,7 +74,7 @@ const FolderCard: FC<FolderCardProps> = ({
       onMouseLeave={() => setIsHovered(false)}
       className="relative"
     >
-      <div
+        <div
         role="button"
         tabIndex={0}
         onClick={onClick}
@@ -82,33 +82,32 @@ const FolderCard: FC<FolderCardProps> = ({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         className={cn(
-          "relative cursor-pointer transition-all rounded-t-md flex flex-col h-full",
-          "hover:-translate-y-1 hover:shadow-lg",
-          isActive && "ring-2 ring-blue-400/60 ring-offset-2",
-          isDragOver && "ring-2 ring-yellow-400/80 ring-offset-2",
-          isDropTarget && isDragOver && "bg-yellow-50/20",
+          "bento-card p-5 relative cursor-pointer flex flex-col h-full transition-all duration-300 min-h-[160px] bg-blue/10",
+          "hover:-translate-y-1 hover:shadow-bento-hover active:translate-y-0 active:shadow-bento",
+          isActive && "ring-4 ring-primary ring-offset-4 ring-offset-background",
+          isDragOver && "ring-4 ring-mint ring-offset-4 ring-offset-background bg-mint/20 border-mint scale-105",
         )}
       >
         {/* Folder tab */}
         <div
           className={cn(
-            "relative z-10 w-32 h-6 ml-0 rounded-t-md flex items-center px-4",
-            "bg-sky/75 border-2 border-b-0 border-border",
-            isDragOver && "bg-mint",
-            "-mb-[2px]"
+            "relative z-10 w-fit rounded-full px-4 py-1.5 mb-2",
+            "bg-blue border-2 border-border shadow-bento-sm",
+            "flex items-center text-xs font-bold uppercase tracking-widest text-foreground",
+            isDragOver && "bg-mint border-border",
           )}
-          style={{ paddingBottom: "2px" }}
         >
+          <FolderIcon className="h-4 w-4 mr-1.5 text-foreground" />
+          Folder
         </div>
 
+        {/* Folder body */}
         <div
           className={cn(
-            "px-4 py-7 relative z-0 flex flex-col flex-1 gap-3 bg-sky border-2 border-border overflow-hidden rounded-b-md rounded-tr-md rounded-tl-none shadow-[4px_4px_0px_0px_var(--border)]",
-            "group-hover:shadow-[6px_6px_0px_0px_var(--border)] active:shadow-[0px_0px_0px_0px_var(--border)] transition-shadow duration-200",
-            isDragOver &&
-              "ring-4 ring-mint ring-offset-4 ring-offset-background bg-mint border-mint",
+            "relative border-border flex flex-col flex-1 gap-3",
           )}
         >
+          {/* Drop indicator overlay */}
           {isDragOver && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/20 rounded-b-md rounded-tr-md">
               <div className="flex flex-col items-center gap-2">
@@ -119,14 +118,13 @@ const FolderCard: FC<FolderCardProps> = ({
           )}
 
           {/* Content */}
-          <div className="flex-1 flex flex-col justify-between gap-2 z-10 px-2 pt-1 pb-2">
-            <div className="flex flex-1 min-w-0 justify-between gap-2">
-              <div className="min-w-0">
-                <p className="font-bold font-editorial text-xl line-clamp-1 text-foreground">
-                  {displayName}
-                </p>
-                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mt-1">
-                  {deckCount !== undefined
+          <div className="flex flex-1 min-w-0 justify-between gap-2">
+            <div className="min-w-0">
+              <p className="font-bold font-editorial text-2xl line-clamp-1 text-foreground">
+                {displayName}
+              </p>
+              <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                {deckCount !== undefined
                   ? `${deckCount} deck${deckCount === 1 ? "" : "s"}`
                   : "Folder"}
               </p>
@@ -136,9 +134,9 @@ const FolderCard: FC<FolderCardProps> = ({
                 <motion.div
                   initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: isHovered ? 1 : 0, y: isHovered ? 0 : 5 }}
-                  className="mt-3 text-[10px] font-bold uppercase tracking-widest text-primary bg-primary/10 inline-block px-2 py-1 rounded-md"
+                  className="mt-3 text-xs font-bold uppercase tracking-wider text-muted-foreground/80 border-t border-blue-300/30 pt-2"
                 >
-                  Drag decks here
+                  Drag decks here to move
                 </motion.div>
               )}
             </div>
@@ -160,24 +158,22 @@ const FolderCard: FC<FolderCardProps> = ({
                 <DropdownMenuContent
                   align="end"
                   onClick={(e) => e.stopPropagation()}
-                  className="border-2 border-border shadow-bento-sm rounded-xl"
                 >
                   {onEdit && (
-                    <DropdownMenuItem onClick={onEdit} className="font-medium cursor-pointer">
+                    <DropdownMenuItem onClick={onEdit}>
                       <Pencil className="h-4 w-4 mr-2" />
                       Rename
                     </DropdownMenuItem>
                   )}
 
-                  {onEdit && onDelete && <DropdownMenuSeparator className="bg-border/50" />}
+                  {onEdit && onDelete && <DropdownMenuSeparator />}
 
                   {onDelete && (
                     <DropdownMenuItem
                       disabled={deckCount !== 0}
                       onClick={() => deckCount === 0 && onDelete()}
                       className={cn(
-                        "font-medium cursor-pointer text-red-600 focus:text-red-700 focus:bg-red-50",
-                        deckCount !== 0 && "opacity-50 cursor-not-allowed",
+                        deckCount !== 0 && "opacity-60 cursor-not-allowed",
                       )}
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
@@ -190,9 +186,19 @@ const FolderCard: FC<FolderCardProps> = ({
           </div>
         </div>
       </div>
-      </div>
+
+      {/* Drag overlay effect */}
+      {isDragOver && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="absolute -inset-2 bg-yellow-400/10 rounded-lg -z-10"
+        />
+      )}
     </motion.div>
   );
 };
 
 export default FolderCard;
+
+

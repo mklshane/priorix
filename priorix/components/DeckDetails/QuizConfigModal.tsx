@@ -65,35 +65,36 @@ const QuizConfigModal = ({ isOpen, onClose, onStartQuiz, totalCards, deckId, isL
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !isLoading && !open && onClose()}>
-      <DialogContent className="sm:max-w-2xl border-2 border-black dark:border-darkborder rounded-xl bg-white dark:bg-card">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold font-sora">Configure Quiz</DialogTitle>
-          <DialogDescription className="text-sm">
+      <DialogContent className="sm:max-w-md rounded-3xl border-2 border-border p-0 overflow-hidden bg-card">
+        <DialogHeader className="px-6 pt-4 pb-2 bg-lilac border-b-2 border-border flex flex-col items-center text-center">
+          <DialogTitle className="text-2xl font-editorial tracking-tight font-bold text-foreground">Configure Quiz</DialogTitle>
+          <DialogDescription className="text-muted-foreground mt-0 font-medium">
             Customize your quiz experience
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 py-2">
+        <div className="p-6 py-2 space-y-4">
           {/* Question Count */}
           <div className="space-y-3">
-            <Label className="text-sm font-semibold">Number of Questions</Label>
+            <Label className="text-sm font-bold uppercase tracking-wider text-muted-foreground ml-1">Number of Questions</Label>
             <RadioGroup value={questionCount.toString()} onValueChange={(val: string) => !isLoading && setQuestionCount(parseInt(val))} disabled={isLoading}>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              <div className="grid grid-cols-4 gap-1.5">
                 {availableCounts.map((count) => (
                   <Card 
                     key={count}
-                    className={`transition-all border-2 ${
+                    className={`transition-all duration-300 border-2 rounded-2xl ${
                       questionCount === count 
-                        ? "border-black dark:border-white bg-yellow/20 dark:bg-yellow/10" 
-                        : "border-gray-300 dark:border-darkborder hover:border-gray-400"
+                        ? "border-primary bg-primary/10 shadow-bento-sm -translate-y-1" 
+                        : "border-border hover:border-primary/50 hover:shadow-bento-sm bg-background"
                     } ${isLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
                     onClick={() => !isLoading && setQuestionCount(count)}
                   >
-                    <CardContent className="p-3 flex items-center justify-center">
+                    <CardContent className="p-0 flex flex-col items-center justify-center gap-1">
                       <RadioGroupItem value={count.toString()} id={`count-${count}`} className="sr-only" />
-                      <span className="font-bold text-lg">
+                      <span className="font-bold text-xl font-editorial">
                         {count}
                       </span>
+                      <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-widest">Cards</span>
                     </CardContent>
                   </Card>
                 ))}
@@ -101,19 +102,18 @@ const QuizConfigModal = ({ isOpen, onClose, onStartQuiz, totalCards, deckId, isL
             </RadioGroup>
           </div>
 
-          {/* Quiz Types */}
           <div className="space-y-3">
-            <Label className="text-sm font-semibold">Question Types</Label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <Label className="text-sm font-bold uppercase tracking-wider text-muted-foreground ml-1">Question Types</Label>
+            <div className="grid grid-cols-2 gap-1.5">
               <Card 
-                className={`transition-all border-2 ${
+                className={`transition-all duration-300 border-2 rounded-2xl \${
                   quizTypes.includes("mcq")
-                    ? "border-black dark:border-white bg-yellow/20 dark:bg-yellow/10" 
-                    : "border-gray-300 dark:border-darkborder hover:border-gray-400"
+                    ? "border-primary bg-primary/10 shadow-bento-sm -translate-y-1" 
+                    : "border-border hover:border-primary/50 hover:shadow-bento-sm bg-background"
                 } ${isLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
                 onClick={() => !isLoading && handleQuizTypeToggle("mcq")}
               >
-                <CardContent className="p-3">
+                <CardContent className="p-3 py-0">
                   <div className="flex items-center space-x-3">
                     <Checkbox
                       id="mcq"
@@ -132,14 +132,14 @@ const QuizConfigModal = ({ isOpen, onClose, onStartQuiz, totalCards, deckId, isL
               </Card>
 
               <Card 
-                className={`transition-all border-2 ${
+                className={`transition-all duration-300 border-2 rounded-2xl \${
                   quizTypes.includes("true-false")
-                    ? "border-black dark:border-white bg-yellow/20 dark:bg-yellow/10" 
-                    : "border-gray-300 dark:border-darkborder hover:border-gray-400"
+                    ? "border-primary bg-primary/10 shadow-bento-sm -translate-y-1" 
+                    : "border-border hover:border-primary/50 hover:shadow-bento-sm bg-background"
                 } ${isLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
                 onClick={() => !isLoading && handleQuizTypeToggle("true-false")}
               >
-                <CardContent className="p-3">
+                <CardContent className="p-3 py-0">
                   <div className="flex items-center space-x-3">
                     <Checkbox
                       id="true-false"
@@ -161,8 +161,8 @@ const QuizConfigModal = ({ isOpen, onClose, onStartQuiz, totalCards, deckId, isL
         </div>
 
         {/* Summary */}
-        <Card className="bg-muted/50 border-2 border-black dark:border-darkborder mt-2">
-          <CardContent className="p-4">
+        <Card className="bg-muted/30 border-t-2 border-x-0 border-b-0 border-border rounded-none">
+          <CardContent className="py-0">
             <div className="flex items-center justify-around text-sm">
               <div className="text-center">
                 <div className="text-muted-foreground text-xs">Questions</div>
@@ -183,19 +183,19 @@ const QuizConfigModal = ({ isOpen, onClose, onStartQuiz, totalCards, deckId, isL
         </Card>
 
         {/* Actions */}
-        <div className="flex gap-2">
+        <div className="flex gap-4 p-8 pt-4 bg-muted/30">
           <Button
             variant="outline"
             onClick={onClose}
             disabled={isLoading}
-            className="flex-1 border-2 border-black dark:border-darkborder"
+            className="flex-1 h-12 rounded-full border-2 border-border font-bold hover:-translate-y-1 hover:shadow-bento-sm transition-all text-sm uppercase tracking-wider"
           >
             Cancel
           </Button>
           <Button
             onClick={handleStart}
             disabled={quizTypes.length === 0 || isLoading}
-            className="flex-1 bg-yellow hover:bg-yellow/90 text-black font-bold border-2 border-black dark:border-darkborder disabled:opacity-50"
+            className="flex-1 h-12 rounded-full border-2 border-border font-bold bg-mint hover:bg-mint/90 text-primary hover:-translate-y-1 hover:shadow-bento-sm transition-all text-sm uppercase tracking-wider"
           >
             {isLoading ? (
               <>
@@ -213,3 +213,5 @@ const QuizConfigModal = ({ isOpen, onClose, onStartQuiz, totalCards, deckId, isL
 };
 
 export default QuizConfigModal;
+
+

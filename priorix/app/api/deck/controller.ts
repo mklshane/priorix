@@ -117,7 +117,7 @@ export const updateDeck = async (data: {
       if (!folder) {
         throw new Error("Folder not found");
       }
-      folderUpdate = folder._id;
+      folderUpdate = folder._id as mongoose.Types.ObjectId;
     }
   }
 

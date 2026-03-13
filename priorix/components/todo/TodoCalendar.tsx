@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo } from "react";
 import {
@@ -70,12 +70,10 @@ export default function TodoCalendar({
         </div>
       </div>
 
-      {/* Calendar Grid (Uses auto-rows 1fr to share remaining height equally) */}
       <div
         className="flex-1 min-h-0 grid grid-cols-7 border-t border-l border-black/80 dark:border-white/80 bg-black/80 dark:bg-white/80 gap-[1px]"
         style={{ gridTemplateRows: "auto repeat(6, minmax(0, 1fr))" }}
       >
-        {/* Days Header */}
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
           <div
             key={day}
@@ -86,7 +84,6 @@ export default function TodoCalendar({
           </div>
         ))}
 
-        {/* Day Cells */}
         {calendarDays.map((date) => {
           const isCurrentMonth = date.getMonth() === currentDate.getMonth();
           const isSelected = isSameDay(date, selectedDate);
@@ -94,26 +91,34 @@ export default function TodoCalendar({
           const dayTasks = activeTasks.filter(
             (t) => t.dueDate && isSameDay(new Date(t.dueDate), date),
           );
+          
+          const hasTasks = dayTasks.length > 0;
 
           return (
             <div
               key={date.toISOString()}
               onClick={() => onSelectDate(date)}
               className={`
-                bg-white dark:bg-[#1A1A1A] p-1 md:p-2 cursor-pointer transition-all duration-200 flex flex-col relative overflow-hidden
-                ${!isCurrentMonth ? "opacity-30" : "hover:bg-black/[0.03] dark:hover:bg-white/[0.03]"}
-                ${isSelected ? "bg-black text-white dark:bg-white dark:text-black" : ""}
+                p-1 md:p-2 cursor-pointer transition-all duration-200 flex flex-col relative overflow-hidden
+                ${!isCurrentMonth ? "opacity-30 " : ""}
+                ${isSelected ? "bg-sky dark:bg-sky " : "bg-white dark:bg-[#1A1A1A] hover:bg-black/[0.03] dark:hover:bg-white/[0.03] "}
               `}
             >
-              <div className="flex justify-between items-start">
+              <div className={`flex justify-between items-start gap-3 w-full ${isSelected ? "mb-1" : ""}`}>
                 <span
-                  className={`font-editorial text-sm md:text-xl leading-none ${isToday && !isSelected ? "text-[#D64045] italic font-bold" : ""}`}
+                  className={`font-editorial text-sm md:text-xl leading-none 
+                    ${isToday && !isSelected ? "italic font-bold " : ""}
+                    ${isSelected ? "font-bold text-black dark:text-black " : ""}
+                    ${hasTasks && !isSelected ? "text-[#D64045] font-bold " : ""}
+                  `}
                 >
                   {format(date, "d")}
                 </span>
-                {dayTasks.length > 0 && (
+                {hasTasks && (
                   <span
-                    className={`text-[8px] md:text-[10px] px-1 md:px-1.5 py-0.5 border leading-none ${isSelected ? "border-white/40 dark:border-black/40" : "border-black/20 dark:border-white/20"}`}
+                    className={`text-[8px] md:text-[10px] px-1 py-0.5 border leading-none font-sans-utility 
+                        ${isSelected ? "border-black/30 dark:border-black/30 font-bold text-black dark:text-black" : "border-black/20 dark:border-white/20 text-[#D64045]"}
+                    `}
                   >
                     {dayTasks.length}
                   </span>
@@ -124,7 +129,7 @@ export default function TodoCalendar({
                 {dayTasks.slice(0, 3).map((_, i) => (
                   <div
                     key={i}
-                    className={`w-1 h-1 md:w-1.5 md:h-1.5 ${isSelected ? "bg-white dark:bg-black" : "bg-[#D64045]"}`}
+                    className={`w-1 h-1 md:w-1.5 md:h-1.5 ${isSelected ? "bg-black/60 dark:bg-black/60" : "bg-[#D64045] opacity-80"}`}
                   />
                 ))}
               </div>

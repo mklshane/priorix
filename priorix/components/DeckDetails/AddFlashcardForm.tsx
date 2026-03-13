@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -96,13 +95,12 @@ const AddFlashcardForm = ({
     }
   };
 
-  // Collapsed state - just show button
   if (!isAdding && !newTerm && !newDefinition) {
     return (
       <div className="mb-8">
         <Button
           onClick={() => setIsAdding(true)}
-          className="w-full h-12 border-2 border-dashed border-primary/40 dark:border-darkborder bg-green/30 dark:bg-green/10 hover:bg-green/50 dark:hover:bg-green/20 text-foreground hover:border-primary/60 transition-all duration-200 rounded-xl gap-2 font-semibold"
+          className="w-full h-14 border-2 border-dashed border-border bg-transparent hover:bg-mint text-foreground hover:-translate-y-1 hover:shadow-bento-sm transition-all duration-300 rounded-2xl gap-2 font-bold text-lg"
           variant="ghost"
         >
           <Plus className="h-5 w-5" />
@@ -114,26 +112,22 @@ const AddFlashcardForm = ({
 
   return (
     <div className="mb-8">
-      <Card className="border-2 border-primary bg-green dark:bg-darkcard dark:border-darkborder overflow-hidden">
-        {/* Accent bar */}
-        <div className="h-1 bg-gradient-to-r from-green via-perry to-green" />
-
-        <CardContent className="pt-5 pb-4">
-          {/* Header */}
-          <div className="flex items-center gap-2 mb-4">
-            <div className="flex items-center justify-center h-7 w-7 rounded-lg bg-foreground/10">
+      <div className="border-2 border-border bg-mint rounded-3xl overflow-hidden shadow-bento-sm">
+        <div className="p-6">
+          <div className="flex items-center gap-2 mb-6">
+            <div className="flex items-center justify-center h-8 w-8 rounded-xl bg-background border-2 border-border">
               <PenLine className="h-4 w-4" />
             </div>
-            <h3 className="text-lg font-bold">New Flashcard</h3>
+            <h3 className="text-xl font-editorial">New Flashcard</h3>
           </div>
 
-          <div className="grid gap-4">
-            <div className="grid gap-1.5">
+          <div className="grid gap-5">
+            <div className="grid gap-2">
               <div className="flex items-center justify-between">
-                <label htmlFor="term" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                <label htmlFor="term" className="text-[10px] font-bold uppercase tracking-widest text-foreground/80">
                   Term
                 </label>
-                <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                <span className="text-[10px] text-foreground/60 flex items-center gap-1 uppercase tracking-wider font-bold">
                   <Keyboard className="h-3 w-3" /> Enter to move to definition
                 </span>
               </div>
@@ -145,15 +139,15 @@ const AddFlashcardForm = ({
                 placeholder="Enter the term"
                 onFocus={handleInputFocus}
                 onKeyDown={handleTermKeyDown}
-                className="border-2 border-primary/60 dark:border-darkborder bg-skin dark:bg-card focus:border-primary transition-colors h-11"
+                className="border-2 border-border bg-background focus:-translate-y-1 focus:shadow-bento-sm transition-all focus-visible:ring-0 focus-visible:border-border h-12 rounded-xl text-base"
               />
             </div>
-            <div className="grid gap-1.5">
+            <div className="grid gap-2">
               <div className="flex items-center justify-between">
-                <label htmlFor="definition" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                <label htmlFor="definition" className="text-[10px] font-bold uppercase tracking-widest text-foreground/80">
                   Definition
                 </label>
-                <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                <span className="text-[10px] text-foreground/60 flex items-center gap-1 uppercase tracking-wider font-bold">
                   <Keyboard className="h-3 w-3" /> Ctrl+Enter to save
                 </span>
               </div>
@@ -165,23 +159,23 @@ const AddFlashcardForm = ({
                 rows={4}
                 onFocus={handleInputFocus}
                 onKeyDown={handleDefinitionKeyDown}
-                className="border-2 border-primary/60 dark:border-darkborder bg-skin dark:bg-card focus:border-primary transition-colors resize-none"
+                className="border-2 border-border bg-background focus:-translate-y-1 focus:shadow-bento-sm transition-all focus-visible:ring-0 focus-visible:border-border rounded-xl resize-none text-base p-4"
               />
             </div>
 
             {error && (
-              <div className="text-sm text-red-500 bg-red-50 dark:bg-red-500/10 px-3 py-2 rounded-lg border border-red-200 dark:border-red-500/20">
+              <div className="text-sm text-red-600 bg-red-100 px-4 py-3 rounded-xl border-2 border-red-200 font-medium">
                 {error}
               </div>
             )}
 
-            <div className="flex flex-col sm:flex-row gap-2 justify-end pt-1">
+            <div className="flex flex-col sm:flex-row gap-3 justify-end pt-2">
               <Button
                 variant="outline"
                 onClick={cancelAdd}
-                className="order-2 sm:order-1 border-2 border-primary/40 dark:border-darkborder"
+                className="order-2 sm:order-1 border-2 border-border bg-transparent hover:bg-background rounded-full px-6 transition-all h-12 font-bold"
               >
-                <X className="h-4 w-4 mr-1.5" />
+                <X className="h-4 w-4 mr-2" />
                 Cancel
               </Button>
               <Button
@@ -189,15 +183,15 @@ const AddFlashcardForm = ({
                 disabled={
                   isSubmitting || !newTerm.trim() || !newDefinition.trim()
                 }
-                className="order-1 sm:order-2 bg-purple dark:bg-purple/80 text-foreground border-2 border-primary dark:border-darkborder font-bold shadow-[3px_3px_0px_0px_rgba(0,0,0,0.15)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] active:shadow-[1px_1px_0px_0px_rgba(0,0,0,0.1)] hover:-translate-y-0.5 active:translate-y-0.5 transition-all duration-150"
+                className="order-1 sm:order-2 bg-primary text-primary-foreground border-2 border-border font-bold rounded-full px-8 h-12 hover:-translate-y-1 hover:shadow-bento-sm transition-all duration-300 active:translate-y-0 active:shadow-none"
               >
-                <Plus className="h-4 w-4 mr-1.5" />
+                <Plus className="h-4 w-4 mr-2" />
                 {isSubmitting ? "Adding..." : "Add Card"}
               </Button>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };

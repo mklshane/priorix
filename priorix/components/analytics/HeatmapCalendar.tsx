@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useSidebar } from "@/contexts/SidebarContext";
+import { Calendar } from "lucide-react";
 
 interface HeatmapCalendarProps {
   dailyStats: Array<{
@@ -41,18 +42,18 @@ export default function HeatmapCalendar({ dailyStats }: HeatmapCalendarProps) {
   }>({ visible: false, content: "", x: 0, y: 0 });
 
   const getIntensityColor = (cards: number) => {
-    if (cards === 0) return "bg-gray-200 dark:bg-gray-800";
+    if (cards === 0) return "bg-gray-200 dark:bg-[#2A2A2A]";
 
-    if (cards < 50) return "bg-green/10 dark:bg-green/5";
-    if (cards < 100) return "bg-green/20 dark:bg-green/10";
-    if (cards < 150) return "bg-green/30 dark:bg-green/15";
-    if (cards < 200) return "bg-green/40 dark:bg-green/20";
-    if (cards < 250) return "bg-green/50 dark:bg-green/30";
-    if (cards < 325) return "bg-green/60 dark:bg-green/40";
-    if (cards < 400) return "bg-green/70 dark:bg-green/50";
-    if (cards < 450) return "bg-green/80 dark:bg-green/60";
+    if (cards < 50) return "bg-emerald-400/20 dark:bg-emerald-400/20";
+    if (cards < 100) return "bg-emerald-400/40 dark:bg-emerald-400/40";
+    if (cards < 150) return "bg-emerald-400/60 dark:bg-emerald-400/60";
+    if (cards < 200) return "bg-emerald-400/80 dark:bg-emerald-400/80";
+    if (cards < 250) return "bg-emerald-400 dark:bg-emerald-500";
+    if (cards < 325) return "bg-emerald-500 dark:bg-emerald-600";
+    if (cards < 400) return "bg-emerald-600 dark:bg-emerald-700";
+    if (cards < 450) return "bg-emerald-700 dark:bg-emerald-800";
 
-    return "bg-green dark:bg-green/70";
+    return "bg-emerald-800 dark:bg-emerald-900";
   };
 
   // 🔹 Compute weeks and box size dynamically to fill container
@@ -83,10 +84,10 @@ export default function HeatmapCalendar({ dailyStats }: HeatmapCalendarProps) {
       
       if (viewportWidth >= 1440) {
         // Desktop: 35 weeks open, 40 weeks collapsed
-        maxWeeksToShow = sidebarCollapsed ? 40 : 35;
+        maxWeeksToShow = sidebarCollapsed ? 52 : 48;
       } else if (viewportWidth >= 1024) {
         // Laptop: 25 weeks open, 30 weeks collapsed
-        maxWeeksToShow = sidebarCollapsed ? 30 : 26;
+        maxWeeksToShow = sidebarCollapsed ? 42 : 36;
       } else {
         // Tablet: 20 weeks open, 23 weeks collapsed
         maxWeeksToShow = sidebarCollapsed ? 23 : 20;
@@ -161,29 +162,47 @@ export default function HeatmapCalendar({ dailyStats }: HeatmapCalendarProps) {
     const numGapCols = cols.filter((c) => c.type === "gap").length;
     const numWeekCols = cols.filter((c) => c.type === "week").length;
     const totalGaps = (cols.length - 1) * gap + numGapCols * monthGapWidth;
-    const paddingHorizontal = mobile ? 32 : 48; // Mobile: px-2 + px-2 = 32px, Desktop: px-2 + sm:px-4 = 48px
+    const paddingHorizontal = mobile ? 32 : 48; // Mobile: p-4 * 2 = 32px, Desktop: p-6 * 2 = 48px
     const availableWidth = width - totalGaps - paddingHorizontal;
     const computedBoxSize = Math.floor(availableWidth / numWeekCols);
     
-    // Width: On mobile, use computed size without minimum; on desktop, cap at 22px
+    // Width: On mobile, use computed size without minimum; on desktop, cap at 28px
     setBoxWidth(
-      mobile ? computedBoxSize : Math.max(16, Math.min(computedBoxSize, 22)),
+      mobile ? computedBoxSize : Math.max(16, Math.min(computedBoxSize, 28)),
     );
-    
+
     // Height: Keep reasonable height on mobile
     setBoxHeight(
-      mobile ? 26 : Math.max(16, Math.min(computedBoxSize, 22)),
+      mobile ? 26 : Math.max(16, Math.min(computedBoxSize, 28)),
     );
   };
 
   useEffect(() => {
-    // Initial computation with small delay to ensure ref is ready
-    const timer = setTimeout(() => computeGrid(), 0);
+    // We use a ResizeObserver to perfectly track the container's width changes.
+    // This solves the problem where the sidebar opening/closing causes glitches,
+    // because the transition takes time and a single recalculation isn't enough.
+    const element = containerRef.current;
+    if (!element) return;
+
+    let resizeTimer: NodeJS.Timeout;
+    const observer = new ResizeObserver(() => {
+      // Debounce slightly to avoid rapid recalculation during fluid transitions 
+      // (like the sidebar sliding open/closed)
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        computeGrid();
+      }, 50);
+    });
+
+    observer.observe(element);
+
+    // Initial compute
+    const initTimer = setTimeout(() => computeGrid(), 0);
     
-    window.addEventListener("resize", computeGrid);
     return () => {
-      clearTimeout(timer);
-      window.removeEventListener("resize", computeGrid);
+      clearTimeout(resizeTimer);
+      clearTimeout(initTimer);
+      observer.disconnect();
     };
   }, [dailyStats, isOpen]); // Re-run when sidebar state changes
 
@@ -218,29 +237,32 @@ export default function HeatmapCalendar({ dailyStats }: HeatmapCalendarProps) {
   }, [gridCols]);
 
   const legendClasses = [
-    "bg-gray-200 dark:bg-gray-800",
-    "bg-green/10 dark:bg-green/5",
-    "bg-green/20 dark:bg-green/10",
-    "bg-green/30 dark:bg-green/15",
-    "bg-green/40 dark:bg-green/20",
-    "bg-green/50 dark:bg-green/30",
-    "bg-green/60 dark:bg-green/40",
-    "bg-green/70 dark:bg-green/50",
-    "bg-green/80 dark:bg-green/60",
-    "bg-green dark:bg-green/70",
+    "bg-gray-200 dark:bg-[#2A2A2A]",
+    "bg-emerald-400/20 dark:bg-emerald-400/20",
+    "bg-emerald-400/40 dark:bg-emerald-400/40",
+    "bg-emerald-400/60 dark:bg-emerald-400/60",
+    "bg-emerald-400/80 dark:bg-emerald-400/80",
+    "bg-emerald-400 dark:bg-emerald-500",
+    "bg-emerald-500 dark:bg-emerald-600",
+    "bg-emerald-600 dark:bg-emerald-700",
+    "bg-emerald-700 dark:bg-emerald-800",
+    "bg-emerald-800 dark:bg-emerald-900",
   ];
 
   const monthGapWidth = isMobile ? 8 : 10;
 
   return (
     <div className="w-full min-w-0" ref={containerRef}>
-      <Card className="bg-white dark:bg-card border-2 border-black dark:border-darkborder rounded-xl overflow-hidden px-2">
+      <Card className="bento-card bg-white dark:bg-card border-2 border-black dark:border-darkborder p-4 md:p-6">
         {/* Header */}
-        <CardContent className="p-0 md:p-3 sm:p-4 pb-2  ">
-          <div className="flex items-start sm:items-center justify-between gap-2">
-            <h3 className="text-base sm:text-lg font-semibold font-sora">
-              Study Activity
-            </h3>
+        <CardContent className="p-0 pb-0 md:pb-6">
+            <div className="flex items-center gap-3 shrink-0 justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-blush border-2 border-border flex items-center justify-center shadow-bento-sm">
+                  <Calendar className="h-5 w-5" />
+                </div>
+                <h3 className="text-2xl font-editorial italic">Study Activity</h3>
+              </div>
             <div className="text-[11px] sm:text-xs text-muted-foreground hidden md:block">
               {gridCols.length} weeks
             </div>
@@ -250,7 +272,7 @@ export default function HeatmapCalendar({ dailyStats }: HeatmapCalendarProps) {
         {/* Month labels */}
         <div className="overflow-x-auto flex justify-center">
           <div
-            className="grid items-end mb-2 text-muted-foreground font-sora px-2 sm:px-4 mt-2 md:mt-0"
+            className="grid items-end mb-2 text-muted-foreground font-sora mt-2 md:mt-0"
             style={{
             gridTemplateColumns: gridCols
               .map((c) =>
@@ -273,7 +295,7 @@ export default function HeatmapCalendar({ dailyStats }: HeatmapCalendarProps) {
         </div>
 
         {/* Heatmap */}
-        <div className="px-2 sm:px-4 pb-3 overflow-x-auto flex justify-center">
+        <div className="pb-3 overflow-x-auto flex justify-center w-full">
           <div
             className="grid"
             style={{
@@ -308,7 +330,7 @@ export default function HeatmapCalendar({ dailyStats }: HeatmapCalendarProps) {
                     return (
                       <div
                         key={dayIndex}
-                        className={`relative group rounded-[5px] cursor-pointer ${isFuture ? "bg-transparent border border-dashed border-gray-300 dark:border-gray-600" : getIntensityColor(day.cardsStudied)} transition-all hover:ring-2 hover:ring-green hover:z-10`}
+                        className={`relative group rounded-[5px] cursor-pointer ${isFuture ? "bg-transparent border border-dashed border-gray-300 dark:border-gray-600" : getIntensityColor(day.cardsStudied)} transition-all hover:ring-2 hover:ring-emerald-500 hover:z-10`}
                         onMouseEnter={(e) => {
                           const rect = e.currentTarget.getBoundingClientRect();
                           setTooltip({

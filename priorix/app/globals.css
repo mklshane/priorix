@@ -337,9 +337,7 @@ body::before {
   box-sizing: border-box;
   padding: 60px 72px;
   border: 2px solid var(--border);
-  border-radius: var(--radius);
   background: var(--card);
-  box-shadow: 4px 4px 0px 0px var(--border);
 }
 
 [data-two-column] .note-pages .ProseMirror > [data-page-node="true"] {
