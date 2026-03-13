@@ -1,18 +1,21 @@
+"use strict";
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { format, isSameDay } from "date-fns";
-import { Plus, ListTodo, Filter } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { AnimatePresence } from "framer-motion";
 import TaskCard from "./TaskCard";
-import CompletedTasksPanel from "./CompletedTasksPanel";
 import AddEditTaskDialog from "./AddEditTaskDialog";
-import { useCompleteTask, useRestoreTask, useDeleteTask } from "@/hooks/useTasks";
+import {
+  useCompleteTask,
+  useRestoreTask,
+  useDeleteTask,
+} from "@/hooks/useTasks";
 import type { Task } from "@/types/task";
 
 interface TaskListProps {
@@ -34,20 +37,28 @@ export default function TaskList({
   const restoreTask = useRestoreTask();
   const deleteTask = useDeleteTask();
 
-  // Split tasks for selected date into active and completed
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("add") === "true") {
+        setEditingTask(null);
+        setIsAddDialogOpen(true);
+        window.history.replaceState({}, "", "/todo");
+      }
+    }
+  }, []);
+
   const { activeTasks, completedTasks } = useMemo(() => {
     const dateTasks = tasks.filter(
-      (t) => t.dueDate && isSameDay(new Date(t.dueDate), selectedDate)
+      (t) => t.dueDate && isSameDay(new Date(t.dueDate), selectedDate),
     );
 
     let active = dateTasks.filter((t) => t.status !== "completed");
     const completed = dateTasks.filter((t) => t.status === "completed");
 
-    if (filterPriority !== "all") {
+    if (filterPriority !== "all")
       active = active.filter((t) => t.priority === filterPriority);
-    }
 
-    // Sort: urgent first, then by dueTime
     active.sort((a, b) => {
       const priorityOrder = { urgent: 0, high: 1, medium: 2, low: 3 };
       const pDiff =
@@ -62,100 +73,77 @@ export default function TaskList({
     return { activeTasks: active, completedTasks: completed };
   }, [tasks, selectedDate, filterPriority]);
 
-  // Also collect all completed tasks (not just for selected date) for history
-  const allCompleted = useMemo(
-    () => tasks.filter((t) => t.status === "completed"),
-    [tasks]
-  );
-
   const activeTaskIds = activeTasks.map((t) => t._id);
 
-  const handleComplete = (taskId: string) => {
-    completeTask.mutate(taskId);
-  };
-
-  const handleRestore = (taskId: string) => {
-    restoreTask.mutate(taskId);
-  };
-
-  const handleDelete = (taskId: string) => {
-    deleteTask.mutate(taskId);
-  };
-
-  const handleEdit = (task: Task) => {
-    setEditingTask(task);
-    setIsAddDialogOpen(true);
-  };
-
-  const dateLabel = format(selectedDate, "EEEE, MMMM d");
-
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full min-h-0 font-sans relative">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4 pb-3 border-b border-border/60">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10">
-            <ListTodo className="h-4 w-4 text-primary shrink-0" />
-          </div>
-          <div className="min-w-0">
-            <h3 className="text-base font-semibold truncate leading-tight">{dateLabel}</h3>
-          </div>
+      <div className="shrink-0 flex flex-col lg:flex-row lg:items-end justify-between mb-6 pb-4 border-b-2 border-border gap-4">
+        <div>
+          <p className="text-xs uppercase tracking-widest font-bold text-foreground/50 mb-1">
+            Tasks
+          </p>
+          <h3 className="text-2xl md:text-3xl font-editorial italic tracking-tight">
+            {format(selectedDate, "EEEE, MMMM do")}
+          </h3>
         </div>
-        <div className="flex items-center gap-1.5">
-          {/* Priority filter */}
-          <select
-            value={filterPriority}
-            onChange={(e) => setFilterPriority(e.target.value)}
-            className="text-xs bg-muted/50 border border-border rounded-lg px-2 py-1.5 text-muted-foreground hover:bg-muted transition-colors cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary/30"
-          >
-            <option value="all">All</option>
-            <option value="urgent">Urgent</option>
-            <option value="high">High</option>
-            <option value="medium">Medium</option>
-            <option value="low">Low</option>
-          </select>
 
-          <Button size="sm" className="h-8 rounded-lg text-xs gap-1" onClick={() => { setEditingTask(null); setIsAddDialogOpen(true); }}>
-            <Plus className="h-3.5 w-3.5" />
-            Add
-          </Button>
+        <div className="flex items-center gap-3">
+          <div className="relative border-2 border-border bg-card rounded-xl shadow-sm">
+            <select
+              value={filterPriority}
+              onChange={(e) => setFilterPriority(e.target.value)}
+              className="appearance-none bg-transparent pl-4 pr-10 py-2.5 text-xs md:text-sm uppercase tracking-widest font-bold focus:outline-none focus:ring-0 cursor-pointer text-foreground"
+            >
+              <option value="all">All Priorities</option>
+              <option value="urgent">Urgent</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+            <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-xs text-foreground/50">
+              ▼
+            </div>
+          </div>
+
+          <button
+            className="group flex items-center gap-2 bg-mint text-foreground px-5 py-2.5 rounded-xl uppercase text-xs md:text-sm tracking-widest font-bold hover:bg-mint/90 transition-all border-2 border-border hover:-translate-y-0.5 shadow-sm shrink-0 shadow-bento-sm"
+            onClick={() => {
+              setEditingTask(null);
+              setIsAddDialogOpen(true);
+            }}
+          >
+            <Plus className="h-4 w-4" />
+            <span>Add Task</span>
+          </button>
         </div>
       </div>
 
-      {/* Task list */}
-      <div className="flex-1 overflow-y-auto pr-0.5 -mr-0.5">
+      {/* Internal Scrolling Container */}
+      <div className="flex-1 min-h-0 overflow-y-auto relative pl-6 md:pl-8 before:absolute before:inset-y-0 before:left-0 before:w-0.5 before:bg-border/50 pr-2 pb-6">
         {isLoading ? (
-          <div className="space-y-2">
+          <div className="space-y-6">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-start gap-3 p-3 rounded-xl border border-border/40">
-                <div className="w-[18px] h-[18px] rounded-full bg-muted animate-pulse mt-0.5 shrink-0" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 w-3/4 bg-muted rounded animate-pulse" />
-                  <div className="h-3 w-1/2 bg-muted rounded animate-pulse" />
+              <div
+                key={i}
+                className="flex gap-4 md:gap-6 animate-pulse border-b border-border/50 pb-6 relative before:absolute before:left-[-29px] md:before:left-[calc(-2rem-3px)] before:top-2 before:w-2.5 before:h-2.5 before:rounded-full before:bg-border/50"
+              >
+                <div className="w-12 md:w-16 h-4 bg-muted rounded" />
+                <div className="flex-1 space-y-3">
+                  <div className="h-6 w-3/4 bg-muted rounded" />
+                  <div className="h-4 w-1/2 bg-muted rounded" />
                 </div>
               </div>
             ))}
           </div>
         ) : activeTasks.length === 0 && completedTasks.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-14 px-4">
-            <div className="w-14 h-14 rounded-2xl bg-muted/50 flex items-center justify-center mb-4">
-              <ListTodo className="h-6 w-6 text-muted-foreground/30" />
-            </div>
-            <p className="text-sm font-medium text-foreground/70 mb-1">
-              No tasks yet
+          <div className="h-full flex flex-col items-center justify-center py-12">
+            <span className="font-editorial italic text-3xl md:text-4xl text-foreground/30 mb-3">
+              Clear Schedule
+            </span>
+            <p className="uppercase tracking-widest text-xs md:text-sm text-foreground/50 font-bold text-center px-4">
+              No tasks planned for this date.
             </p>
-            <p className="text-muted-foreground text-xs text-center mb-4">
-              Nothing scheduled for {format(selectedDate, "MMM d")}
-            </p>
-            <Button
-              variant="outline"
-              size="sm"
-              className="rounded-lg h-8 text-xs gap-1"
-              onClick={() => { setEditingTask(null); setIsAddDialogOpen(true); }}
-            >
-              <Plus className="h-3.5 w-3.5" />
-              Add a task
-            </Button>
           </div>
         ) : (
           <>
@@ -163,34 +151,46 @@ export default function TaskList({
               items={activeTaskIds}
               strategy={verticalListSortingStrategy}
             >
-              <div className="space-y-1.5">
+              <div className="flex flex-col">
                 <AnimatePresence mode="popLayout">
                   {activeTasks.map((task) => (
                     <TaskCard
                       key={task._id}
                       task={task}
                       variant="active"
-                      onComplete={handleComplete}
-                      onDelete={handleDelete}
-                      onEdit={handleEdit}
+                      onComplete={completeTask.mutate}
+                      onDelete={deleteTask.mutate}
+                      onEdit={(t) => {
+                        setEditingTask(t);
+                        setIsAddDialogOpen(true);
+                      }}
                     />
                   ))}
                 </AnimatePresence>
               </div>
             </SortableContext>
 
-            {/* Completed tasks section */}
-            <CompletedTasksPanel
-              tasks={allCompleted}
-              onRestore={handleRestore}
-              onDelete={handleDelete}
-              onEdit={handleEdit}
-            />
+            {completedTasks.length > 0 && (
+              <div className="mt-8 md:mt-12 pt-6 md:pt-8 border-t-2 border-dashed border-border/50">
+                <h4 className="font-editorial italic text-xl md:text-2xl mb-4 md:mb-6 text-foreground/40">
+                  Completed Tasks
+                </h4>
+                {completedTasks.map((task) => (
+                  <TaskCard
+                    key={task._id}
+                    task={task}
+                    variant="completed"
+                    onRestore={restoreTask.mutate}
+                    onDelete={deleteTask.mutate}
+                    onEdit={() => {}}
+                  />
+                ))}
+              </div>
+            )}
           </>
         )}
       </div>
 
-      {/* Add/Edit Dialog */}
       <AddEditTaskDialog
         open={isAddDialogOpen}
         onOpenChange={(open) => {

@@ -1,15 +1,31 @@
+/* Import the new Playful Academic fonts: Outfit (Clean Sans) & Instrument Serif (Playful Editorial) */
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
 @import "tailwindcss";
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
 html {
-  font-family: "Sora";
+  font-family: "Outfit", sans-serif;
   scroll-behavior: smooth;
 }
 
 body {
   scroll-behavior: smooth;
+  /* Adds a very subtle grain texture across the whole app for that organic feel */
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  background-attachment: fixed;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-color: var(--background);
+  opacity: 0.96;
+  z-index: -1;
 }
 
 @layer base {
@@ -17,102 +33,116 @@ body {
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
+  }
+  
+  /* Make headings default to our playful editorial serif */
+  h1, h2, h3 {
+    font-family: "Instrument Serif", serif;
+    font-weight: 400;
+    letter-spacing: -0.02em;
   }
 }
 
 :root {
-  /* UI Colors */
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: #ffffff;
-  --warning: #ffa500;
-  --warning-foreground: #333333;
-  --success: #90ee90;
-  --success-foreground: #333333;
-  --radius: 0.625rem;
-  --background: oklch(0.97 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: #8e47b9;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f6edff;
-  --sidebar-accent-foreground: #4b2a67;
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  /* Core UI - Light Theme (Warm & High Contrast) */
+  --background: #F9F8F4;        /* Deep Cream */
+  --foreground: #111111;        /* Stark Ink */
+  
+  --card: #FFFFFF;
+  --card-foreground: #111111;
+  
+  --popover: #FFFFFF;
+  --popover-foreground: #111111;
+  
+  --primary: #111111;           /* Solid Black Buttons */
+  --primary-foreground: #F9F8F4;
+  
+  --secondary: #F4E0A2;         /* Soft Citrus */
+  --secondary-foreground: #111111;
+  
+  --muted: #EFECE6;             /* Darker Cream for empty states */
+  --muted-foreground: #666666;
+  
+  --accent: #E5D4EF;            /* Soft Lilac */
+  --accent-foreground: #111111;
+  
+  --destructive: #FF6B6B;
+  --destructive-foreground: #FFFFFF;
+  
+  --border: #111111;            /* Thick black borders for Bento look */
+  --input: #111111;
+  --ring: #111111;
+  
+  /* Extreme rounding for Bento Box feel */
+  --radius: 1.5rem;             
 
-  /* Brand Colors - Light Theme */
-  --green: #cae044;
-  --violet: #8e47b9;
-  --purple: #c4a0ff;
-  --perry: #39cbb7;
-  --skin: #fff9f5;
-  --pink: #ffb6fb;
-  --yellow: #ffd700;
-  --blue: #87ceeb;
-  --darkcard: #2C2C4E;
-  --darkborder: #41415D;
-  --card2: #29253C ;
+  /* Sidebar */
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #111111;
+  --sidebar-primary: #111111;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #D1E2C4;    /* Mint hover state */
+  --sidebar-accent-foreground: #111111;
+  --sidebar-border: #111111;
+  --sidebar-ring: #111111;
+
+  /* Playful Academic Pastel Palette */
+  --mint: #D1E2C4;
+  --lilac: #E5D4EF;
+  --blush: #F6D5E5;
+  --citrus: #F4E0A2;
+  --tangerine: #FFB38E;
+  --sky: #C4E4F5;
 }
 
 .dark {
-  --background: #0D0B14;        
-  --foreground: #e3dcff;      
-  --card: #1E1B2B;                 
-  --card-foreground: #F5F3FF;
-  --popover: #2A2640;             
-  --popover-foreground: #e5e5e5;
-  --primary: #8B5CF6;             
-  --primary-foreground: #1E1B2B;
-  --secondary: #2A2640;           
-  --secondary-foreground: #F5F3FF;
-  --muted: #2A2640;
-  --muted-foreground: #A78BFA;    
-  --accent: #7C3AED;             
-  --accent-foreground: #FFFFFF;
-  --border: #3F3B5B;              
-  --input: #3F3B5B;
-  --ring: #8B5CF6;
-  --sidebar: #1E1B2B;
-  --sidebar-foreground: #F5F3FF;
-  --sidebar-primary: #8B5CF6;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #2A2640;
-  --sidebar-accent-foreground: #F5F3FF;
-  --sidebar-border: #3F3B5B;
-  --sidebar-ring: #8B5CF6;
+  /* Core UI - Dark Theme (Soft Charcoal) */
+  --background: #1A1A1A;        
+  --foreground: #F9F8F4;      
+  
+  --card: #242424;                 
+  --card-foreground: #F9F8F4;
+  
+  --popover: #242424;             
+  --popover-foreground: #F9F8F4;
+  
+  --primary: #F9F8F4;             
+  --primary-foreground: #111111;
+  
+  --secondary: #3A332B;         /* Dark muted citrus */
+  --secondary-foreground: #F9F8F4;
+  
+  --muted: #2A2A2A;
+  --muted-foreground: #999999;    
+  
+  --accent: #3A2F45;            /* Dark muted lilac */
+  --accent-foreground: #F9F8F4;
+  
+  --border: #333333;              
+  --input: #333333;
+  --ring: #F9F8F4;
 
-  /* Brand Colors - All shades of purple for dark theme */
-  --green: #7E22CE;                /* Deep plum purple */
-  --violet: #8B5CF6;               /* Vibrant violet */
-  --purple: #A78BFA;               /* Soft lavender */
-  --perry: #6D28D9;                /* Royal purple */
-  --skin: #DDD6FE;                 /* Pale lavender */
-  --pink: #C084FC;                 /* Magenta purple */
-  --yellow: #6D28D9;               /* Orchid purple */
-  --blue: #818CF8;                 /* Periwinkle blue-purple */
-  --darkcard: #121020;
-  --darkborder: #4C1D95;
-  --card2: #372A54;
+  --sidebar: #1A1A1A;
+  --sidebar-foreground: #F9F8F4;
+  --sidebar-primary: #F9F8F4;
+  --sidebar-primary-foreground: #111111;
+  --sidebar-accent: #2C3528;    /* Dark mint hover */
+  --sidebar-accent-foreground: #F9F8F4;
+  --sidebar-border: #333333;
+  --sidebar-ring: #F9F8F4;
+
+  /* Pastels adapted for dark mode accents (slightly more saturated/darker) */
+  --mint: #86A873;
+  --lilac: #A385B5;
+  --blush: #B5799A;
+  --citrus: #B59E52;
+  --tangerine: #C97247;
+  --sky: #6B9DB8;
 }
 
 @theme inline {
-  /* Core Colors */
+  /* Map Core Colors */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-primary: var(--primary);
@@ -129,18 +159,13 @@ body {
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   
-  /* Brand Colors */
-  --color-blue: var(--blue);
-  --color-green: var(--green);
-  --color-violet: var(--violet);
-  --color-purple: var(--purple);
-  --color-perry: var(--perry);
-  --color-skin: var(--skin);
-  --color-pink: var(--pink);
-  --color-yellow: var(--yellow);
-  --color-darkcard: var(--darkcard);
-  --color-darkborder: var(--darkborder);
-  --color-card2: var(--card2);
+  /* Map New Brand Colors */
+  --color-mint: var(--mint);
+  --color-lilac: var(--lilac);
+  --color-blush: var(--blush);
+  --color-citrus: var(--citrus);
+  --color-tangerine: var(--tangerine);
+  --color-sky: var(--sky);
 
   /* Sidebar Colors */
   --color-sidebar-ring: var(--sidebar-ring);
@@ -159,170 +184,81 @@ body {
   --color-card: var(--card);
   
   /* Typography */
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-lora: var(--font-lora), ui-sans-serif, system-ui, sans-serif;
-  --font-sora: var(--font-sora);
+  --font-sans: "Outfit", sans-serif;
+  --font-editorial: "Instrument Serif", serif;
   
   /* Border Radius */
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-sm: calc(var(--radius) - 12px); /* 12px */
+  --radius-md: calc(var(--radius) - 8px);  /* 16px */
+  --radius-lg: var(--radius);              /* 24px */
+  --radius-xl: calc(var(--radius) + 8px);  /* 32px */
+  --radius-full: 9999px;
 }
 
-/* ===== UTILITY CLASSES ===== */
-@utility noise {
-  background-image: url(/noise.png);
+/* Bento Box / Neo-brutalist Utilities 
+   These replace the standard soft shadows with sharp, playful styling
+*/
+@utility shadow-bento {
+  box-shadow: 4px 4px 0px 0px var(--border);
 }
 
-@utility dark-card {
-  @apply bg-darkcard border-2 border-darkborder;
+@utility shadow-bento-lg {
+  box-shadow: 8px 8px 0px 0px var(--border);
 }
 
-@layer utilities {
-  /* Button Utilities */
-  .btn-base {
-    @apply transition-all duration-200 transform border-2 border-black font-semibold font-sora;
-  }
-  
-  .btn-hover {
-    @apply hover:-translate-y-0.5 hover:shadow-lg;
-  }
-  
-  .btn-active {
-    @apply active:translate-y-0 active:shadow-none active:scale-95;
-  }
-  
-  .btn-pink {
-    @apply bg-pink text-secondary-foreground hover:bg-primary-foreground hover:shadow-pink/25 hover:border-pink;
-  }
-  
-  .btn-green {
-    @apply bg-green text-secondary-foreground hover:bg-primary-foreground hover:shadow-green/25 hover:border-green;
-  }
-  
-  .btn-size-md {
-    @apply px-5 py-2 rounded-4xl text-sm;
-  }
-
-  /* Dark mode specific utilities */
-  .dark-card {
-    @apply bg-card border-border;
-  }
+@utility shadow-bento-hover {
+  @apply transition-all duration-200 hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[6px_6px_0px_0px_var(--border)];
 }
 
-@layer components {
-  .modal-surface {
-    position: relative;
-    overflow: hidden;
-    background: radial-gradient(circle at 12% 18%, rgba(142, 71, 185, 0.14), transparent 40%),
-      radial-gradient(circle at 82% 10%, rgba(202, 224, 68, 0.12), transparent 35%),
-      linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(255, 249, 245, 0.94));
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.16), 0 0 0 1px rgba(139, 92, 246, 0.15);
-    backdrop-filter: blur(14px);
-  }
-
-  .dark .modal-surface {
-    background: radial-gradient(circle at 12% 18%, rgba(139, 92, 246, 0.18), transparent 40%),
-      radial-gradient(circle at 82% 6%, rgba(57, 203, 183, 0.14), transparent 36%),
-      linear-gradient(145deg, rgba(30, 27, 43, 0.95), rgba(18, 16, 32, 0.98));
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    box-shadow: 0 28px 85px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(139, 92, 246, 0.24);
-  }
-
-  .modal-surface::before {
-    content: "";
-    position: absolute;
-    inset: -35% -15% auto;
-    height: 60%;
-    background: radial-gradient(circle, rgba(199, 210, 254, 0.35), transparent 60%);
-    opacity: 0.55;
-    filter: blur(10px);
-    pointer-events: none;
-  }
-
-  .modal-surface::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(120deg, rgba(139, 92, 246, 0.22), rgba(201, 224, 68, 0.12), rgba(255, 182, 251, 0.14));
-    opacity: 0.65;
-    mix-blend-mode: screen;
-    pointer-events: none;
-  }
+@utility shadow-bento-active {
+  @apply active:translate-y-1 active:translate-x-1 active:shadow-[0px_0px_0px_0px_var(--border)];
 }
 
-/* ===== GRADIENT UTILITIES ===== */
-.bg-gradient-main {
-  background: linear-gradient(
-    135deg,
-    var(--primary) 0%,
-    #e6e6fa 50%,
-    var(--pink) 100%
-  );
+/* Base Card Class */
+@utility bento-card {
+  @apply bg-card border-2 border-border rounded-3xl p-6 shadow-bento;
 }
 
-.bg-gradient-surface {
-  background: linear-gradient(
-    135deg,
-    var(--green) 0%,
-    var(--pink) 50%,
-    var(--primary) 100%
-  );
+/* Base Button Classes */
+@utility btn-base {
+  @apply flex items-center justify-center gap-2 px-6 py-3 rounded-full border-2 border-border font-bold transition-all duration-200;
 }
 
-.bg-gradient-card {
-  background: linear-gradient(
-    135deg,
-    var(--violet) 0%,
-    var(--purple) 100%
-  );
+@utility btn-primary {
+  @apply btn-base bg-primary text-primary-foreground hover:-translate-y-1 hover:shadow-bento active:translate-y-0 active:shadow-none;
 }
 
-.dark .bg-gradient-main {
-  background: linear-gradient(
-    135deg,
-    var(--violet) 0%,
-    var(--purple) 50%,
-    var(--pink) 100%
-  );
+@utility btn-pastel-mint {
+  @apply btn-base bg-mint text-foreground hover:-translate-y-1 hover:shadow-bento active:translate-y-0 active:shadow-none;
 }
 
-.dark .bg-gradient-surface {
-  background: linear-gradient(
-    135deg,
-    var(--green) 0%,
-    var(--pink) 50%,
-    var(--primary) 100%
-  );
+@utility btn-pastel-lilac {
+  @apply btn-base bg-lilac text-foreground hover:-translate-y-1 hover:shadow-bento active:translate-y-0 active:shadow-none;
 }
 
-.dark .bg-gradient-card {
-  background: linear-gradient(
-    135deg,
-    var(--darkcard) 0%,
-    var(--sidebar) 100%
-  );
+/* Flat, punchy modal styling instead of blurry gradients */
+@utility modal-surface {
+  @apply bg-background border-4 border-border rounded-3xl shadow-bento-lg overflow-hidden;
 }
 
-
+/* Base interactive elements */
 .dark {
-  
   *:focus-visible {
     outline: 2px solid var(--ring);
-    outline-offset: 2px;
-  }
-  
-  [disabled] {
-    opacity: 0.6;
-    cursor: not-allowed;
+    outline-offset: 4px;
   }
 }
 
+[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  @apply shadow-none transform-none;
+}
+
+/* ===== Tiptap Editor Base Styles (Retained but refreshed) ===== */
 .tiptap-editor {
   white-space: pre-wrap;
+  font-family: "Outfit", sans-serif;
 }
 
 .tiptap-editor:focus {
@@ -330,136 +266,83 @@ body {
 }
 
 .tiptap-editor p {
-  margin: 0.4rem 0;
+  margin: 0.5rem 0;
+  line-height: 1.6;
 }
 
 .tiptap-editor h1,
 .tiptap-editor h2,
 .tiptap-editor h3 {
-  line-height: 1.25;
-  font-weight: 700;
-  margin-top: 1rem;
-  margin-bottom: 0.5rem;
+  font-family: "Instrument Serif", serif;
+  line-height: 1.1;
+  font-weight: 400;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
 }
 
-.tiptap-editor h1 {
-  font-size: 1.6rem;
-}
-
-.tiptap-editor h2 {
-  font-size: 1.35rem;
-}
-
-.tiptap-editor h3 {
-  font-size: 1.15rem;
-}
+.tiptap-editor h1 { font-size: 2.5rem; }
+.tiptap-editor h2 { font-size: 2rem; }
+.tiptap-editor h3 { font-size: 1.5rem; font-family: "Outfit", sans-serif; font-weight: 700; }
 
 .tiptap-editor ul,
 .tiptap-editor ol {
-  margin: 0.5rem 0;
-  padding-left: 1.4rem;
+  margin: 0.75rem 0;
+  padding-left: 1.5rem;
 }
 
-.tiptap-editor ul {
-  list-style-type: disc;
-}
-
-.tiptap-editor ol {
-  list-style-type: decimal;
-}
-
-.tiptap-editor li {
-  margin: 0.15rem 0;
-}
+.tiptap-editor ul { list-style-type: disc; }
+.tiptap-editor ol { list-style-type: decimal; }
+.tiptap-editor li { margin: 0.25rem 0; }
 
 .tiptap-editor a {
-  color: var(--primary);
+  color: var(--foreground);
   text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-decoration-color: var(--mint);
+  text-underline-offset: 4px;
 }
 
 .tiptap-editor mark {
-  background-color: #fef08a;
-  border-radius: 0.2rem;
-  padding: 0 0.08rem;
+  background-color: var(--citrus);
+  color: #111111;
+  border-radius: 0.25rem;
+  padding: 0 0.25rem;
 }
 
 .tiptap-editor img {
   max-width: 100%;
   height: auto;
-  border-radius: 0.5rem;
-  margin: 0.7rem 0;
-  cursor: pointer;
-  transition: box-shadow 0.15s ease, outline 0.15s ease;
-}
-
-.tiptap-editor img.ProseMirror-selectednode {
-  outline: 2px solid hsl(var(--primary));
-  outline-offset: 2px;
-  box-shadow: 0 0 0 4px hsl(var(--primary) / 0.15);
-  border-radius: 0.5rem;
+  border-radius: var(--radius);
+  border: 2px solid var(--border);
+  margin: 1rem 0;
 }
 
 /* Document page styling */
-.note-pages {
-  position: relative;
-}
+.note-pages { position: relative; }
 
 .note-pages .ProseMirror {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: var(--page-gap, 40px);
+  gap: 2rem;
   min-height: 1px;
-}
-
-.note-pages .tiptap-editor p,
-.note-pages .ProseMirror p {
-  margin: 0;
-}
-
-.note-pages .tiptap-editor,
-.note-pages .ProseMirror {
-  line-height: 1.55;
-}
-
-.note-pages .tiptap-editor p:has(> br:only-child),
-.note-pages .ProseMirror p:has(> br:only-child) {
-  line-height: 1.35;
-  min-height: 1.15em;
 }
 
 .note-pages .ProseMirror > [data-page-node="true"] {
   position: relative;
   width: 100%;
-  height: var(--page-height, 1056px);
+  height: 1056px;
   overflow: hidden;
   flex-shrink: 0;
   box-sizing: border-box;
-  padding-top: var(--page-top-padding, 60px);
-  padding-bottom: var(--page-bottom-padding, 60px);
-  padding-left: var(--doc-margin, 72px);
-  padding-right: var(--doc-margin, 72px);
-  border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
-  border-radius: 2px;
+  padding: 60px 72px;
+  border: 2px solid var(--border);
   background: var(--card);
-  box-shadow: 0 10px 30px color-mix(in srgb, var(--foreground) 8%, transparent);
-}
-
-.note-pages .ProseMirror > [data-page-node="true"] > :first-child {
-  margin-top: 0;
-}
-
-.note-pages .ProseMirror > [data-page-node="true"] > :last-child {
-  margin-bottom: 0;
 }
 
 [data-two-column] .note-pages .ProseMirror > [data-page-node="true"] {
   column-count: 2;
-  column-gap: 2rem;
-  column-rule: 1px solid var(--border);
+  column-gap: 3rem;
+  column-rule: 2px dashed color-mix(in srgb, var(--border) 30%, transparent);
   column-fill: auto;
-}
-
-[data-two-column] .note-pages .ProseMirror > [data-page-node="true"] > * {
-  break-inside: avoid;
 }

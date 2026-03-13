@@ -9,7 +9,7 @@ import * as deckController from "../controller";
 
 export async function GET(
   req: Request,
-  { params }: { params: { deckId: string } }
+  { params }: { params: Promise<{ deckId: string }> }
 ) {
   await ConnectDB();
   const { deckId } = await params;
@@ -44,7 +44,7 @@ export async function GET(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { deckId: string } }
+  { params }: { params: Promise<{ deckId: string }> }
 ) {
   await ConnectDB();
   const { deckId } = await params;
@@ -81,7 +81,7 @@ export async function DELETE(
 
 export async function PUT(
   req: Request,
-  { params }: { params: { deckId: string } }
+  { params }: { params: Promise<{ deckId: string }> }
 ) {
   await ConnectDB();
   const { deckId } = await params;

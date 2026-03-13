@@ -197,7 +197,7 @@ const QuizPage = () => {
   }, [currentQuestion, selectedAnswer, showFeedback, showConfigModal, showResults]);
 
   if (isDeckLoading || isLoadingQuestions) {
-    return <LoadingState message={isLoadingQuestions ? "Generating questions..." : "Loading deck..."} />;
+    return <LoadingState />;
   }
 
   if (!deck) {
@@ -211,7 +211,7 @@ const QuizPage = () => {
   const totalCards = Array.isArray(deck.flashcards) ? deck.flashcards.length : 0;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-[100dvh] md:min-h-[calc(100dvh-5rem)] flex flex-col bg-background">
       {/* Config Modal */}
       <QuizConfigModal
         isOpen={showConfigModal}
@@ -245,21 +245,21 @@ const QuizPage = () => {
 
       {/* Quiz Interface */}
       {!showConfigModal && !showResults && questions.length > 0 && (
-        <div className="container mx-auto px-4 py-6 max-w-4xl">
+        <div className="container mx-auto px-4 py-4 md:py-8 max-w-3xl flex-1 flex flex-col">
           {/* Header */}
-          <div className="mb-6">
+          <div className="mb-6 shrink-0">
             <Button
               variant="outline"
               onClick={() => router.push(`/decks/${deckId}`)}
-              className="mb-4 border-2 border-black dark:border-darkborder"
+              className="mb-4 border-2 border-border shadow-bento-sm rounded-full hover:-translate-y-0.5 active:translate-y-0 transition-all font-bold"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Exit Quiz
             </Button>
 
-            <div className="flex items-center justify-between mb-2">
-              <h1 className="text-2xl font-bold font-sora">{deck.title}</h1>
-              <div className="text-sm font-semibold">
+            <div className="flex items-center justify-between mb-4">
+              <h1 className="text-3xl tracking-tight">{deck.title}</h1>
+              <div className="px-4 py-2 rounded-full border-2 border-border shadow-bento-sm bg-background font-bold text-sm">
                 Question {currentIndex + 1} / {questions.length}
               </div>
             </div>
@@ -275,18 +275,19 @@ const QuizPage = () => {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.3 }}
+              className="flex-1 flex flex-col min-h-0"
             >
-              <Card className="border-2 border-black dark:border-darkborder mb-6">
-                <CardContent className="p-8">
+              <Card className="flex-1 flex flex-col border-2 border-border shadow-bento-sm rounded-[2rem] bg-card overflow-y-auto mb-6">
+                <CardContent className="p-6 py-2 md:p-10 md:py-4 flex-1 flex flex-col">
                   {/* Question Type Badge */}
                   <div className="mb-4">
-                    <span className="inline-block px-3 py-1 text-xs font-bold rounded-full bg-yellow/20 border-2 border-black dark:border-darkborder">
+                    <span className="inline-block px-4 py-1.5 text-xs font-bold uppercase tracking-wider rounded-full bg-lilac border-2 border-border shadow-bento-sm">
                       {currentQuestion.type === "mcq" ? "Multiple Choice" : "True or False"}
                     </span>
                   </div>
 
                   {/* Question Text */}
-                  <h2 className="text-2xl font-bold mb-6">{currentQuestion.questionText}</h2>
+                  <h2 className="text-2xl font-sans mb-8 tracking-tight">{currentQuestion.questionText}</h2>
 
                   {/* Options */}
                   <div className="space-y-3">
@@ -302,12 +303,12 @@ const QuizPage = () => {
                           onClick={() => handleSelectAnswer(option)}
                           disabled={showFeedback}
                           className={cn(
-                            "w-full p-4 text-left rounded-lg border-2 transition-all font-medium",
-                            "hover:scale-102 active:scale-98",
+                            "w-full p-4 text-left rounded-2xl border-2 transition-all font-medium duration-300",
+                            "hover:bg-citrus/50",
                             !showFeedback && !isSelected &&
-                              "border-gray-300 dark:border-darkborder bg-white dark:bg-card hover:border-black dark:hover:border-white",
+                              "border-border bg-background hover:shadow-bento-sm",
                             !showFeedback && isSelected &&
-                              "border-black dark:border-white bg-yellow/20 dark:bg-yellow/10",
+                              "border-primary shadow-bento-sm bg-citrus",
                             showCorrect &&
                               "border-green-500 bg-green-50 dark:bg-green-950/30 text-green-900 dark:text-green-100",
                             showIncorrect &&
@@ -362,19 +363,19 @@ const QuizPage = () => {
                   )}
 
                   {/* Action Button */}
-                  <div className="mt-6">
+                  <div className="mt-4 flex-1 flex flex-col justify-end">
                     {!showFeedback ? (
                       <Button
                         onClick={handleSubmitAnswer}
                         disabled={!selectedAnswer || isSubmitting}
-                        className="w-full bg-yellow hover:bg-yellow/90 text-black font-bold border-2 border-black dark:border-darkborder"
+                        className="w-full md:w-auto md:ml-auto h-10 px-8 rounded-full bg-mint hover:bg-mint/90 text-black font-bold border-2 border-border hover:-translate-y-1 transition-all"
                       >
                         Submit Answer
                       </Button>
                     ) : (
                       <Button
                         onClick={handleNextQuestion}
-                        className="w-full bg-yellow hover:bg-yellow/90 text-black font-bold border-2 border-black dark:border-darkborder"
+                        className="w-full md:w-auto md:ml-auto h-10 px-8 rounded-full bg-mint hover:bg-mint/90 text-foreground font-bold border-2 border-border hover:-translate-y-1 transition-all"
                       >
                         {isLastQuestion ? (
                           <>
@@ -407,23 +408,23 @@ const QuizPage = () => {
               </Card>
 
               {/* Stats */}
-              <div className="grid grid-cols-3 gap-4">
-                <Card className="border-2 border-black dark:border-darkborder">
-                  <CardContent className="p-4">
+              <div className="grid grid-cols-3 gap-4 shrink-0">
+                <Card className="border-2 border-border shadow-bento-sm rounded-2xl">
+                  <CardContent className="p-4 py-0 text-center">
                     <div className="text-2xl font-bold">{answers.filter((a) => a.isCorrect).length}</div>
-                    <div className="text-sm text-muted-foreground">Correct</div>
+                    <div className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Correct</div>
                   </CardContent>
                 </Card>
-                <Card className="border-2 border-black dark:border-darkborder">
-                  <CardContent className="p-4">
+                <Card className="border-2 border-border shadow-bento-sm rounded-2xl">
+                  <CardContent className="p-4 py-0 text-center">
                     <div className="text-2xl font-bold">{answers.filter((a) => !a.isCorrect).length}</div>
-                    <div className="text-sm text-muted-foreground">Incorrect</div>
+                    <div className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Incorrect</div>
                   </CardContent>
                 </Card>
-                <Card className="border-2 border-black dark:border-darkborder">
-                  <CardContent className="p-4">
-                    <div className="text-2xl font-bold">{sessionQuality}%</div>
-                    <div className="text-sm text-muted-foreground">Quality</div>
+                <Card className="border-2 border-border shadow-bento-sm rounded-2xl bg-primary/5">
+                  <CardContent className="p-4 py-0 text-center">
+                    <div className="text-2xl font-bold text-primary">{sessionQuality}%</div>
+                    <div className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Quality</div>
                   </CardContent>
                 </Card>
               </div>
@@ -436,3 +437,6 @@ const QuizPage = () => {
 };
 
 export default QuizPage;
+
+
+

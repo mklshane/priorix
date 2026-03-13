@@ -1,4 +1,4 @@
-import { BookOpen, Calendar, Layers } from "lucide-react";
+import { BookOpen, Calendar, Layers, Globe, Lock } from "lucide-react";
 
 interface DeckStatsProps {
   flashcardCount: number;
@@ -6,7 +6,7 @@ interface DeckStatsProps {
   isPublic: boolean;
 }
 
-const DeckStats = ({ flashcardCount, createdAt }: DeckStatsProps) => {
+const DeckStats = ({ flashcardCount, createdAt, isPublic }: DeckStatsProps) => {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -16,14 +16,68 @@ const DeckStats = ({ flashcardCount, createdAt }: DeckStatsProps) => {
   };
 
   return (
-    <div className="flex flex-wrap gap-2">
-      <div className="inline-flex items-center gap-1.5 rounded-full bg-purple/15 dark:bg-purple/25 px-3 py-1 text-xs font-semibold text-foreground border border-purple/30 dark:border-purple/40">
-        <Layers className="h-3.5 w-3.5 text-purple" />
-        <span>{flashcardCount} {flashcardCount === 1 ? "card" : "cards"}</span>
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+      {/* Cards Stat */}
+      <div className="bento-card bg-mint p-5 flex flex-col justify-between hover:-translate-y-1 transition-transform">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="w-8 h-8 rounded-full bg-background border-2 border-border flex items-center justify-center shadow-sm">
+            <Layers className="h-4 w-4" />
+          </div>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-foreground">
+            Cards
+          </span>
+        </div>
+        <div className="text-4xl font-editorial text-foreground">
+          {flashcardCount}
+        </div>
       </div>
-      <div className="inline-flex items-center gap-1.5 rounded-full bg-perry/15 dark:bg-perry/25 px-3 py-1 text-xs font-semibold text-foreground border border-perry/30 dark:border-perry/40">
-        <Calendar className="h-3.5 w-3.5 text-perry" />
-        <span>{formatDate(createdAt)}</span>
+
+      {/* Created At Stat */}
+      <div className="bento-card bg-lilac p-5 flex flex-col justify-between hover:-translate-y-1 transition-transform">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="w-8 h-8 rounded-full bg-background border-2 border-border flex items-center justify-center shadow-sm">
+            <Calendar className="h-4 w-4" />
+          </div>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-foreground">
+            Created
+          </span>
+        </div>
+        <div className="text-2xl font-editorial mt-2 text-foreground">
+          {formatDate(createdAt)}
+        </div>
+      </div>
+
+      {/* Visibility Stat */}
+      <div className="bento-card bg-blush p-5 flex flex-col justify-between hover:-translate-y-1 transition-transform">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="w-8 h-8 rounded-full bg-background border-2 border-border flex items-center justify-center shadow-sm">
+            {isPublic ? (
+              <Globe className="h-4 w-4" />
+            ) : (
+              <Lock className="h-4 w-4" />
+            )}
+          </div>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-foreground">
+            Visibility
+          </span>
+        </div>
+        <div className="text-2xl font-editorial mt-2 text-foreground capitalize">
+          {isPublic ? "Public" : "Private"}
+        </div>
+      </div>
+      
+      <div className="bento-card bg-citrus p-5 flex flex-col justify-between hover:-translate-y-1 transition-transform">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="w-8 h-8 rounded-full bg-background border-2 border-border flex items-center justify-center shadow-sm">
+            <BookOpen className="h-4 w-4" />
+          </div>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-foreground">
+            Mastery
+          </span>
+        </div>
+        <div className="text-2xl font-editorial mt-2 text-foreground opacity-50">
+          N/A
+        </div>
       </div>
     </div>
   );

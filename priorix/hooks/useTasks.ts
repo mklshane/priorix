@@ -4,6 +4,7 @@ import {
   useQuery,
   useMutation,
   useQueryClient,
+  keepPreviousData,
   QueryKey,
 } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
@@ -48,6 +49,7 @@ export function useTasksForDateRange(
     },
     enabled: !!userId && !!startDate && !!endDate,
     staleTime: 30_000,
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -73,6 +75,7 @@ export function useTasksForDate(date: string, status?: string) {
     },
     enabled: !!userId && !!date,
     staleTime: 30_000,
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -89,6 +92,7 @@ export function useAllTasks(status?: string) {
     },
     enabled: !!userId,
     staleTime: 30_000,
+    placeholderData: keepPreviousData,
   });
 }
 

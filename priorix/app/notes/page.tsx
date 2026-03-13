@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
@@ -49,21 +49,20 @@ import {
 
 /* ── colour palette cycling ── */
 const NOTE_COLORS = [
-  "bg-rose-100 dark:bg-rose-950/30 text-rose-950 dark:text-rose-100",
-  "bg-amber-100 dark:bg-amber-950/30 text-amber-950 dark:text-amber-100",
-  "bg-sky-100 dark:bg-sky-950/30 text-sky-950 dark:text-sky-100",
-  "bg-violet-100 dark:bg-violet-950/30 text-violet-950 dark:text-violet-100",
-  "bg-emerald-100 dark:bg-emerald-950/30 text-emerald-950 dark:text-emerald-100",
-  "bg-fuchsia-100 dark:bg-fuchsia-950/30 text-fuchsia-950 dark:text-fuchsia-100",
+  "bg-blush dark:bg-blush text-foreground",
+  "bg-citrus dark:bg-citrus text-foreground",
+  "bg-sky dark:bg-sky text-foreground",
+  "bg-lilac dark:bg-lilac text-foreground",
+  "bg-mint dark:bg-mint text-foreground",
+  "bg-tangerine dark:bg-tangerine text-foreground",
 ];
 
 const FOLDER_COLORS = [
-  { bg: "bg-violet-100 dark:bg-violet-900/50", icon: "text-violet-600 dark:text-violet-300" },
-  { bg: "bg-amber-100 dark:bg-amber-900/50", icon: "text-amber-600 dark:text-amber-300" },
-  { bg: "bg-sky-100 dark:bg-sky-900/50", icon: "text-sky-600 dark:text-sky-300" },
-  { bg: "bg-rose-100 dark:bg-rose-900/50", icon: "text-rose-600 dark:text-rose-300" },
-  { bg: "bg-emerald-100 dark:bg-emerald-900/50", icon: "text-emerald-600 dark:text-emerald-300" },
-  { bg: "bg-fuchsia-100 dark:bg-fuchsia-900/50", icon: "text-fuchsia-600 dark:text-fuchsia-300" },
+  { bg: "bg-lilac dark:bg-lilac", icon: "text-foreground" },
+  { bg: "bg-citrus dark:bg-citrus", icon: "text-foreground" },
+  { bg: "bg-sky dark:bg-sky", icon: "text-foreground" },
+  { bg: "bg-blush dark:bg-blush", icon: "text-foreground" },
+  { bg: "bg-mint dark:bg-mint", icon: "text-foreground" },
 ];
 
 export default function NotesPage() {
@@ -125,6 +124,17 @@ export default function NotesPage() {
   );
 
   const hasFilters = !!activeFolder || !!searchQuery.trim();
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("add") === "true") {
+        setIsCreateNoteOpen(true);
+        // Clean up URL so it doesn't reopen on refresh
+        window.history.replaceState({}, "", "/notes");
+      }
+    }
+  }, []);
 
   /* ── handlers ── */
   const handleCreateNote = async () => {
@@ -226,62 +236,61 @@ export default function NotesPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-6">
-      <section className="rounded-3xl border border-border/60 bg-card p-5 shadow-sm md:p-6">
+      <section className="bento-card">
         <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
           <div className="space-y-2">
-            <h1 className="text-3xl font-extrabold tracking-tight">Notes</h1>
-            <p className="text-sm text-muted-foreground">
-              Capture ideas fast, organize with folders, and keep everything easy to find.
+            <h1 className="text-3xl lg:text-4xl font-editorial italic tracking-tight">Notes</h1>
+            <p className="text-sm uppercase tracking-widest font-bold text-muted-foreground/50">
+              Capture ideas fast, organize with folders.
             </p>
           </div>
 
           <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-            <Button
-              className="h-10 gap-2 rounded-xl"
+            <button
+              className="btn-primary"
               onClick={() => setIsCreateChooserOpen(true)}
             >
               <Plus className="h-4 w-4" />
-              Add
-            </Button>
+              ADD NEW
+            </button>
           </div>
         </div>
 
         <div className="mt-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="relative w-full lg:max-w-md">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
+            <input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search notes by title or content"
-              className="h-10 rounded-xl border-border bg-background pl-9"
+              placeholder="Search notes..."
+              className="w-full h-10 rounded-xl border-2 border-border bg-background pl-9 focus:outline-none focus:ring-0 text-sm font-bold uppercase tracking-widest"
             />
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <Select
-              value={sortBy}
-              onValueChange={(value: "recent" | "name" | "date") => setSortBy(value)}
-            >
-              <SelectTrigger className="h-10 w-[160px] rounded-xl bg-background">
-                <ArrowUpDown className="h-4 w-4" />
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent align="end">
-                <SelectItem value="recent">Most recent</SelectItem>
-                <SelectItem value="name">Name (A-Z)</SelectItem>
-                <SelectItem value="date">Created date</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="relative border-2 border-border bg-card rounded-xl shadow-sm">
+              <select
+                value={sortBy}
+                onChange={(e: any) => setSortBy(e.target.value)}
+                className="appearance-none bg-transparent pl-4 pr-10 py-2.5 text-xs md:text-sm uppercase tracking-widest font-bold focus:outline-none focus:ring-0 cursor-pointer text-foreground"
+              >
+                <option value="recent">Most recent</option>
+                <option value="name">Name (A-Z)</option>
+                <option value="date">Created date</option>
+              </select>
+              <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-xs text-foreground/50">
+                ▼
+              </div>
+            </div>
 
             {hasFilters && (
-              <Button
-                variant="ghost"
-                className="h-10 gap-1 rounded-xl"
+              <button
+                className="btn-base border-2 border-border text-xs uppercase tracking-widest hover:bg-muted"
                 onClick={handleClearFilters}
               >
                 <X className="h-4 w-4" />
-                Clear filters
-              </Button>
+                Clear
+              </button>
             )}
           </div>
         </div>
@@ -289,51 +298,60 @@ export default function NotesPage() {
 
       <section className="space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold tracking-tight">Folders</h2>
+          <h2 className="text-xl font-editorial italic tracking-tight text-foreground/70">Folders</h2>
           {activeFolderObj && (
-            <Badge variant="secondary" className="rounded-full px-3 py-1">
+            <span className="text-[10px] uppercase font-bold tracking-widest bg-mint text-mint-foreground px-3 py-1 rounded-full border-2 border-border shadow-sm">
               Viewing {activeFolderObj.name}
-            </Badge>
+            </span>
           )}
         </div>
 
-        <div className="flex gap-3 overflow-x-auto pb-2">
+        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
           <button
             onClick={() => setActiveFolder(null)}
-            className={`flex w-52 shrink-0 flex-col gap-2 rounded-2xl border p-4 text-left transition-all ${
+            className={`flex w-44 lg:w-52 shrink-0 flex-col gap-2 rounded-2xl border-2 p-4 text-left transition-all ${
               !activeFolder
-                ? "border-primary/40 bg-primary/5"
-                : "border-border bg-card hover:border-border"
+                ? "border-border shadow-bento bg-tangerine dark:bg-tangerine"
+                : "border-border shadow-sm bg-card hover:-translate-y-1 hover:shadow-bento"
             }`}
           >
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted">
-              <StickyNote className="h-5 w-5 text-muted-foreground" />
+            <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-background border-2 border-border shadow-sm`}>
+              <StickyNote className="h-5 w-5 text-foreground" />
             </div>
-            <p className="truncate text-sm font-semibold">All Notes</p>
-            <p className="text-xs text-muted-foreground">{allNotes.length} total</p>
+            <div className="mt-2 min-w-0">
+              <p className={`truncate text-sm font-bold uppercase tracking-widest ${!activeFolder ? "text-black" : ""}`}>All Notes</p>
+              <p className={`text-xs font-medium ${!activeFolder ? "text-black/70" : "text-muted-foreground"}`}>{allNotes.length} total</p>
+            </div>
           </button>
 
           {foldersLoading
             ? Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="h-28 w-52 shrink-0 animate-pulse rounded-2xl bg-muted" />
+                <div key={i} className="h-28 w-44 lg:w-52 shrink-0 animate-pulse rounded-2xl bg-muted border-2 border-border shadow-sm" />
               ))
             : folders.map((folder, idx) => {
-                const color = FOLDER_COLORS[idx % FOLDER_COLORS.length];
                 const isActive = activeFolder === folder._id;
+                // We'll map the legacy colors to our new ones based on index
+                const folderStyle = [
+                  "bg-lilac dark:bg-lilac",
+                  "bg-citrus dark:bg-citrus",
+                  "bg-sky dark:bg-sky",
+                  "bg-blush dark:bg-blush",
+                  "bg-mint dark:bg-mint",
+                ][idx % 5];
 
                 return (
                   <div
                     key={folder._id}
-                    className={`group relative flex w-52 shrink-0 cursor-pointer flex-col gap-3 rounded-2xl border p-4 transition-all hover:-translate-y-0.5 hover:shadow-sm ${
+                    className={`group relative flex w-44 lg:w-52 shrink-0 cursor-pointer flex-col gap-3 rounded-2xl border-2 p-4 transition-all ${
                       isActive
-                        ? "border-primary/40 bg-primary/5"
-                        : "border-border bg-card"
+                        ? `border-border shadow-bento ${folderStyle}`
+                        : "border-border bg-card shadow-sm hover:-translate-y-1 hover:shadow-bento"
                     }`}
                     onClick={() => setActiveFolder(isActive ? null : folder._id)}
                   >
                     <div className="flex items-start justify-between">
-                      <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${color.bg}`}>
-                        <FolderOpen className={`h-5 w-5 ${color.icon}`} />
+                      <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-background border-2 border-border shadow-sm`}>
+                        <FolderOpen className="h-5 w-5 text-foreground" />
                       </div>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -374,8 +392,8 @@ export default function NotesPage() {
                     </div>
 
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold">{folder.name}</p>
-                      <p className="mt-0.5 text-xs text-muted-foreground">
+                      <p className={`truncate text-sm font-bold uppercase tracking-widest ${isActive ? "text-black" : ""}`}>{folder.name}</p>
+                      <p className={`mt-0.5 text-xs font-medium ${isActive ? "text-black/70" : "text-muted-foreground"}`}>
                         {folder.noteCount || 0} note{(folder.noteCount || 0) !== 1 ? "s" : ""}
                       </p>
                     </div>
@@ -388,14 +406,15 @@ export default function NotesPage() {
 
       <section className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-lg font-semibold tracking-tight">
-            {activeFolder ? `Notes in \"${activeFolderObj?.name}\"` : "All Notes"}
-            <span className="ml-2 text-sm font-normal text-muted-foreground">({displayedNotes.length})</span>
+          <h2 className="text-xl font-editorial italic tracking-tight text-foreground/70">
+            {activeFolder ? `Notes in ` : "All Notes"} 
+            {activeFolder && <span className="text-foreground not-italic font-bold ml-1">"{activeFolderObj?.name}"</span>}
+            <span className="ml-2 text-sm font-sans font-bold uppercase tracking-widest text-muted-foreground/50">({displayedNotes.length})</span>
           </h2>
 
           {searchQuery.trim() && (
-            <p className="text-sm text-muted-foreground">
-              Results for <span className="font-medium text-foreground">“{searchQuery.trim()}”</span>
+            <p className="text-xs uppercase tracking-widest font-bold text-muted-foreground">
+              Results for <span className="text-foreground">“{searchQuery.trim()}”</span>
             </p>
           )}
         </div>
@@ -403,26 +422,26 @@ export default function NotesPage() {
         {notesLoading ? (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-56 animate-pulse rounded-2xl bg-muted" />
+              <div key={i} className="h-56 animate-pulse rounded-2xl bg-muted border-2 border-border" />
             ))}
           </div>
         ) : displayedNotes.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/60 bg-card py-20 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+          <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/60 bg-card py-20 text-center shadow-sm">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted border-2 border-border">
               <StickyNote className="h-7 w-7 text-muted-foreground" />
             </div>
-            <h3 className="mt-5 text-lg font-semibold">
+            <h3 className="mt-5 text-lg font-bold uppercase tracking-widest">
               {activeFolder ? "No notes in this folder" : "No notes yet"}
             </h3>
-            <p className="mt-1.5 max-w-sm text-sm text-muted-foreground">
+            <p className="mt-1.5 max-w-sm text-sm text-muted-foreground font-medium">
               {activeFolder
                 ? "Create a note here or move one from another folder."
                 : "Create your first note to start writing and organizing ideas."}
             </p>
-            <Button className="mt-6 gap-2 rounded-xl" onClick={() => setIsCreateChooserOpen(true)}>
+            <button className="btn-primary mt-6" onClick={() => setIsCreateChooserOpen(true)}>
               <Plus className="h-4 w-4" />
-              Add
-            </Button>
+              ADD NOTE
+            </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

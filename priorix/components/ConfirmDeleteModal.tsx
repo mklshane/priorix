@@ -30,38 +30,45 @@ const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="modal-surface sm:max-w-[460px] p-0">
-        <DialogHeader className="flex flex-row items-start gap-3 border-b border-border/60 bg-gradient-to-r from-destructive/10 via-warning/10 to-transparent px-6 py-5">
-          <div className="flex size-12 items-center justify-center rounded-lg bg-destructive/20 text-destructive shadow-inner ring-1 ring-destructive/30">
-            <AlertTriangle className="h-5 w-5" />
+      <DialogContent className="sm:max-w-[420px] p-0 overflow-hidden border-2 border-border shadow-bento !rounded-[2rem] bg-card">
+        <DialogHeader className="flex flex-col items-center justify-center gap-3 border-b-2 border-border bg-blush px-6 py-8">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-border bg-white shadow-bento-sm">
+            <AlertTriangle className="h-8 w-8 text-red-500" />
           </div>
-          <div className="space-y-1 text-left">
-            <DialogTitle className="text-xl">{title}</DialogTitle>
-            <DialogDescription>{description}</DialogDescription>
+          <div className="space-y-1 text-center">
+            <DialogTitle className="font-editorial text-4xl text-foreground">{title}</DialogTitle>
+            <DialogDescription className="text-foreground/70 font-medium text-sm px-4">
+              {description}
+            </DialogDescription>
           </div>
         </DialogHeader>
 
-        <div className="px-6 py-5 space-y-4">
-          <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+        <div className="p-6 bg-card space-y-6">
+          <div className="rounded-xl border-2 border-red-500/50 bg-red-500/10 px-4 py-3 text-center text-sm font-bold text-red-600">
             This action cannot be undone.
           </div>
-        </div>
 
-        <DialogFooter className="border-t border-border/60 bg-background/40 px-6 py-4">
-          <div className="flex w-full items-center justify-end gap-2">
-            <Button variant="outline" onClick={onClose} disabled={isLoading}>
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={onConfirm}
-              disabled={isLoading}
-              className="shadow-[0_12px_30px_rgba(239,68,68,0.35)]"
-            >
-              {isLoading ? "Deleting..." : "Delete"}
-            </Button>
-          </div>
-        </DialogFooter>
+          <DialogFooter className="pt-2">
+            <div className="flex w-full items-center justify-end gap-3">
+              <Button 
+                variant="ghost" 
+                onClick={onClose} 
+                disabled={isLoading}
+                className="h-12 px-6 rounded-xl font-bold hover:bg-muted"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={onConfirm}
+                disabled={isLoading}
+                className="h-12 px-8 rounded-xl border-2 border-transparent bg-red-500 text-white font-bold hover:bg-red-600 hover:-translate-y-0.5 transition-transform shadow-none"
+              >
+                {isLoading ? "Deleting..." : "Delete"}
+              </Button>
+            </div>
+          </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );

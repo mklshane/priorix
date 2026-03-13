@@ -87,9 +87,8 @@ export async function POST(req: NextRequest) {
 
 		const generatedForDeck = generated.map((card) => ({
 			...card,
-			deck: deck._id.toString(),
-		}));
-
+                        deck: (deck._id as any).toString(),
+                }));
 		const cardsWithDifficulty = await assessCardDifficultyBatch(
 			generatedForDeck.map((card) => ({ term: card.term, definition: card.definition }))
 		);

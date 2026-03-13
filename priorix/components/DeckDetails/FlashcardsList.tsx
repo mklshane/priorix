@@ -1,11 +1,9 @@
-// components/DeckDetails/FlashcardsList.tsx
 import { useState } from "react";
 import { IFlashcard } from "@/types/flashcard";
 import FlashcardItem from "./FlashcardItem";
 import EmptyFlashcards from "./EmptyFlashcards";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Layers, Search } from "lucide-react";
+import { Search } from "lucide-react";
 
 interface FlashcardsListProps {
   flashcards: IFlashcard[];
@@ -30,30 +28,23 @@ const FlashcardsList = ({
     : flashcards;
 
   return (
-    <div className="mb-8">
-      {/* Section header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
-        <div className="flex items-center gap-2.5">
-          <div className="flex items-center justify-center h-8 w-8 rounded-lg bg-purple/15 dark:bg-purple/25">
-            <Layers className="h-4 w-4 text-purple" />
-          </div>
-          <h2 className="text-xl font-bold tracking-tight">Flashcards</h2>
-          <Badge
-            variant="secondary"
-            className="text-xs font-bold tabular-nums"
-          >
+    <div className="mb-12">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <div className="flex items-center gap-4">
+          <h2 className="text-3xl font-editorial tracking-tight">Flashcards</h2>
+          <div className="inline-flex items-center justify-center px-3 py-1 rounded-full border-2 border-border bg-lilac text-sm font-bold shadow-sm">
             {flashcards.length}
-          </Badge>
+          </div>
         </div>
 
         {flashcards.length > 5 && (
-          <div className="relative w-full sm:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <div className="relative w-full sm:w-72 mt-2 sm:mt-0">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
               placeholder="Search cards..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 h-9 text-sm border-2 border-primary/30 dark:border-darkborder focus:border-purple"
+              className="pl-11 h-12 text-base rounded-xl border-2 border-border bg-background focus:-translate-y-1 focus:shadow-bento-sm transition-all focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-border"
             />
           </div>
         )}

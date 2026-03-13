@@ -140,7 +140,7 @@ function BrowseContent() {
         {/* Header Section */}
         <div className="mb-6">
           <div className="space-y-2 mb-4">
-            <div className="inline-flex items-center gap-2 rounded-full bg-yellow/75 dark:bg-yellow/10 px-4 py-2 text-sm font-semibold text-foreground border-2 border-black dark:border-darkborder">
+            <div className="inline-flex items-center gap-2 rounded-full bg-sky/75 dark:bg-sky/10 px-4 py-2 text-sm font-semibold text-foreground border-2 border-black dark:border-darkborder">
               <Compass className="h-4 w-4" />
               Community Library
             </div>
@@ -217,7 +217,7 @@ function BrowseContent() {
         {!isLoading && filteredDecks.length === 0 && !error && (
           <Card className="border-2 border-dashed border-black dark:border-darkborder bg-muted/20">
             <CardContent className="py-16 text-center">
-              <div className="mx-auto w-20 h-20 rounded-full bg-yellow/20 dark:bg-yellow/10 flex items-center justify-center mb-6 border-2 border-black dark:border-darkborder">
+              <div className="mx-auto w-20 h-20 rounded-full bg-sky/20 dark:bg-sky/10 flex items-center justify-center mb-6 border-2 border-black dark:border-darkborder">
                 <Compass className="h-10 w-10 text-foreground" />
               </div>
               <h3 className="text-xl font-bold mb-2 font-sora">No decks found</h3>
@@ -229,7 +229,7 @@ function BrowseContent() {
               {search && (
                 <Button 
                   onClick={() => setSearch("")}
-                  className="bg-yellow hover:bg-yellow/90 text-black font-bold border-2 border-black dark:border-darkborder"
+                  className="bg-sky hover:bg-sky/90 text-black font-bold border-2 border-black dark:border-darkborder"
                 >
                   Clear search
                 </Button>
@@ -247,7 +247,7 @@ function BrowseContent() {
                   key={deck._id}
                   deck={deck}
                   showMenu={false}
-                  className="h-full bg-yellow/10 dark:bg-yellow/5 hover:bg-yellow/20 dark:hover:bg-yellow/10 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
+                  className="h-full bg-tangerine/70 dark:bg-tangerine hover:bg-sky/20 dark:hover:bg-sky/10 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
                 />
               ))}
             </div>
@@ -289,8 +289,8 @@ function BrowseContent() {
                               onClick={() => handlePageClick(item)}
                               className={`h-10 w-10 p-0 font-bold border-2 border-black dark:border-darkborder ${
                                 item === currentPage 
-                                  ? "bg-yellow hover:bg-yellow/90 text-black" 
-                                  : "hover:bg-yellow/20 dark:hover:bg-yellow/10"
+                                  ? "bg-tangerine hover:bg-tangerine/90 text-black" 
+                                  : "hover:bg-tangerine/20 dark:hover:bg-tangerine/10"
                               }`}
                               aria-current={item === currentPage ? "page" : undefined}
                             >

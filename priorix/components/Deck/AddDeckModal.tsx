@@ -42,7 +42,7 @@ const AddDeckModal: React.FC<AddDeckModalProps> = ({
   const { data: session } = useSession();
 
   const fieldStyles =
-    "rounded-lg border border-border/60 bg-background/80 px-3 py-2 shadow-inner focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/30 disabled:opacity-60";
+    "min-h-[48px] rounded-xl border-2 border-border bg-background px-4 py-2 font-medium focus-visible:outline-none focus-visible:ring-0 focus-visible:border-foreground disabled:opacity-60 transition-colors";
 
   useEffect(() => {
     setSelectedFolderId(defaultFolderId ?? "");
@@ -88,36 +88,37 @@ const AddDeckModal: React.FC<AddDeckModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="modal-surface sm:max-w-[520px] p-0">
-        <DialogHeader className="flex flex-row items-start gap-3 border-b border-border/60 bg-gradient-to-r from-primary/10 via-muted/40 to-transparent px-6 py-5">
-          <div className="flex size-12 items-center justify-center rounded-lg bg-primary/15 text-primary shadow-inner ring-1 ring-primary/20">
-            <Sparkles className="h-5 w-5" />
+      <DialogContent className="sm:max-w-[480px] p-0 overflow-hidden border-2 border-border shadow-bento !rounded-[2rem] bg-card max-h-[95dvh] flex flex-col">
+        <DialogHeader className="flex flex-col items-center justify-center gap-2 border-b-2 border-border bg-mint px-6 py-6 shrink-0">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border-2 border-border bg-white shadow-bento-sm">
+            <Sparkles className="h-6 w-6 text-foreground" />
           </div>
-          <div className="space-y-1 text-left">
-            <DialogTitle className="text-xl">Create New Deck</DialogTitle>
-            <DialogDescription>
-              Craft a fresh deck with a description, privacy, and folder.
+          <div className="space-y-1 text-center">
+            <DialogTitle className="font-editorial text-3xl text-foreground">Create Deck</DialogTitle>
+            <DialogDescription className="text-foreground/70 font-medium text-xs">
+              Craft a fresh deck for your study sessions.
             </DialogDescription>
           </div>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="px-6 py-5 space-y-5">
-          <div className="grid gap-2">
-            <Label htmlFor="title">Title</Label>
+        <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto flex-1">
+          <div className="space-y-2">
+            <Label htmlFor="title" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Title</Label>
             <Input
               id="title"
               value={title}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setTitle(e.target.value)
               }
-              placeholder="Enter deck title"
+              placeholder="e.g. Advanced Biology"
               required
               disabled={isLoading}
               className={fieldStyles}
             />
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="description">Description</Label>
+          
+          <div className="space-y-2">
+            <Label htmlFor="description" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Description</Label>
             <Textarea
               id="description"
               value={description}
@@ -127,16 +128,17 @@ const AddDeckModal: React.FC<AddDeckModalProps> = ({
               placeholder="What makes this deck special?"
               rows={3}
               disabled={isLoading}
-              className="rounded-lg border border-border/60 bg-background/80 px-3 py-2 shadow-inner focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/30 disabled:opacity-60"
+              className={fieldStyles}
             />
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="folder">Folder (optional)</Label>
+
+          <div className="space-y-2">
+            <Label htmlFor="folder" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Folder (optional)</Label>
             <div className="relative">
-              <FolderGit2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <FolderGit2 className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
               <select
                 id="folder"
-                className="w-full rounded-lg border border-border/60 bg-background/80 px-3 py-2 pl-9 text-foreground shadow-inner focus:outline-hidden focus:ring-2 focus:ring-primary/30 disabled:opacity-60"
+                className="w-full min-h-[48px] rounded-xl border-2 border-border bg-background px-4 py-2 pl-11 font-medium focus-visible:outline-none focus-visible:ring-0 focus-visible:border-foreground disabled:opacity-60 transition-colors"
                 value={selectedFolderId ?? ""}
                 onChange={(e) => setSelectedFolderId(e.target.value)}
                 disabled={isLoading}
@@ -150,41 +152,46 @@ const AddDeckModal: React.FC<AddDeckModalProps> = ({
               </select>
             </div>
           </div>
-          <div className="flex items-center gap-3 rounded-lg border border-border/60 bg-background/60 px-4 py-3 shadow-inner">
+
+          <div className="flex items-center gap-4 rounded-2xl border-2 border-border bg-card p-4 transition-colors">
             <Switch
               id="isPublic"
               checked={isPublic}
               onCheckedChange={setIsPublic}
               disabled={isLoading}
+              className="data-[state=checked]:bg-foreground"
             />
             <div>
-              <Label htmlFor="isPublic" className="cursor-pointer">
-                Make this deck public
+              <Label htmlFor="isPublic" className="font-bold cursor-pointer text-base">
+                Public Deck
               </Label>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs text-muted-foreground font-medium mt-0.5">
                 Let others discover and study this deck.
               </p>
             </div>
           </div>
+
           {error && (
-            <div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            <div className="rounded-xl border-2 border-red-500 bg-red-100 px-4 py-3 text-sm font-bold text-red-900">
               {error}
             </div>
           )}
-          <DialogFooter className="border-t border-border/60 bg-background/40 px-1 pt-4">
-            <div className="flex w-full items-center justify-end gap-2">
+
+          <DialogFooter className="pt-2">
+            <div className="flex w-full items-center justify-end gap-3">
               <Button
                 type="button"
-                variant="outline"
+                variant="ghost"
                 onClick={() => onOpenChange(false)}
                 disabled={isLoading}
+                className="h-12 px-6 rounded-xl font-bold hover:bg-muted"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="shadow-[0_12px_30px_rgba(139,92,246,0.35)]"
+                className="h-12 px-8 rounded-xl border-2 border-border bg-foreground text-background font-bold hover:bg-foreground/90 hover:-translate-y-0.5 transition-transform"
               >
                 {isLoading ? "Creating..." : "Create Deck"}
               </Button>

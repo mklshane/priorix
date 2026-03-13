@@ -10,7 +10,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { Menu, User, Settings, LogOut, ArrowLeft } from "lucide-react";
 import { usePathname, useRouter, useParams } from "next/navigation";
 import ThemeToggle from "./button/ThemeToggle";
@@ -18,7 +17,7 @@ import { useSidebar } from "@/contexts/SidebarContext";
 
 export default function AppNav() {
   const { data: session } = useSession();
-  const { toggleSidebar, isMobile } = useSidebar();
+  const { toggleSidebar } = useSidebar();
   const user = session?.user;
   const pathname = usePathname();
   const router = useRouter();
@@ -38,24 +37,26 @@ export default function AppNav() {
   const isOnSrsPage = pathname.match(/^\/decks\/([^\/]+)\/study-srs$/) !== null;
   const isOnNotePage = pathname.match(/^\/notes\/([^\/]+)$/) !== null;
 
+  const getDeckId = () => {
+    if (params.deckId) return params.deckId as string;
+    const studyMatch = pathname.match(/^\/decks\/([^\/]+)\/study$/);
+    if (studyMatch && studyMatch[1]) return studyMatch[1];
+    const srsMatch = pathname.match(/^\/decks\/([^\/]+)\/study-srs$/);
+    if (srsMatch && srsMatch[1]) return srsMatch[1];
+    const deckMatch = pathname.match(/^\/decks\/([^\/]+)$/);
+    if (deckMatch && deckMatch[1]) return deckMatch[1];
+    return null;
+  };
+
   const handleBack = () => {
     if (isOnStudyPage || isOnSrsPage) {
       const deckId = getDeckId();
-
-      if (deckId && deckId !== "new") {
-        sessionStorage.removeItem("fromDashboardRecent");
-        sessionStorage.removeItem("lastDashboardPath");
-        router.push(`/decks/${deckId}`);
-        return;
-      } else {
-        sessionStorage.removeItem("fromDashboardRecent");
-        sessionStorage.removeItem("lastDashboardPath");
-        router.push("/decks");
-        return;
-      }
+      sessionStorage.removeItem("fromDashboardRecent");
+      sessionStorage.removeItem("lastDashboardPath");
+      router.push(deckId && deckId !== "new" ? `/decks/${deckId}` : "/decks");
+      return;
     }
     const lastDashboardPath = sessionStorage.getItem("lastDashboardPath");
-
     if (
       fromDashboardRecent &&
       lastDashboardPath &&
@@ -83,129 +84,58 @@ export default function AppNav() {
     router.push("/dashboard");
   };
 
-  const handleToggle = () => {
-    toggleSidebar();
-  };
-
-  const getFirstName = (name?: string | null) => {
-    if (!name) return "User";
-    return name.split(" ")[0];
-  };
-
-  const firstName = getFirstName(user?.name);
-
+  const getFirstName = (name?: string | null) =>
+    name ? name.split(" ")[0] : "User";
   const getInitials = (name?: string | null) => {
     if (!name) return "U";
     const parts = name.split(" ");
-    if (parts.length === 1) return parts[0][0]?.toUpperCase();
-    return (parts[0][0] + parts[1][0]).toUpperCase();
-  };
-
-  const getDeckId = () => {
-    if (params.deckId) {
-      return params.deckId as string;
-    }
-    const studyMatch = pathname.match(/^\/decks\/([^\/]+)\/study$/);
-    if (studyMatch && studyMatch[1]) {
-      return studyMatch[1];
-    }
-
-    const srsMatch = pathname.match(/^\/decks\/([^\/]+)\/study-srs$/);
-    if (srsMatch && srsMatch[1]) {
-      return srsMatch[1];
-    }
-
-    const deckMatch = pathname.match(/^\/decks\/([^\/]+)$/);
-    if (deckMatch && deckMatch[1]) {
-      return deckMatch[1];
-    }
-
-    return null;
+    return parts.length === 1
+      ? parts[0][0]?.toUpperCase()
+      : (parts[0][0] + parts[1][0]).toUpperCase();
   };
 
   useEffect(() => {
     const deckId = getDeckId();
     if (deckId && deckId !== "new") {
-      const fetchDeckName = async () => {
-        try {
-          const res = await fetch(`/api/deck?id=${deckId}`);
-          if (res.ok) {
-            const deck = await res.json();
-            setDeckName(deck.title || "Deck");
-          }
-        } catch (error) {
-          console.error("Error fetching deck name:", error);
-          setDeckName("Deck");
-        }
-      };
-      fetchDeckName();
-    } else {
-      setDeckName("");
-    }
+      fetch(`/api/deck?id=${deckId}`)
+        .then((res) => res.ok && res.json())
+        .then((deck) => setDeckName(deck?.title || "Deck"))
+        .catch(() => setDeckName("Deck"));
+    } else setDeckName("");
   }, [pathname, params]);
 
   useEffect(() => {
     const noteMatch = pathname.match(/^\/notes\/([^\/]+)$/);
     if (noteMatch && noteMatch[1]) {
-      const fetchNoteName = async () => {
-        try {
-          const res = await fetch(`/api/notes/${noteMatch[1]}`);
-          if (res.ok) {
-            const note = await res.json();
-            setNoteName(note.title || "Note");
-          }
-        } catch {
-          setNoteName("Note");
-        }
-      };
-      fetchNoteName();
-    } else {
-      setNoteName("");
-    }
+      fetch(`/api/notes/${noteMatch[1]}`)
+        .then((res) => res.ok && res.json())
+        .then((note) => setNoteName(note?.title || "Note"))
+        .catch(() => setNoteName("Note"));
+    } else setNoteName("");
   }, [pathname]);
 
-  // Show back button in these cases:
-  // 1. Always show on study pages (to go back to deck details)
-  // 2. Always show on deck pages (to go back to appropriate location)
-  const shouldShowBackButton = isOnStudyPage || isOnSrsPage || isOnDeckPage || isOnNotePage;
-
-  // Show hamburger menu when:
-  // 1. On dashboard page
-  // 2. On other pages that aren't deck/study pages (like /decks, /todo, /notes)
+  const shouldShowBackButton =
+    isOnStudyPage || isOnSrsPage || isOnDeckPage || isOnNotePage;
   const shouldShowHamburgerMenu =
-    pathname === "/dashboard" || (!isOnDeckPage && !isOnStudyPage && !isOnSrsPage && !isOnNotePage);
+    pathname === "/dashboard" ||
+    (!isOnDeckPage && !isOnStudyPage && !isOnSrsPage && !isOnNotePage);
 
   const pageNames: Record<string, string> = {
-    "/dashboard": "Priorix",
-    "/decks": "Decks",
+    "/dashboard": "Dashboard",
+    "/decks": "Flashcards",
     "/browse": "Browse",
     "/todo": "Tasks",
     "/notes": "Notes",
     "/analytics": "Analytics",
-    "/settings/learning": "Learning Settings",
+    "/settings/learning": "Settings",
   };
 
   const getCurrentPage = () => {
-    if (isOnStudyPage || isOnSrsPage) {
-      return deckName || "Study";
-    }
-
-    if (isOnNotePage) {
-      return noteName || "Note";
-    }
-
+    if (isOnStudyPage || isOnSrsPage) return deckName || "Study Session";
+    if (isOnNotePage) return noteName || "Note";
     const deckId = getDeckId();
-    if (deckId) {
-      if (deckId === "new") {
-        return "New Deck";
-      }
-      return deckName || "Loading...";
-    }
-
-    if (pageNames[pathname]) {
-      return pageNames[pathname];
-    }
-
+    if (deckId) return deckId === "new" ? "New Deck" : deckName || "Loading...";
+    if (pageNames[pathname]) return pageNames[pathname];
     return (
       pathname
         .split("/")
@@ -216,104 +146,91 @@ export default function AppNav() {
     );
   };
 
-  const currentPage = getCurrentPage();
-
   return (
-    <nav className="w-full h-16 bg-sidebar/95 backdrop-blur supports-[backdrop-filter]:bg-sidebar/80 border-b border-sidebar-border px-4 lg:px-6 flex items-center justify-between">
-      <div className="flex items-center justify-between w-full relative">
-        {/* Left - Hamburger Menu or Back Button */}
-        <div className="flex-shrink-0">
-          {shouldShowBackButton ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-10 w-10 p-0 hover:bg-sidebar-accent text-sidebar-foreground rounded-xl transition-colors"
-              onClick={() => {
-                if (isOnNotePage) {
-                  router.push("/notes");
-                  return;
-                }
-                handleBack();
-              }}
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          ) : shouldShowHamburgerMenu ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-10 w-10 p-0 lg:hidden hover:bg-sidebar-accent text-sidebar-foreground rounded-xl transition-colors"
-              onClick={handleToggle}
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
-          ) : null}
-        </div>
+    <nav className="sticky top-0 z-40 w-full h-16 bg-card border-b-2 border-border px-4 lg:px-6 flex items-center justify-between font-sans shadow-sm">
+      {/* Left Actions */}
+      <div className="flex-shrink-0 w-12">
+        {shouldShowBackButton ? (
+          <button
+            className="flex items-center justify-center w-10 h-10 border-2 border-transparent hover:border-border rounded-xl hover:bg-muted transition-all"
+            onClick={() =>
+              isOnNotePage ? router.push("/notes") : handleBack()
+            }
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+        ) : shouldShowHamburgerMenu ? (
+          <button
+            className="lg:hidden flex items-center justify-center w-10 h-10 border-2 border-transparent hover:border-border rounded-xl hover:bg-muted transition-all"
+            onClick={toggleSidebar}
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+        ) : null}
+      </div>
 
-        {/* Center - Page Name */}
-        <div className="absolute left-1/2 transform -translate-x-1/2">
-          <h1 className="font-lora text-lg lg:text-xl text-sidebar-foreground whitespace-nowrap tracking-wide">
-            {currentPage}
-          </h1>
-        </div>
+      <div className="absolute left-1/2 transform -translate-x-1/2 overflow-hidden px-4">
+        <h1 className="font-sans text-xl font-semibold tracking-wide text-foreground truncate max-w-[200px] sm:max-w-md">
+          {getCurrentPage()}
+        </h1>
+      </div>
 
-        {/* Right - Theme Toggle and User */}
-        <div className="flex items-center space-x-2 lg:space-x-3">
-          <ThemeToggle />
-          {user && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="flex items-center space-x-2 h-10 bg-sidebar-accent/40 hover:bg-sidebar-accent border border-sidebar-border rounded-xl px-2.5 lg:px-3 transition-colors">
-                  <span className="font-sora text-sm text-sidebar-foreground hidden sm:block">
-                    {firstName}
-                  </span>
-                  <Avatar className="h-7 w-7">
-                    <AvatarImage
-                      src={user.image ?? ""}
-                      alt={user.name ?? "User"}
-                    />
-                    <AvatarFallback className="bg-sidebar-primary text-sidebar-primary-foreground text-xs">
-                      {getInitials(user.name)}
-                    </AvatarFallback>
-                  </Avatar>
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <div className="px-2 py-1.5">
-                  <p className="font-sora text-sm font-medium text-foreground truncate">
-                    {user.name}
-                  </p>
-                  <p className="font-sora text-xs text-muted-foreground truncate">
-                    {user.email}
-                  </p>
-                </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  disabled
-                  className="cursor-not-allowed font-sora text-muted-foreground opacity-60"
-                >
-                  <User className="mr-2 h-4 w-4" />
-                  Profile
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => router.push("/settings/learning")}
-                  className="cursor-pointer font-sora"
-                >
-                  <Settings className="mr-2 h-4 w-4" />
-                  Settings
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => signOut({ callbackUrl: "/" })}
-                  className="cursor-pointer text-red-600 focus:text-red-600 font-sora"
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Logout
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-        </div>
+      {/* Right - Profile & Theme */}
+      <div className="flex items-center gap-3">
+        <ThemeToggle />
+
+        {user && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center gap-2 border-2 border-border hover:border-primary bg-background rounded-full md:pl-3 pl-1 pr-1 py-1 transition-all focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+                <span className="font-bold text-xs uppercase tracking-widest hidden sm:block pt-0.5">
+                  {getFirstName(user.name)}
+                </span>
+                <Avatar className="h-7 w-7 border-2 border-border">
+                  <AvatarImage
+                    src={user.image ?? ""}
+                    alt={user.name ?? "User"}
+                  />
+                  <AvatarFallback className="bg-citrus text-foreground font-bold text-[10px]">
+                    {getInitials(user.name)}
+                  </AvatarFallback>
+                </Avatar>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              className="w-64 bg-card border-2 border-border rounded-2xl p-2 font-sans mt-4"
+            >
+              <div className="px-3 py-2 bg-muted/50 rounded-xl mb-2 border-2 border-transparent">
+                <p className="font-bold text-sm text-foreground truncate">
+                  {user.name}
+                </p>
+                <p className="text-xs font-medium text-muted-foreground truncate">
+                  {user.email}
+                </p>
+              </div>
+              <DropdownMenuItem
+                disabled
+                className="cursor-not-allowed text-muted-foreground font-bold text-xs uppercase tracking-widest rounded-lg py-2 focus:bg-transparent"
+              >
+                <User className="mr-3 h-4 w-4" /> Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => router.push("/settings/learning")}
+                className="cursor-pointer font-bold text-xs uppercase tracking-widest rounded-lg py-2 focus:bg-muted focus:text-foreground"
+              >
+                <Settings className="mr-3 h-4 w-4" /> Settings
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className="bg-border/20 my-2" />
+              <DropdownMenuItem
+                onClick={() => signOut({ callbackUrl: "/" })}
+                className="cursor-pointer font-bold text-xs uppercase tracking-widest text-destructive focus:bg-destructive focus:text-destructive-foreground rounded-lg py-2"
+              >
+                <LogOut className="mr-3 h-4 w-4" /> Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
     </nav>
   );

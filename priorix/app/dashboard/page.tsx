@@ -1,20 +1,32 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { Card, CardContent } from "@/components/ui/card";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, TrendingUp, Flame, Target, Award, BookOpen, Zap } from "lucide-react";
+import {
+  ArrowRight,
+  TrendingUp,
+  Flame,
+  Target,
+  Award,
+  BookOpen,
+  Zap,
+} from "lucide-react";
 import RecentDecks from "@/components/dashboard/RecentDeck";
-import TodoList from "@/components/dashboard/TodoList";
 import QuickActions from "@/components/dashboard/QuickActions";
-import Calendar from "@/components/dashboard/Calendar";
-import { HeatmapCalendar, OverviewStats, InsightsPanel } from "@/components/analytics";
+import TodoList from "@/components/dashboard/TodoList";
+import {
+  HeatmapCalendar,
+  OverviewStats,
+  InsightsPanel,
+} from "@/components/analytics";
 import AddDeckModal from "@/components/Deck/AddDeckModal";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { CreateDeckRequest } from "@/types/deck";
 import { useToast } from "@/hooks/useToast";
 import { useRouter } from "next/navigation";
+import LearningStatsWidget from "@/components/dashboard/LearningStatsWidget";
 
 export default function DashboardPage() {
   const { data: session } = useSession();
@@ -23,12 +35,12 @@ export default function DashboardPage() {
   const [isAddDeckModalOpen, setIsAddDeckModalOpen] = useState(false);
   const { showToast, dismissToast } = useToast();
 
-  // Fetch daily stats for heatmap and overview stats
+  // Fetch daily stats
   const { data: userStats, isLoading: isStatsLoading } = useQuery({
     queryKey: ["user-stats", session?.user?.id],
     queryFn: async () => {
       const res = await fetch(
-        `/api/analytics/user-stats?userId=${session?.user?.id}&period=60`
+        `/api/analytics/user-stats?userId=${session?.user?.id}&period=60`,
       );
       if (!res.ok) throw new Error("Failed to fetch stats");
       return res.json();
@@ -36,12 +48,12 @@ export default function DashboardPage() {
     enabled: !!session?.user?.id,
   });
 
-  // Fetch learning patterns for insights
-  const { data: patterns } = useQuery({
+  // Fetch learning patterns
+  const { data: patterns, isLoading: isPatternsLoading } = useQuery({
     queryKey: ["learning-patterns", session?.user?.id],
     queryFn: async () => {
       const res = await fetch(
-        `/api/analytics/learning-patterns?userId=${session?.user?.id}`
+        `/api/analytics/learning-patterns?userId=${session?.user?.id}`,
       );
       if (!res.ok) throw new Error("Failed to fetch patterns");
       return res.json();
@@ -49,7 +61,6 @@ export default function DashboardPage() {
     enabled: !!session?.user?.id,
   });
 
-  // Generate dynamic greeting based on user activity
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return "Good morning";
@@ -63,192 +74,148 @@ export default function DashboardPage() {
         message: "Welcome! 👋",
         subtext: "Create your first deck and start mastering new concepts.",
         icon: BookOpen,
-        bgColor: "bg-pink/30 dark:bg-pink/20"
+        bgColor: "bg-blush text-foreground",
       };
     }
-
     const {
-      totalCardsStudied, // today's cards
-      totalStudyTime,    // today's minutes
+      totalCardsStudied,
+      totalStudyTime,
       currentStreak,
       longestStreak,
       averageAccuracy,
-      averageRetention,
       totalCards,
-      sessionsCompleted,
     } = userStats.overview;
-
     const mastered = userStats?.masteryDistribution?.mastered ?? 0;
     const trend = patterns?.performanceTrend;
     const optimalHours: number[] = patterns?.optimalStudyTimes ?? [];
     const currentHour = new Date().getHours();
 
-    // --- Priority 1: Epic streak (30+ days) ---
-    if (currentStreak >= 30) {
+    if (currentStreak >= 30)
       return {
         message: `${currentStreak}-day streak! 🏆`,
         subtext: "You've built an unbreakable habit. Legendary consistency!",
         icon: Flame,
-        bgColor: "bg-yellow/30 dark:bg-yellow/20"
+        bgColor: "bg-citrus",
       };
-    }
-
-    // --- Priority 2: New personal best streak (5+) ---
-    if (currentStreak === longestStreak && currentStreak >= 5) {
+    if (currentStreak === longestStreak && currentStreak >= 5)
       return {
         message: "New personal best! 🏅",
         subtext: `Your longest streak ever: ${currentStreak} days! History in the making.`,
         icon: Flame,
-        bgColor: "bg-yellow/30 dark:bg-yellow/20"
+        bgColor: "bg-citrus",
       };
-    }
-
-    // --- Priority 3: Mastery milestone (100+ cards mastered) ---
-    if (mastered >= 100) {
+    if (mastered >= 100)
       return {
         message: `${mastered} cards mastered! 🎯`,
         subtext: "Your long-term memory is stacked. True expertise is forming.",
         icon: Award,
-        bgColor: "bg-green/30 dark:bg-green/20"
+        bgColor: "bg-mint",
       };
-    }
-
-    // --- Priority 4: Mastery milestone (25+ cards mastered) ---
-    if (mastered >= 25) {
+    if (mastered >= 25)
       return {
         message: `${mastered} cards mastered 💎`,
         subtext: "These are locked in your long-term memory. Real progress!",
         icon: Award,
-        bgColor: "bg-green/30 dark:bg-green/20"
+        bgColor: "bg-mint",
       };
-    }
-
-    // --- Priority 5: Accuracy trending up ---
-    if (trend?.trend === "improving" && trend.change > 0) {
+    if (trend?.trend === "improving" && trend.change > 0)
       return {
         message: "Accuracy trending up! 📈",
         subtext: `Your accuracy improved by ${Math.abs(trend.change)}% recently. Your brain is adapting!`,
         icon: TrendingUp,
-        bgColor: "bg-violet/30 dark:bg-violet/20"
+        bgColor: "bg-lilac",
       };
-    }
-
-    // --- Priority 6: Optimal study time match ---
-    if (optimalHours.length > 0 && optimalHours.includes(currentHour)) {
+    if (optimalHours.length > 0 && optimalHours.includes(currentHour))
       return {
         message: "Peak brain hour! ⚡",
         subtext: "You perform best at this time of day. Make the most of it!",
         icon: Zap,
-        bgColor: "bg-yellow/30 dark:bg-yellow/20"
+        bgColor: "bg-citrus",
       };
-    }
-
-    // --- Priority 7: Big day today (50+ cards) ---
-    if (totalCardsStudied >= 50) {
+    if (totalCardsStudied >= 50)
       return {
         message: `${totalCardsStudied} cards today! 🚀`,
         subtext: "You're on fire today! An impressive study session.",
         icon: TrendingUp,
-        bgColor: "bg-violet/30 dark:bg-violet/20"
+        bgColor: "bg-lilac",
       };
-    }
-
-    // --- Priority 8: Strong day (20+ cards) ---
-    if (totalCardsStudied >= 20) {
+    if (totalCardsStudied >= 20)
       return {
         message: `${totalCardsStudied} cards down today 💪`,
-        subtext: "Solid session so far! Every card strengthens the neural pathways.",
+        subtext:
+          "Solid session so far! Every card strengthens the neural pathways.",
         icon: TrendingUp,
-        bgColor: "bg-violet/30 dark:bg-violet/20"
+        bgColor: "bg-lilac",
       };
-    }
-
-    // --- Priority 9: Solid study time today ---
-    if (totalStudyTime >= 30) {
+    if (totalStudyTime >= 30)
       return {
         message: `${Math.round(totalStudyTime)} mins studied today ⏱️`,
-        subtext: "Great focus session. Keep this pace and your retention will compound.",
+        subtext:
+          "Great focus session. Keep this pace and your retention will compound.",
         icon: Zap,
-        bgColor: "bg-yellow/30 dark:bg-yellow/20"
+        bgColor: "bg-citrus",
       };
-    }
-
-    // --- Priority 10: Near-perfect accuracy today ---
-    if (averageAccuracy >= 95 && totalCardsStudied >= 5) {
+    if (averageAccuracy >= 95 && totalCardsStudied >= 5)
       return {
         message: "Near-perfect recall! ⭐",
-        subtext: "Your retention is outstanding. The spaced repetition is working.",
+        subtext:
+          "Your retention is outstanding. The spaced repetition is working.",
         icon: Award,
-        bgColor: "bg-green/30 dark:bg-green/20"
+        bgColor: "bg-mint",
       };
-    }
-
-    // --- Priority 11: High accuracy today ---
-    if (averageAccuracy >= 85 && totalCardsStudied >= 5) {
+    if (averageAccuracy >= 85 && totalCardsStudied >= 5)
       return {
         message: `${Math.round(averageAccuracy)}% accuracy 🎯`,
-        subtext: "Strong recall across your cards. Your study method is paying off.",
+        subtext:
+          "Strong recall across your cards. Your study method is paying off.",
         icon: Target,
-        bgColor: "bg-green/30 dark:bg-green/20"
+        bgColor: "bg-mint",
       };
-    }
-
-    // --- Priority 12: Long streak (7-29 days) ---
-    if (currentStreak >= 7) {
+    if (currentStreak >= 7)
       return {
         message: `${currentStreak}-day streak 🔥`,
-        subtext: "A full week of consistency! Knowledge compounds with every day.",
+        subtext:
+          "A full week of consistency! Knowledge compounds with every day.",
         icon: Flame,
-        bgColor: "bg-yellow/30 dark:bg-yellow/20"
+        bgColor: "bg-citrus",
       };
-    }
-
-    // --- Priority 13: Declining trend (gentle nudge) ---
-    if (trend?.trend === "declining") {
+    if (trend?.trend === "declining")
       return {
         message: "Time to refocus 🎯",
-        subtext: "Your accuracy dipped recently. A focused session today can turn it around!",
+        subtext:
+          "Your accuracy dipped recently. A focused session today can turn it around!",
         icon: Target,
-        bgColor: "bg-pink/30 dark:bg-pink/20"
+        bgColor: "bg-blush",
       };
-    }
-
-    // --- Priority 14: Building habit (3+ day streak) ---
-    if (currentStreak >= 3) {
+    if (currentStreak >= 3)
       return {
         message: `${currentStreak} days strong! 💫`,
-        subtext: "The hardest part is behind you. You're building a real habit!",
+        subtext:
+          "The hardest part is behind you. You're building a real habit!",
         icon: Zap,
-        bgColor: "bg-yellow/30 dark:bg-yellow/20"
+        bgColor: "bg-citrus",
       };
-    }
-
-    // --- Priority 15: Active today ---
-    if (totalCardsStudied > 0) {
+    if (totalCardsStudied > 0)
       return {
         message: "Nice start today! ✨",
         subtext: `${totalCardsStudied} card${totalCardsStudied !== 1 ? "s" : ""} studied so far. Keep the momentum going!`,
         icon: Zap,
-        bgColor: "bg-yellow/30 dark:bg-yellow/20"
+        bgColor: "bg-citrus",
       };
-    }
-
-    // --- Priority 16: Has cards but hasn't studied today ---
-    if (totalCards > 0) {
+    if (totalCards > 0)
       return {
         message: "Ready to learn 📚",
-        subtext: "Your cards are waiting. Even a quick 5-minute session makes a difference!",
+        subtext:
+          "Your cards are waiting. Even a quick 5-minute session makes a difference!",
         icon: BookOpen,
-        bgColor: "bg-green/30 dark:bg-green/20"
+        bgColor: "bg-mint",
       };
-    }
 
-    // --- Priority 17: Brand new user fallback ---
     return {
       message: "Welcome! 👋",
       subtext: "Create your first deck and start mastering new concepts.",
       icon: BookOpen,
-      bgColor: "bg-pink/30 dark:bg-pink/20"
+      bgColor: "bg-blush",
     };
   };
 
@@ -257,155 +224,173 @@ export default function DashboardPage() {
 
   const handleAddDeck = async (newDeckData: CreateDeckRequest) => {
     showToast("Creating deck...", "loading");
-
     try {
       const res = await fetch("/api/deck", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...newDeckData,
-          userId: session?.user?.id,
-        }),
+        body: JSON.stringify({ ...newDeckData, userId: session?.user?.id }),
       });
-
-      if (!res.ok) throw new Error("Failed to create deck");
-
-      const created = await res.json();
-
+      if (!res.ok) throw new Error("Failed");
       dismissToast();
-      showToast("Deck created successfully!", "success");
-
+      showToast("Success!", "success");
       setIsAddDeckModalOpen(false);
-      if (created?._id) {
-        router.push(`/decks/${created._id}`);
-      } else {
-        window.location.reload();
-      }
-    } catch (err) {
-      console.error("Error creating deck:", err);
+      router.push("/decks");
+    } catch {
       dismissToast();
-      showToast("Failed to create deck", "error");
+      showToast("Error", "error");
     }
   };
 
   return (
-    <div>
-      {/* Header */}
-      <div className="mb-8">
-        {isStatsLoading ? (
-          <Card className="border-2 border-black dark:border-darkborder rounded-xl bg-muted/30">
-            <CardContent className="py-5 px-5 lg:px-8">
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex-1 space-y-3">
-                  <div className="h-8 bg-muted animate-pulse rounded w-3/4" />
-                  <div className="h-5 bg-muted animate-pulse rounded w-full" />
+    <div className="space-y-8 max-w-7xl mx-auto pb-8 font-sans selection:bg-mint selection:text-foreground">
+      <div className="flex flex-col lg:flex-row gap-6 md:gap-8">
+        <div
+          className={`bento-card ${insight.bgColor} flex-1 flex flex-col justify-center relative overflow-hidden group min-h-[240px]`}
+        >
+          <div className="absolute -right-8 -top-8 w-48 h-48 bg-background/30 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700 pointer-events-none" />
+          <div className="relative z-10 flex flex-col h-full justify-between">
+            {isStatsLoading ? (
+              <div className="animate-pulse flex flex-col h-full justify-between">
+                <div>
+                  <div className="h-3 bg-black/5 dark:bg-white/5 rounded w-32 mb-4"></div>
+                  <div className="h-12 bg-black/5 dark:bg-white/5 rounded w-3/4 mb-2"></div>
+                  <div className="h-12 bg-black/5 dark:bg-white/5 rounded w-1/2"></div>
                 </div>
-                <div className="hidden sm:block">
-                  <div className="h-12 w-32 bg-muted animate-pulse rounded-xl" />
+                <div className="mt-8 flex items-start gap-4 bg-background/60 border-2 border-border rounded-2xl p-4 w-full max-w-lg">
+                  <div className="w-10 h-10 rounded-full bg-black/5 dark:bg-white/5 shrink-0"></div>
+                  <div className="mt-0.5 space-y-2 w-full">
+                    <div className="h-4 bg-black/5 dark:bg-white/5 rounded w-1/3"></div>
+                    <div className="h-3 bg-black/5 dark:bg-white/5 rounded w-2/3"></div>
+                  </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <Card className={`border-2 border-black dark:border-darkborder rounded-xl ${insight.bgColor}`}>
-            <CardContent className="py-5 px-5 lg:px-8">
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex-1">
-                  <h1 className="text-2xl sm:text-3xl font-bold font-sora text-foreground mb-2">
-                    {getGreeting()}, {user?.name?.split(' ')[0] || 'there'}! 👋
-                  </h1>
-                  <p className="text-sm sm:text-base text-foreground/80 font-sora">
-                    {insight.subtext}
+            ) : (
+              <>
+                <div>
+                  <p className="font-bold text-[10px] uppercase tracking-[0.2em] mb-2 opacity-70">
+                    {format(new Date(), "EEEE, MMMM do")}
                   </p>
+                  <h1 className="text-5xl md:text-6xl font-editorial tracking-tight leading-[0.9]">
+                    {getGreeting()}, <br className="hidden sm:block" />
+                    <span className="italic">
+                      {user?.name?.split(" ")[0] || "Scholar"}.
+                    </span>
+                  </h1>
                 </div>
-                
-                {/* Stats badge */}
-                <div className="hidden sm:flex items-center gap-2 px-4 py-3 rounded-xl bg-white/50 dark:bg-black/20 border-2 border-black dark:border-darkborder">
-                  <InsightIcon className="h-6 w-6 text-foreground" />
-                  <span className="text-sm font-semibold text-foreground whitespace-nowrap">
-                    {insight.message.replace(/🔥|👋/g, '').trim()}
-                  </span>
+                <div className="mt-8 inline-flex items-start gap-4 bg-background/60 backdrop-blur-sm border-2 border-border rounded-2xl p-4 w-full max-w-lg shadow-bento-sm">
+                  <div className="w-10 h-10 rounded-full bg-background border-2 border-border flex items-center justify-center shrink-0 shadow-sm">
+                    <InsightIcon className="w-5 h-5 text-foreground" />
+                  </div>
+                  <div className="mt-0.5">
+                    <p className="text-sm font-bold uppercase tracking-wider">
+                      {insight.message
+                        .replace(/🔥|👋|🏆|🏅|🎯|💎|📈|⚡|🚀|💪|⏱️|⭐|📚/g, "")
+                        .trim()}
+                    </p>
+                    <p className="text-xs font-medium text-foreground/80 mt-0.5">
+                      {insight.subtext}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
-
-      {/* Recent Decks Grid */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold font-sora text-foreground">
-            Recent Decks
-          </h2>
-          <Button
-            variant="ghost"
-            className="text-primary"
-            onClick={() => {
-              router.push("/decks");
-            }}
-          >
-            View All <ArrowRight className="h-4 w-4 ml-2" />
-          </Button>
-        </div>
-        <RecentDecks />
-      </div>
-
-      {/* Study Activity Heatmap */}
-      {userStats?.dailyStats && userStats.dailyStats.length > 0 && (
-        <div className="mb-8">
-          {/* Desktop and Mobile: Heatmap with 2x2 stats grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-            <div className="lg:col-span-3 min-w-0">
-              <HeatmapCalendar dailyStats={userStats.dailyStats} />
-            </div>
-            {/* Desktop and Mobile: 2x2 Overview Stats grid */}
-            <div className="h-full">
-              {userStats?.overview && (
-                <OverviewStats stats={userStats.overview} layout="compact" />
-              )}
-            </div>
+              </>
+            )}
           </div>
         </div>
-      )}
 
-      {/* Learning Insights */}
-      {patterns && (
-        <div className="mb-8">
-          {patterns?.requiresMoreSessions ? (
-            <div className="max-w-4xl">
-              <Card className="bg-purple/20 dark:bg-card border-2 border-black dark:border-darkborder rounded-xl">
-                <CardContent className="p-8 text-center">
-                  <div className="max-w-md mx-auto space-y-3">
-                    <h3 className="text-lg font-semibold font-sora">
-                      Unlock Insights
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      Complete at least {patterns.minimumRequired} study sessions to get personalized learning insights.
-                    </p>
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-sm font-medium">
-                      <span className="text-primary font-semibold">
-                        {patterns.currentSessions} / {patterns.minimumRequired}
-                      </span>
-                      <span className="text-muted-foreground">sessions</span>
+        <div className="lg:w-[320px] shrink-0">
+          <QuickActions
+            onOpenAddDeckModal={() => setIsAddDeckModalOpen(true)}
+          />
+        </div>
+      </div>
+
+      <div className="flex flex-col lg:flex-row gap-6 md:gap-8 items-stretch">
+        <div className="flex-1 min-w-0 space-y-8 w-full">
+          <div>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-3xl font-editorial italic text-foreground/80">
+                Recent Decks
+              </h2>
+              <Button
+                variant="ghost"
+                className="text-xs font-bold uppercase tracking-widest hover:text-lilac"
+                onClick={() => router.push("/decks")}
+              >
+                View All <ArrowRight className="w-4 h-4 ml-1" />
+              </Button>
+            </div>
+            <RecentDecks />
+          </div>
+
+        <div className="flex flex-col lg:flex-row gap-6 md:gap-8 items-stretch">
+          <div className="flex-1 min-w-0 h-full">
+            {isPatternsLoading ? (
+              <div className="bento-card bg-muted/30 border-dashed p-6 h-full flex flex-col min-h-[300px] animate-pulse justify-center items-center">
+                <div className="w-full max-w-md space-y-4 flex flex-col items-center">
+                   <div className="h-8 bg-black/5 dark:bg-white/5 rounded-lg w-1/2 mb-2"></div>
+                   <div className="h-4 bg-black/5 dark:bg-white/5 rounded w-3/4"></div>
+                   <div className="h-4 bg-black/5 dark:bg-white/5 rounded w-2/3"></div>
+                   <div className="h-10 bg-black/5 dark:bg-white/5 rounded-full w-32 mt-4"></div>
+                </div>
+              </div>
+            ) : patterns && (
+              <div className="h-full">
+                {patterns?.requiresMoreSessions ? (
+                  <div className="bento-card bg-muted/30 border-dashed text-center p-8 h-full flex flex-col justify-center items-center">
+                    <div className="max-w-md mx-auto space-y-4">
+                      <h3 className="text-2xl font-editorial">Unlock Insights</h3>
+                      <p className="text-muted-foreground font-medium">
+                        Complete at least {patterns.minimumRequired} study
+                        sessions to get personalized learning insights.
+                      </p>
+                      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-card border-2 border-border shadow-bento-sm font-bold text-sm">
+                        <span>
+                          {patterns.currentSessions} / {patterns.minimumRequired}
+                        </span>
+                        <span className="text-muted-foreground">sessions</span>
+                      </div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
-          ) : patterns?.insights ? (
-            <InsightsPanel insights={patterns.insights} />
-          ) : (
-            <div className="max-w-4xl">
-              <Card className="bg-pink/20 dark:bg-card border-2 border-black dark:border-darkborder rounded-xl">
-                <CardContent className="p-8 text-center">
-                  <p className="text-muted-foreground font-sora">Start studying to unlock insights</p>
-                </CardContent>
-              </Card>
-            </div>
-          )}
+                ) : patterns?.insights ? (
+                  <InsightsPanel insights={patterns.insights} />
+                ) : (
+                  <div className="bento-card bg-muted/30 border-dashed text-center p-8 h-full flex flex-col justify-center items-center">
+                    <p className="font-editorial text-2xl text-muted-foreground">
+                      Start studying to unlock insights
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          <div className="lg:w-[320px] shrink-0 h-full">
+            {isStatsLoading ? (
+               <div className="h-full w-full bg-muted/30 rounded-3xl border-2 border-dashed border-border p-6 animate-pulse flex flex-col gap-4 min-h-[400px]">
+                 <div className="h-8 bg-black/5 dark:bg-white/5 rounded-lg w-1/2 mb-4"></div>
+                 <div className="h-24 bg-black/5 dark:bg-white/5 rounded-2xl w-full"></div>
+                 <div className="h-24 bg-black/5 dark:bg-white/5 rounded-2xl w-full"></div>
+                 <div className="h-24 bg-black/5 dark:bg-white/5 rounded-2xl w-full"></div>
+               </div>
+            ) : userStats?.overview ? (
+              <OverviewStats stats={userStats.overview} layout="vertical" />
+            ) : null}
+          </div>
         </div>
-      )}
+      </div>      
+    </div>
+
+    {isStatsLoading ? (
+      <div className="w-full mb-8 mt-8">
+        <div className="bento-card bg-muted/30 border-dashed border-border p-6 animate-pulse min-h-[300px]">
+          <div className="h-6 bg-black/5 dark:bg-white/5 rounded w-1/4 mb-4"></div>
+          <div className="h-40 bg-black/5 dark:bg-white/5 rounded-xl w-full"></div>
+        </div>
+      </div>
+    ) : userStats?.dailyStats && userStats.dailyStats.length > 0 ? (
+      <div className="w-full mb-8 mt-8">
+        <HeatmapCalendar dailyStats={userStats.dailyStats} />
+      </div>
+    ) : null}
 
       <AddDeckModal
         open={isAddDeckModalOpen}

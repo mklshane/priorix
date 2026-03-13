@@ -184,6 +184,7 @@ const ImportModal: React.FC<ImportModalProps> = ({
             nextFiles.push(parsed);
           }
         } catch (e) {
+          console.error("PDF Parse Error:", e);
           errors.push(`${pdf.name}: failed to parse PDF`);
         }
       }
@@ -327,24 +328,24 @@ const ImportModal: React.FC<ImportModalProps> = ({
         }
       }}
     >
-      <DialogContent className="modal-surface sm:max-w-[900px] p-0 max-h-[90vh] flex flex-col">
-        <DialogHeader className="flex flex-row items-start gap-3 border-b border-border/60 bg-gradient-to-r from-primary/10 via-muted/40 to-transparent px-6 py-5">
-          <div className="flex size-12 items-center justify-center rounded-lg bg-primary/15 text-primary shadow-inner ring-1 ring-primary/20">
-            <Wand2 className="h-5 w-5" />
+      <DialogContent className="sm:max-w-3xl max-h-[92dvh] md:max-h-[85dvh] flex flex-col border-2 border-border rounded-3xl bg-background shadow-bento-sm p-4 md:p-5 overflow-hidden">
+        <DialogHeader className="flex flex-row items-center gap-3 shrink-0 mb-2 pb-2 px-2">
+          <div className="flex size-10 items-center justify-center rounded-xl bg-lilac border-2 border-border shadow-bento-sm">
+            <Wand2 className="h-5 w-5 text-foreground" />
           </div>
-          <div className="space-y-1 text-left">
-            <DialogTitle className="text-xl">Import documents to create flashcards</DialogTitle>
-            <DialogDescription>
-              PDF, DOCX, PPT/PPTX, and TXT are supported. Preview pages and pick what to include.
+          <div className="space-y-0.5 text-left">
+            <DialogTitle className="text-xl font-editorial italic text-foreground tracking-tight">Import documents</DialogTitle>
+            <DialogDescription className="text-xs font-medium">
+              PDF, DOCX, PPT, and TXT supported.
             </DialogDescription>
           </div>
         </DialogHeader>
 
-        <div className="px-6 py-5 space-y-4 overflow-auto flex-1">
+        <div className="px-2 py-2 space-y-4 overflow-y-auto flex-1 customized-scrollbar">
           {parsedFiles.length === 0 ? (
             <div
-              className={`relative flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border/70 bg-background/70 px-6 py-8 text-center shadow-inner transition-all duration-200 ${
-                isDragging ? "border-primary/70 bg-primary/5" : "hover:border-primary/60"
+              className={`relative flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed bg-muted/20 px-6 py-10 text-center transition-all duration-200 cursor-pointer ${
+                isDragging ? "border-primary bg-primary/5 shadow-bento-sm" : "border-border hover:border-primary/50"
               }`}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
@@ -359,12 +360,12 @@ const ImportModal: React.FC<ImportModalProps> = ({
                 }
               }}
             >
-              <div className="flex size-12 items-center justify-center rounded-full bg-primary/15 text-primary ring-1 ring-primary/20">
-                <CloudUpload className="h-5 w-5" />
+              <div className="flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary border-2 border-primary/20 shadow-sm mb-2">
+                <CloudUpload className="h-6 w-6" />
               </div>
               <div className="space-y-1">
-                <p className="font-semibold">Drag & drop your document</p>
-                <p className="text-sm text-muted-foreground">or click to browse</p>
+                <p className="font-bold text-base">Drag & drop your document</p>
+                <p className="text-sm font-medium text-muted-foreground">or click to browse</p>
               </div>
               <input
                 type="file"
@@ -373,22 +374,22 @@ const ImportModal: React.FC<ImportModalProps> = ({
                 accept={ACCEPTED_EXTENSIONS.join(",")}
                 className="hidden"
               />
-              <div className="absolute inset-x-6 bottom-3 text-xs text-muted-foreground">
-                PDF, DOC/DOCX, PPT/PPTX, TXT • Max 15MB per file
+              <div className="absolute inset-x-6 bottom-4 text-xs font-bold uppercase tracking-wider text-muted-foreground/60">
+                PDF, DOC/DOCX, PPT/PPTX, TXT • Max 15MB
               </div>
             </div>
           ) : (
-            <div className="flex items-center justify-between rounded-lg border border-border/60 bg-background/70 px-4 py-3 text-sm shadow-inner">
-              <div className="flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-full bg-primary/15 text-primary ring-1 ring-primary/20">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-2xl border-2 border-border bg-card p-4 shadow-bento-sm">
+              <div className="flex items-center gap-3 w-full sm:w-auto overflow-hidden">
+                <div className="flex shrink-0 size-10 items-center justify-center rounded-xl bg-primary/10 text-primary border-2 border-primary/20">
                   <FileDown className="h-5 w-5" />
                 </div>
-                <div className="flex flex-col">
-                  <span className="font-semibold text-foreground">{parsedFiles[0].fileName}</span>
-                  <span className="text-muted-foreground">File selected. Choose another to replace.</span>
+                <div className="flex flex-col min-w-0">
+                  <span className="font-bold text-foreground truncate">{parsedFiles[0].fileName}</span>
+                  <span className="text-xs font-medium text-muted-foreground">Document loaded</span>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex shrink-0 items-center gap-2 w-full sm:w-auto">
                 <input
                   type="file"
                   ref={fileInputRef}
@@ -404,8 +405,9 @@ const ImportModal: React.FC<ImportModalProps> = ({
                     setTimeout(() => fileInputRef.current?.click(), 0);
                   }}
                   disabled={isParsing || isImporting}
+                  className="w-full sm:w-auto border-2 font-bold shadow-bento-sm"
                 >
-                  Select different file
+                  Change File
                 </Button>
               </div>
             </div>
@@ -440,54 +442,56 @@ const ImportModal: React.FC<ImportModalProps> = ({
                   return (
                     <div
                       key={file.fileId}
-                      className="rounded-lg border border-border/60 bg-background/70 shadow-inner"
+                      className="rounded-2xl border-2 border-border bg-card shadow-bento-sm overflow-hidden"
                     >
-                      <div className="flex flex-wrap items-center gap-3 border-b border-border/60 px-4 py-3 text-sm">
-                        <div className="font-semibold text-foreground">{file.fileName}</div>
-                        <div className="text-muted-foreground">{file.fileType.toUpperCase()}</div>
-                        <div className="text-muted-foreground">{file.pages.length} pages/slides</div>
-                        <div className="ml-auto flex items-center gap-2">
+                      <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-3 border-b-2 border-border px-4 py-3 bg-muted/20">
+                        <div className="flex flex-col min-w-0 flex-1">
+                          <span className="font-bold text-base text-foreground truncate">{file.fileName}</span>
+                          <span className="text-xs font-semibold text-muted-foreground uppercase">{file.fileType} • {file.pages.length} Pages</span>
+                        </div>
+                        <div className="w-full sm:w-auto flex items-center justify-end">
                           <Button
                             size="sm"
-                            variant="outline"
+                            variant="secondary"
                             onClick={() => toggleAll(file, !allSelected)}
-                            className="h-8"
+                            className="h-8 font-bold border-2"
                           >
-                            {allSelected ? "Deselect all" : "Select all"}
+                            {allSelected ? "Deselect All" : "Select All"}
                           </Button>
                         </div>
                       </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4">
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 p-3 max-h-[40vh] overflow-y-auto customized-scrollbar">
                         {file.pages.map((page) => {
                           const isChecked = selection[file.fileId]?.has(page.index) ?? false;
                           return (
                             <label
                               key={page.index}
-                              className={`relative block rounded-lg border ${
-                                isChecked ? "border-primary/60 ring-2 ring-primary/30" : "border-border/60"
-                              } bg-background/80 shadow-sm overflow-hidden cursor-pointer transition hover:border-primary/50`}
+                              className={`relative flex flex-col rounded-sm border-2 ${
+                                isChecked ? "border-primary bg-primary/5 shadow-sm" : "border-border bg-card hover:border-primary/50"
+                              } overflow-hidden cursor-pointer transition-all`}
                             >
-                              <input
-                                type="checkbox"
-                                className="absolute left-3 top-3 h-4 w-4 z-10"
-                                checked={isChecked}
-                                onChange={() => togglePage(file.fileId, page.index)}
-                                aria-label={`${page.title} from ${file.fileName}`}
-                              />
+                              <div className="absolute right-2 top-2 z-10">
+                                <input
+                                  type="checkbox"
+                                  className="h-4 w-4 bg-background border-2 border-border rounded text-primary focus:ring-primary/20"
+                                  checked={isChecked}
+                                  onChange={() => togglePage(file.fileId, page.index)}
+                                  aria-label={`${page.title} from ${file.fileName}`}
+                                />
+                              </div>
                               {page.preview ? (
                                 <img
                                   src={page.preview}
                                   alt={page.title}
-                                  className="w-full h-40 object-contain bg-muted"
+                                  className={`w-full h-32 object-contain bg-background/50 border-b-2 ${isChecked ? "border-primary/20" : "border-border"}`}
                                 />
                               ) : (
-                                <div className="h-40 bg-muted/60 flex items-center justify-center px-3 text-sm text-muted-foreground text-center">
-                                  {page.snippet || "No preview available"}
+                                <div className={`h-32 bg-background/50 flex items-center justify-center p-3 text-xs text-muted-foreground text-center border-b-2 ${isChecked ? "border-primary/20" : "border-border"}`}>
+                                  {page.snippet ? <span className="line-clamp-4">{page.snippet}</span> : "No preview available"}
                                 </div>
                               )}
-                              <div className="px-3 py-2 border-t border-border/60 bg-background/80 flex items-center gap-2 text-sm font-medium text-foreground">
-                                {isChecked ? <CheckSquare className="h-4 w-4" /> : <Square className="h-4 w-4" />}
-                                <span>{page.title}</span>
+                              <div className="px-3 py-2 flex items-center justify-between gap-2 text-xs font-bold text-foreground bg-background">
+                                <span className="truncate">{page.title}</span>
                               </div>
                             </label>
                           );
@@ -501,19 +505,24 @@ const ImportModal: React.FC<ImportModalProps> = ({
           )}
         </div>
 
-        <DialogFooter className="border-t border-border/60 bg-background/40 px-6 py-4">
-          <div className="flex w-full flex-wrap items-center justify-between gap-3">
-            <div className="text-sm text-muted-foreground">
+        <DialogFooter className="border-t-2 border-border bg-background pt-3 pb-2 px-2 shrink-0">
+          <div className="flex w-full flex-col-reverse sm:flex-row items-center justify-between gap-3">
+            <div className="text-xs font-bold text-muted-foreground w-full sm:w-auto text-center sm:text-left">
               Select the pages or slides you want to include before generating.
             </div>
-            <div className="flex items-center gap-2">
-              <Button onClick={onClose} variant="outline" disabled={isParsing || isImporting}>
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-end mt-2 sm:mt-0">
+              <Button
+                onClick={onClose}
+                variant="outline"
+                disabled={isParsing || isImporting}
+                className="w-full sm:w-auto border-2 font-bold"
+              >
                 Cancel
               </Button>
               <Button
                 onClick={handleGenerate}
                 disabled={isParsing || isImporting || totalSelected === 0}
-                className="shadow-[0_12px_30px_rgba(139,92,246,0.35)]"
+                className="w-full sm:w-auto shadow-bento-sm font-bold"
               >
                 {isImporting ? (
                   <>

@@ -1,109 +1,66 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+"use client";
+
 import { Plus, BookOpen, CheckSquare, FileText } from "lucide-react";
-
-interface QuickActionsProps {
-  onOpenAddDeckModal: () => void;
-}
-
-const quickActions = [
-  {
-    title: "New Flashcard Set",
-    description: "Create a new set of flashcards",
-    icon: BookOpen,
-    color: "bg-pink",
-    borderColor: "border-black dark:border-pink",
-    hover:
-      "hover:shadow-lg hover:-translate-y-0.5 hover:border-pink-300 dark:hover:border-pink",
-    enabled: true,
-  },
-  {
-    title: "Add Todo",
-    description: "Add a new task to your list",
-    icon: CheckSquare,
-    color: "bg-green",
-    borderColor: "border-black dark:border-green",
-    hover:
-      "hover:shadow-lg hover:-translate-y-0.5 hover:border-green dark:hover:green",
-    enabled: false,
-  },
-  {
-    title: "Create Note",
-    description: "Start writing a new note",
-    icon: FileText,
-    color: "bg-yellow",
-    borderColor: "border-black dark:border-yellow",
-    hover:
-      "hover:shadow-lg hover:-translate-y-0.5 hover:border-amber-300 dark:hover:border-yellow",
-    enabled: false,
-  },
-];
+import { useRouter } from "next/navigation";
 
 export default function QuickActions({
   onOpenAddDeckModal,
-}: QuickActionsProps) {
-  const handleActionClick = (title: string, enabled: boolean) => {
-    if (!enabled) return;
+}: {
+  onOpenAddDeckModal: () => void;
+}) {
+  const router = useRouter();
 
-    if (title === "New Flashcard Set") {
-      onOpenAddDeckModal();
-    }
-    // Add handlers for other actions if needed
-  };
+  const actions = [
+    {
+      title: "New Flashcard Set",
+      icon: BookOpen,
+      color: "bg-blush",
+      enabled: true,
+      onClick: onOpenAddDeckModal,
+    },
+    { 
+      title: "Add Todo", 
+      icon: CheckSquare, 
+      color: "bg-mint", 
+      enabled: true,
+      onClick: () => router.push("/todo?add=true"),
+    },
+    {
+      title: "Create Note",
+      icon: FileText,
+      color: "bg-citrus",
+      enabled: true,
+      onClick: () => router.push("/notes?add=true"),
+    },
+  ];
 
   return (
-    <Card className="bg-card border-2 border-black shadow-sm overflow-hidden h-full gap-0 dark:border-darkborder">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-card-foreground flex items-center gap-2 text-lg">
-          Quick Actions
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {quickActions.map((action) => (
-          <Button
+    <div className="bento-card bg-card h-full flex flex-col p-6">
+      <h2 className="text-2xl font-editorial italic mb-5 text-foreground">
+        Quick Actions
+      </h2>
+      <div className="flex flex-col gap-3 flex-1 justify-center">
+        {actions.map((action) => (
+          <button
             key={action.title}
-            variant="outline"
             disabled={!action.enabled}
-            className={`w-full justify-between h-auto p-2 rounded-lg transition-all duration-200 border-2 ${
-              action.color
-            } ${action.borderColor} ${action.hover} group ${
-              !action.enabled
-                ? "opacity-60 cursor-not-allowed grayscale hover:transform-none hover:shadow-none"
-                : ""
-            }`}
-            onClick={() => handleActionClick(action.title, action.enabled)}
+            onClick={action.onClick}
+            className={`w-full flex items-center justify-between p-3 rounded-2xl border-2 border-border transition-all text-left ${action.enabled ? `${action.color} hover:-translate-y-1 hover:shadow-bento-sm` : "bg-muted/50 border-dashed opacity-60 cursor-not-allowed grayscale"}`}
           >
             <div className="flex items-center gap-3">
-              <div
-                className={`p-2 rounded-md text-primary bg-white/50 dark:bg-black/20 group-hover:scale-110 transition-transform duration-200 ${
-                  !action.enabled ? "group-hover:scale-100" : ""
-                }`}
-              >
+              <div className="p-2 rounded-xl bg-background border-2 border-border shadow-sm">
                 <action.icon className="h-4 w-4" />
               </div>
-              <div className="text-left">
-                <div
-                  className={`font-medium text-sm ${
-                    !action.enabled ? "text-muted-foreground" : ""
-                  }`}
-                >
-                  {action.title}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {action.description}
-                </div>
+              <div className="font-bold text-sm">{action.title}</div>
+            </div>
+            {action.enabled && (
+              <div className="p-1 rounded-full bg-background border-2 border-border">
+                <Plus className="h-3 w-3" />
               </div>
-            </div>
-            <div
-              className={`p-1 rounded-full text-primary bg-white/70 dark:bg-black/20 group-hover:scale-110 transition-transform duration-200 ${
-                !action.enabled ? "group-hover:scale-100" : ""
-              }`}
-            >
-              <Plus className="h-3 w-3" />
-            </div>
-          </Button>
+            )}
+          </button>
         ))}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

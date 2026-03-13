@@ -2,7 +2,9 @@
 import Link from "next/link";
 import React, { useState } from "react";
 
-const ForgotPassword = () => {
+import { KeyRound } from "lucide-react";
+
+export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -35,66 +37,81 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="min-h-screen bg-primary-foreground flex items-center justify-center p-4">
-      <div className="w-full max-w-md mx-auto flex flex-col items-center py-5">
-        <div className="text-center mb-8">
-          <p className="font-lora italic text-4xl tracking-wide mb-3">
-            Forgot Password
-          </p>
-          <div className="w-24 h-1 bg-green rounded-full mx-auto"></div>
-          <p className="text-gray-600 mt-4 max-w-md text-lg">
-            Enter your email and we'll send you a reset link
-          </p>
-        </div>
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 selection:bg-lilac selection:text-foreground relative">
+      <Link
+        href="/"
+        className="absolute top-6 left-6 font-editorial italic text-3xl font-bold tracking-tight hover:opacity-80 transition-opacity"
+      >
+        Priorix
+      </Link>
 
-        <div className="w-full bg-green/80 noise rounded-[10px] border-2 border-primary p-8 shadow-lg">
+      <div className="w-full max-w-md bento-card relative overflow-hidden bg-card">
+        {/* Decorative corner accent */}
+        <div className="absolute -top-12 -right-12 w-32 h-32 bg-lilac rounded-full blur-2xl opacity-50 pointer-events-none" />
+        
+        <div className="relative z-10 space-y-6">
+          <div className="text-center space-y-2">
+            <div className="inline-flex justify-center items-center w-12 h-12 rounded-full bg-lilac border-2 border-border mb-2 shadow-bento">
+              <KeyRound className="w-6 h-6" />
+            </div>
+            <h1 className="text-5xl tracking-tight">Forgot Password</h1>
+            <p className="text-muted-foreground font-medium">
+              Enter your email and we'll send a reset link
+            </p>
+          </div>
+
           {error && (
-            <div className="mb-4 p-3 rounded-xl bg-red-100 border border-red-300 text-red-800 text-sm">
+            <div className="bg-destructive/10 border-2 border-destructive text-destructive px-4 py-3 rounded-2xl text-sm font-bold shadow-bento-sm">
               {error}
             </div>
           )}
           {success && (
-            <div className="mb-4 p-3 rounded-xl bg-emerald-100 border border-emerald-300 text-emerald-800 text-sm">
+            <div className="bg-emerald-400/20 border-2 border-emerald-500/50 text-emerald-600 dark:text-emerald-400 px-4 py-3 rounded-2xl text-sm font-bold shadow-bento-sm">
               {success}
             </div>
           )}
-          <form onSubmit={handleSubmit} className="flex flex-col space-y-5">
-            <div className="flex flex-col">
-              <label htmlFor="email" className="font-sora text-foreground mb-2">
-                Email Address
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="space-y-2">
+              <label
+                htmlFor="email"
+                className="text-sm font-bold uppercase tracking-wider pl-1"
+              >
+                Email
               </label>
               <input
                 id="email"
                 type="email"
+                required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="px-4 py-3 rounded-2xl border-2 bg-amber-50 border-black focus:ring-2 focus:ring-input focus:border-transparent outline-none transition"
+                className="w-full bg-background border-2 border-border rounded-2xl px-4 py-3 text-foreground focus:outline-none focus:-translate-y-1 focus:shadow-bento transition-all placeholder:text-muted-foreground/50"
                 placeholder="your.email@example.com"
-                required
               />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-purple text-foreground py-3 px-4 rounded-2xl hover:bg-purple/80 focus:outline-none focus:ring-2 focus:ring-course-blue transition shadow-md hover:shadow-lg btn-base btn-hover btn-active disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full btn-primary py-3.5 text-base flex items-center justify-center gap-2"
             >
               {loading ? "Sending..." : "Send Reset Link"}
             </button>
           </form>
         </div>
 
-        <div className="mt-6 text-center">
-          <p className="text-foreground">
+        <div className="text-center mt-6 relative z-10">
+          <p className="text-sm font-medium text-muted-foreground">
             Remember your password?{" "}
-            <Link href="/login" className="font-bold transition hover:text-purple">
-              Log in
+            <Link
+              href="/login"
+              className="text-foreground hover:text-mint font-bold underline decoration-2 decoration-mint/30 underline-offset-4 transition-all"
+            >
+              Sign In
             </Link>
           </p>
         </div>
       </div>
     </div>
   );
-};
-
-export default ForgotPassword;
+}

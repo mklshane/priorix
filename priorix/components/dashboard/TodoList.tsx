@@ -1,4 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+"use client";
+
 import {
   CheckSquare,
   Plus,
@@ -39,9 +40,6 @@ interface Task {
   dueDate?: string;
   priority?: "low" | "medium" | "high" | "urgent";
   tags: string[];
-  completedAt?: string;
-  createdAt: string;
-  updatedAt: string;
 }
 
 export default function TodoList() {
@@ -51,8 +49,6 @@ export default function TodoList() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState<boolean>(false);
   const [completingTaskId, setCompletingTaskId] = useState<string | null>(null);
   const { showToast } = useToast();
-
-  // New task form state
   const [newTask, setNewTask] = useState({
     taskTitle: "",
     description: "",
@@ -61,83 +57,36 @@ export default function TodoList() {
   });
 
   useEffect(() => {
-    if (sessionStatus === "authenticated") {
-      fetchTasks();
-    } else if (sessionStatus === "unauthenticated") {
+    if (sessionStatus === "authenticated") fetchTasks();
+    else if (sessionStatus === "unauthenticated") {
       setLoading(false);
       setTasks([]);
     }
   }, [sessionStatus]);
 
   const fetchTasks = async () => {
-    if (!session?.user?.id) {
-      setLoading(false);
-      return;
-    }
-
+    if (!session?.user?.id) return;
     try {
       setLoading(true);
-
       const response = await fetch(
-        `/api/tasks?status=todo&userId=${session.user.id}`
+        `/api/tasks?status=todo&userId=${session.user.id}`,
       );
-
-      if (!response.ok) {
-        let errorMessage = `HTTP error! status: ${response.status}`;
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.error || errorMessage;
-          console.error("API Error details:", errorData);
-        } catch (e) {
-          console.error("Could not parse error response:", e);
-        }
-
-        if (response.status === 401) {
-          showToast("Please sign in to view tasks", "error");
-        } else if (response.status === 400) {
-          showToast("Invalid request. Please try again.", "error");
-        } else {
-          showToast(`Failed to load tasks: ${errorMessage}`, "error");
-        }
-        return;
-      }
-
-      const tasksData = await response.json();
-
-      setTasks(tasksData);
-    } catch (error) {
-      console.error("Error fetching tasks:", error);
-      showToast("Failed to load tasks. Please check your connection.", "error");
+      if (!response.ok) throw new Error("Failed");
+      setTasks(await response.json());
+    } catch {
+      showToast("Failed to load tasks", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  const addTask = async (): Promise<void> => {
-    if (newTask.taskTitle.trim() === "") {
-      showToast("Task title is required", "error");
-      return;
-    }
-
-    if (!session?.user?.id) {
-      showToast("Please sign in to create tasks", "error");
-      return;
-    }
-
+  const addTask = async () => {
+    if (!newTask.taskTitle.trim() || !session?.user?.id) return;
     try {
       const tagsArray = newTask.tags
         .split(",")
-        .map((tag) => tag.trim())
-        .filter((tag) => tag !== "");
-
-      console.log("Creating task with data:", {
-        taskTitle: newTask.taskTitle.trim(),
-        description: newTask.description.trim(),
-        dueDate: newTask.dueDate,
-        tags: tagsArray,
-        userId: session.user.id,
-      });
-
+        .map((t) => t.trim())
+        .filter(Boolean);
       const response = await fetch("/api/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -149,420 +98,259 @@ export default function TodoList() {
           userId: session.user.id,
         }),
       });
-
-      console.log("Create task response status:", response.status);
-
-      if (!response.ok) {
-        let errorMessage = `HTTP error! status: ${response.status}`;
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.error || errorMessage;
-          console.error("API Error details:", errorData);
-        } catch (e) {
-          console.error("Could not parse error response:", e);
-        }
-
-        if (response.status === 401) {
-          showToast("Please sign in to create tasks", "error");
-        } else if (response.status === 400) {
-          showToast("Invalid task data. Please check your input.", "error");
-        } else {
-          showToast(`Failed to create task: ${errorMessage}`, "error");
-        }
-        return;
-      }
-
-      const createdTask = await response.json();
-      console.log("Task created successfully:", createdTask);
-
-      setTasks([createdTask, ...tasks]);
-
-      setNewTask({
-        taskTitle: "",
-        description: "",
-        dueDate: "",
-        tags: "",
-      });
+      if (!response.ok) throw new Error("Failed");
+      setTasks([await response.json(), ...tasks]);
+      setNewTask({ taskTitle: "", description: "", dueDate: "", tags: "" });
       setIsAddDialogOpen(false);
-
       showToast("Task added successfully", "success");
-    } catch (error) {
-      console.error("Error adding task:", error);
-      showToast("Failed to add task. Please try again.", "error");
+    } catch {
+      showToast("Failed to add task", "error");
     }
   };
 
-  const updateTaskStatus = async (
-    taskId: string,
-    currentStatus: string
-  ): Promise<void> => {
-    if (!session?.user?.id) {
-      showToast("Please sign in to update tasks", "error");
-      return;
-    }
-
+  const updateTaskStatus = async (taskId: string, currentStatus: string) => {
+    if (!session?.user?.id) return;
     try {
       setCompletingTaskId(taskId);
-
       const newStatus = currentStatus === "completed" ? "todo" : "completed";
-
       const response = await fetch(`/api/tasks/${taskId}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          status: newStatus,
-          userId: session.user.id,
-        }),
+        body: JSON.stringify({ status: newStatus, userId: session.user.id }),
       });
-
-      if (!response.ok) {
-        let errorMessage = `HTTP error! status: ${response.status}`;
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.error || errorMessage;
-        } catch (e) {
-          console.error("Could not parse error response:", e);
-        }
-
-        if (response.status === 401) {
-          showToast("Please sign in to update tasks", "error");
-        } else {
-          showToast(`Failed to update task: ${errorMessage}`, "error");
-        }
-        setCompletingTaskId(null); // Reset visual feedback on error
-        return;
-      }
-
+      if (!response.ok) throw new Error("Failed");
       const updatedTask = await response.json();
 
       if (newStatus === "completed") {
-        // Add a small delay to show the checkmark before removing
         setTimeout(() => {
-          setTasks(tasks.filter((task) => task._id !== taskId));
+          setTasks(tasks.filter((t) => t._id !== taskId));
           setCompletingTaskId(null);
         }, 300);
       } else {
-        setTasks(
-          tasks.map((task) => (task._id === taskId ? updatedTask : task))
-        );
+        setTasks(tasks.map((t) => (t._id === taskId ? updatedTask : t)));
         setCompletingTaskId(null);
       }
-
-      showToast(`Task marked as ${newStatus}`, "success");
-    } catch (error) {
-      console.error("Error updating task:", error);
+    } catch {
       showToast("Failed to update task", "error");
-      setCompletingTaskId(null); // Reset visual feedback on error
+      setCompletingTaskId(null);
     }
   };
 
-  const deleteTask = async (taskId: string): Promise<void> => {
-    if (!session?.user?.id) {
-      showToast("Please sign in to delete tasks", "error");
-      return;
-    }
-
+  const deleteTask = async (taskId: string) => {
+    if (!session?.user?.id) return;
     try {
       const response = await fetch(
         `/api/tasks/${taskId}?userId=${session.user.id}`,
-        {
-          method: "DELETE",
-        }
+        { method: "DELETE" },
       );
-
-      if (!response.ok) {
-        let errorMessage = `HTTP error! status: ${response.status}`;
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.error || errorMessage;
-        } catch (e) {
-          console.error("Could not parse error response:", e);
-        }
-
-        if (response.status === 401) {
-          showToast("Please sign in to delete tasks", "error");
-        } else {
-          showToast(`Failed to delete task: ${errorMessage}`, "error");
-        }
-        return;
-      }
-
-      setTasks(tasks.filter((task) => task._id !== taskId));
-      showToast("Task deleted successfully", "success");
-    } catch (error) {
-      console.error("Error deleting task:", error);
+      if (!response.ok) throw new Error("Failed");
+      setTasks(tasks.filter((t) => t._id !== taskId));
+      showToast("Task deleted", "success");
+    } catch {
       showToast("Failed to delete task", "error");
     }
   };
 
-  const formatDate = (dateString?: string): string => {
-    if (!dateString) return "";
-    return new Date(dateString).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
+  const formatDate = (dateString?: string) =>
+    dateString
+      ? new Date(dateString).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        })
+      : "";
 
   if (sessionStatus === "loading" || loading) {
     return (
-      <Card className="bg-card border-2 border-black py-7 h-full flex flex-col gap-0  dark:border-darkborder">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-card-foreground text-lg flex items-center gap-2">
-            <CheckSquare className="h-5 w-5" />
-            Todo List
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-center gap-3 p-2 rounded-md">
-                <div className="h-5 w-5 bg-muted rounded animate-pulse"></div>
-                <div className="h-4 bg-muted rounded flex-1 animate-pulse"></div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <div className="bento-card bg-card h-full min-h-[400px] animate-pulse" />
     );
   }
 
   return (
-    <Card className="bg-card border-2 border-black py-7 h-full flex flex-col gap-0 dark:border-darkborder">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-card-foreground text-lg flex items-center gap-2">
+    <div className="bento-card bg-card h-full flex flex-col p-6">
+      <div className="flex items-center justify-between mb-6 pb-4 border-b-2 border-border/10">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-citrus border-2 border-border flex items-center justify-center shadow-bento-sm">
             <CheckSquare className="h-5 w-5" />
-            Todo List
-            {tasks.length > 0 && (
-              <span className="text-sm text-muted-foreground ml-2">
-                ({tasks.length})
-              </span>
-            )}
-          </CardTitle>
-          <Link
-            href="/todo"
-            className="text-xs text-primary hover:underline flex items-center gap-1"
-          >
-            View All
-            <ArrowRight className="h-3 w-3" />
-          </Link>
+          </div>
+          <h2 className="text-2xl font-editorial italic text-foreground">
+            Tasks {tasks.length > 0 && `(${tasks.length})`}
+          </h2>
         </div>
-      </CardHeader>
-      <CardContent className="flex-1 flex flex-col overflow-hidden">
-        {/* Add Task Button */}
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="mb-4" disabled={!session}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add New Task
-            </Button>
-          </DialogTrigger>
+        <Link
+          href="/todo"
+          className="text-xs font-bold uppercase tracking-widest hover:text-citrus transition-colors flex items-center gap-1"
+        >
+          All <ArrowRight className="h-3 w-3" />
+        </Link>
+      </div>
 
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>Add New Task</DialogTitle>
-            </DialogHeader>
-
-            <div className="grid gap-4 py-4">
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogTrigger asChild>
+          <Button
+            className="mb-6 w-full btn-base bg-background hover:bg-muted"
+            disabled={!session}
+          >
+            <Plus className="h-4 w-4 mr-2" /> Add Directive
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-md border-4 border-border rounded-3xl shadow-bento-lg">
+          <DialogHeader>
+            <DialogTitle className="font-editorial text-3xl italic">
+              New Directive
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4 font-sans">
+            <div className="grid gap-2">
+              <Label className="text-[10px] font-bold uppercase tracking-widest">
+                Objective *
+              </Label>
+              <Input
+                value={newTask.taskTitle}
+                onChange={(e) =>
+                  setNewTask({ ...newTask, taskTitle: e.target.value })
+                }
+                className="border-2 border-border rounded-xl"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label className="text-[10px] font-bold uppercase tracking-widest">
+                Parameters
+              </Label>
+              <Textarea
+                value={newTask.description}
+                onChange={(e) =>
+                  setNewTask({ ...newTask, description: e.target.value })
+                }
+                className="border-2 border-border rounded-xl"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="taskTitle">Task Title *</Label>
+                <Label className="text-[10px] font-bold uppercase tracking-widest">
+                  Due Date
+                </Label>
                 <Input
-                  id="taskTitle"
-                  placeholder="Enter task title..."
-                  value={newTask.taskTitle}
-                  onChange={(e) =>
-                    setNewTask({ ...newTask, taskTitle: e.target.value })
-                  }
-                />
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  placeholder="Enter task description..."
-                  value={newTask.description}
-                  onChange={(e) =>
-                    setNewTask({ ...newTask, description: e.target.value })
-                  }
-                  rows={3}
-                />
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="dueDate">Due Date</Label>
-                <Input
-                  id="dueDate"
                   type="date"
                   value={newTask.dueDate}
                   onChange={(e) =>
                     setNewTask({ ...newTask, dueDate: e.target.value })
                   }
+                  className="border-2 border-border rounded-xl"
                 />
               </div>
-
               <div className="grid gap-2">
-                <Label htmlFor="tags">
-                  Tags{" "}
-                  <span className="text-muted-foreground text-sm">
-                    (comma-separated)
-                  </span>
+                <Label className="text-[10px] font-bold uppercase tracking-widest">
+                  Tags
                 </Label>
                 <Input
-                  id="tags"
-                  placeholder="work, personal, urgent..."
+                  placeholder="csv..."
                   value={newTask.tags}
                   onChange={(e) =>
                     setNewTask({ ...newTask, tags: e.target.value })
                   }
+                  className="border-2 border-border rounded-xl"
                 />
               </div>
             </div>
-
-            <div className="flex justify-end gap-3">
-              <Button
-                variant="outline"
-                onClick={() => setIsAddDialogOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={addTask}
-                disabled={newTask.taskTitle.trim() === ""}
-              >
-                Add Task
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {!session ? (
-          <div className="text-center text-muted-foreground py-8">
-            Please sign in to manage tasks
           </div>
-        ) : tasks.length === 0 ? (
-          <div className="text-center text-muted-foreground py-8">
-            No tasks yet. Click "Add New Task" to get started!
+          <div className="flex justify-end gap-3 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setIsAddDialogOpen(false)}
+              className="border-2 rounded-xl font-bold"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={addTask}
+              disabled={!newTask.taskTitle.trim()}
+              className="btn-primary rounded-xl"
+            >
+              Commit
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <div className="flex-1 overflow-y-auto pr-2 space-y-3">
+        {tasks.length === 0 ? (
+          <div className="text-center text-muted-foreground py-12 text-sm font-medium italic">
+            No directives pending.
           </div>
         ) : (
-          <div className="flex-1 overflow-y-auto pr-2">
-            <div className="space-y-3">
-              {tasks.map((task) => (
-                <div
-                  key={task._id}
-                  className="flex items-start gap-3 p-3 rounded-md hover:bg-muted/50 border-1 border-primary group"
-                >
-                  <button
-                    onClick={() => updateTaskStatus(task._id, task.status)}
-                    className={`flex h-5 w-5 items-center justify-center rounded border mt-0.5 transition-all duration-200 ${
-                      completingTaskId === task._id ||
-                      task.status === "completed"
-                        ? "bg-primary border-primary"
-                        : "border-muted-foreground/30 hover:border-primary/50"
-                    }`}
-                    disabled={completingTaskId === task._id}
+          tasks.map((task) => (
+            <div
+              key={task._id}
+              className="group flex items-start gap-4 p-4 rounded-2xl border-2 border-border/10 hover:border-border hover:shadow-bento-sm transition-all bg-background/50"
+            >
+              <button
+                onClick={() => updateTaskStatus(task._id, task.status)}
+                className={`flex h-6 w-6 items-center justify-center rounded-lg border-2 mt-0.5 transition-all duration-200 shrink-0 ${completingTaskId === task._id || task.status === "completed" ? "bg-primary border-primary text-primary-foreground" : "bg-background border-border hover:bg-muted"}`}
+                disabled={completingTaskId === task._id}
+              >
+                {(completingTaskId === task._id ||
+                  task.status === "completed") && (
+                  <CheckSquare className="h-4 w-4" />
+                )}
+              </button>
+
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                  <div
+                    className={`font-bold text-sm ${task.status === "completed" ? "line-through text-muted-foreground" : "text-foreground"}`}
                   >
-                    {(completingTaskId === task._id ||
-                      task.status === "completed") && (
-                      <svg
-                        className="h-3 w-3 text-white"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={3}
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
-                    )}
-                  </button>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
-                      <div className="flex items-center gap-2">
-                        <div
-                          className={`text-sm ${
-                            task.status === "completed"
-                              ? "text-muted-foreground line-through"
-                              : "text-card-foreground"
-                          }`}
-                        >
-                          {task.taskTitle}
-                        </div>
-                        {task.priority && task.priority !== "medium" && (
-                          <span
-                            className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
-                              task.priority === "urgent"
-                                ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                                : task.priority === "high"
-                                  ? "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
-                                  : "bg-gray-100 text-gray-600 dark:bg-gray-800/50 dark:text-gray-400"
-                            }`}
-                          >
-                            {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
-                          </span>
-                        )}
-                      </div>
-
-                      {task.dueDate && (
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground sm:ml-2 sm:mt-0.5 whitespace-nowrap">
-                          <Calendar className="h-3 w-3" />
-                          Due {formatDate(task.dueDate)}
-                        </div>
-                      )}
-                    </div>
-
-                    {task.description && (
-                      <div className="text-xs text-muted-foreground mt-1 flex items-start gap-1">
-                        <FileText className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                        <span className="break-words">{task.description}</span>
-                      </div>
-                    )}
-
-                    {task.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {task.tags.map((tag, index) => (
-                          <span
-                            key={index}
-                            className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full flex items-center gap-1"
-                          >
-                            <Tag className="h-3 w-3" />
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
+                    {task.taskTitle}
                   </div>
-
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        className="h-8 w-8 p-0 opacity-70 group-hover:opacity-100 transition-opacity"
-                      >
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        onClick={() => deleteTask(task._id)}
-                        className="text-destructive focus:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  {task.dueDate && (
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground whitespace-nowrap bg-muted px-2 py-1 rounded-md">
+                      Due {formatDate(task.dueDate)}
+                    </div>
+                  )}
                 </div>
-              ))}
+                {task.description && (
+                  <div className="text-xs text-muted-foreground mt-1.5 line-clamp-2">
+                    {task.description}
+                  </div>
+                )}
+                {task.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-3">
+                    {task.tags.map((tag, idx) => (
+                      <span
+                        key={idx}
+                        className="px-2 py-0.5 bg-mint/30 border border-mint text-foreground text-[9px] font-bold uppercase tracking-widest rounded-full"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 rounded-full hover:bg-muted"
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="border-2 border-border rounded-xl shadow-bento-sm"
+                >
+                  <DropdownMenuItem
+                    onClick={() => deleteTask(task._id)}
+                    className="text-destructive font-bold text-xs uppercase tracking-widest focus:bg-destructive/10"
+                  >
+                    <Trash2 className="h-3 w-3 mr-2" /> Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
-          </div>
+          ))
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
