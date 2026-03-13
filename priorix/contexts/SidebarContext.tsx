@@ -17,11 +17,10 @@ const STORAGE_KEY = "priorix-sidebar-state";
 const MOBILE_BREAKPOINT = 1024;
 
 export function SidebarProvider({ children }: { children: ReactNode }) {
-  const [isOpen, setIsOpen] = useState(true); // Default: expanded on desktop
+  const [isOpen, setIsOpen] = useState(true); 
   const [isMobile, setIsMobile] = useState(false);
-  const [isVisible, setIsVisible] = useState(false); // Mobile overlay visibility
+  const [isVisible, setIsVisible] = useState(false); 
 
-  // Initialize from localStorage and detect mobile
   useEffect(() => {
     const checkMobile = () => {
       const mobile = window.innerWidth < MOBILE_BREAKPOINT;
@@ -34,7 +33,6 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
           setIsOpen(stored === "true");
         }
       } else {
-        // On mobile, always start with overlay hidden
         setIsVisible(false);
       }
     };
@@ -44,7 +42,6 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // Persist desktop sidebar state
   useEffect(() => {
     if (!isMobile) {
       localStorage.setItem(STORAGE_KEY, String(isOpen));

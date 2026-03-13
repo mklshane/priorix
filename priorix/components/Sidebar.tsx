@@ -115,9 +115,9 @@ export default function Sidebar() {
                 if (isMobile) closeSidebar();
               }}
               className={cn(
-                "group flex w-full items-center rounded-xl px-3 py-2.5 transition-all duration-200 select-none border-2",
+                "group flex w-full items-center rounded-full px-2 py-2.5 transition-all duration-200 select-none border-2",
                 isActive
-                  ? "bg-primary text-primary-foreground border-primary"
+                  ? "bg-tangerine text-primary border-primary"
                   : `bg-transparent text-foreground border-transparent hover:border-border/20 ${item.hoverClass}`,
                 !isMobile && !isOpen && "lg:justify-center lg:px-0",
               )}
@@ -127,7 +127,7 @@ export default function Sidebar() {
                 className={cn(
                   "h-5 w-5 flex-shrink-0 transition-transform group-hover:scale-110",
                   isActive
-                    ? "text-primary-foreground"
+                    ? "text-primary"
                     : "text-muted-foreground",
                   !isMobile && !isOpen ? "lg:mr-0" : "mr-3",
                 )}
@@ -164,7 +164,7 @@ export default function Sidebar() {
             "group flex w-full items-center rounded-xl px-3 py-2.5 transition-all duration-200 select-none border-2",
             pathname === "/settings/learning" ||
               pathname.startsWith("/settings/")
-              ? "bg-primary text-primary-foreground border-primary"
+              ? "bg-citrus text-primary-foreground border-primary"
               : "bg-transparent text-foreground border-transparent hover:border-border/20 hover:bg-muted/50",
             !isMobile && !isOpen && "lg:justify-center lg:px-0",
           )}

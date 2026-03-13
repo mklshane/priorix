@@ -727,7 +727,7 @@ const DecksPageContent = () => {
   );
 
   return (
-    <div className="min-h-[100dvh] p-4 md:p-8 max-w-7xl mx-auto">
+    <div className="min-h-[100dvh] p-4 md:p-8 mx-auto">
       <div className="space-y-8">
         <ConfirmDeleteModal
           isOpen={deleteModalOpen}

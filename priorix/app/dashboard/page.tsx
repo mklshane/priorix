@@ -26,6 +26,7 @@ import { useState } from "react";
 import { CreateDeckRequest } from "@/types/deck";
 import { useToast } from "@/hooks/useToast";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import LearningStatsWidget from "@/components/dashboard/LearningStatsWidget";
 
 export default function DashboardPage() {
@@ -242,57 +243,82 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto pb-8 font-sans selection:bg-mint selection:text-foreground">
+    <div className="space-y-8 mx-auto pb-8 font-sans selection:bg-mint selection:text-foreground">
       <div className="flex flex-col lg:flex-row gap-6 md:gap-8">
         <div
           className={`bento-card ${insight.bgColor} flex-1 flex flex-col justify-center relative overflow-hidden group min-h-[240px]`}
         >
           <div className="absolute -right-8 -top-8 w-48 h-48 bg-background/30 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700 pointer-events-none" />
-          <div className="relative z-10 flex flex-col h-full justify-between">
+          <div className="relative z-10 h-full">
             {isStatsLoading ? (
-              <div className="animate-pulse flex flex-col h-full justify-between">
-                <div>
-                  <div className="h-3 bg-black/5 dark:bg-white/5 rounded w-32 mb-4"></div>
-                  <div className="h-12 bg-black/5 dark:bg-white/5 rounded w-3/4 mb-2"></div>
-                  <div className="h-12 bg-black/5 dark:bg-white/5 rounded w-1/2"></div>
-                </div>
-                <div className="mt-8 flex items-start gap-4 bg-background/60 border-2 border-border rounded-2xl p-4 w-full max-w-lg">
-                  <div className="w-10 h-10 rounded-full bg-black/5 dark:bg-white/5 shrink-0"></div>
-                  <div className="mt-0.5 space-y-2 w-full">
-                    <div className="h-4 bg-black/5 dark:bg-white/5 rounded w-1/3"></div>
-                    <div className="h-3 bg-black/5 dark:bg-white/5 rounded w-2/3"></div>
+              <div className="animate-pulse flex h-full flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+                <div className="flex flex-1 flex-col justify-between min-w-0">
+                  <div>
+                    <div className="h-3 bg-black/5 dark:bg-white/5 rounded w-32 mb-4"></div>
+                    <div className="h-12 bg-black/5 dark:bg-white/5 rounded w-3/4 mb-2"></div>
+                    <div className="h-12 bg-black/5 dark:bg-white/5 rounded w-1/2"></div>
                   </div>
+                  <div className="mt-8 flex items-start gap-4 bg-background/60 border-2 border-border rounded-2xl p-4 w-full max-w-lg">
+                    <div className="w-10 h-10 rounded-full bg-black/5 dark:bg-white/5 shrink-0"></div>
+                    <div className="mt-0.5 space-y-2 w-full">
+                      <div className="h-4 bg-black/5 dark:bg-white/5 rounded w-1/3"></div>
+                      <div className="h-3 bg-black/5 dark:bg-white/5 rounded w-2/3"></div>
+                    </div>
+                  </div>
+                </div>
+                <div className="hidden md:block self-end w-full max-w-[250px] md:max-w-[290px]">
+                  <div className="h-44 md:h-48 rounded-2xl bg-black/5 dark:bg-white/5 border-2 border-border/40"></div>
                 </div>
               </div>
             ) : (
-              <>
-                <div>
-                  <p className="font-bold text-[10px] uppercase tracking-[0.2em] mb-2 opacity-70">
-                    {format(new Date(), "EEEE, MMMM do")}
-                  </p>
-                  <h1 className="text-5xl md:text-6xl font-editorial tracking-tight leading-[0.9]">
-                    {getGreeting()}, <br className="hidden sm:block" />
-                    <span className="italic">
-                      {user?.name?.split(" ")[0] || "Scholar"}.
-                    </span>
-                  </h1>
-                </div>
-                <div className="mt-8 inline-flex items-start gap-4 bg-background/60 backdrop-blur-sm border-2 border-border rounded-2xl p-4 w-full max-w-lg shadow-bento-sm">
-                  <div className="w-10 h-10 rounded-full bg-background border-2 border-border flex items-center justify-center shrink-0 shadow-sm">
-                    <InsightIcon className="w-5 h-5 text-foreground" />
-                  </div>
-                  <div className="mt-0.5">
-                    <p className="text-sm font-bold uppercase tracking-wider">
-                      {insight.message
-                        .replace(/🔥|👋|🏆|🏅|🎯|💎|📈|⚡|🚀|💪|⏱️|⭐|📚/g, "")
-                        .trim()}
+              <div className="flex h-full flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+                <div className="flex min-w-0 flex-1 flex-col justify-between">
+                  <div>
+                    <p className="font-bold text-[10px] uppercase tracking-[0.2em] mb-2 opacity-70">
+                      {format(new Date(), "EEEE, MMMM do")}
                     </p>
-                    <p className="text-xs font-medium text-foreground/80 mt-0.5">
-                      {insight.subtext}
-                    </p>
+                    <h1 className="text-5xl md:text-6xl font-editorial tracking-tight leading-[0.9]">
+                      {getGreeting()}, <br className="hidden sm:block" />
+                      <span className="italic">
+                        {user?.name?.split(" ")[0] || "Scholar"}.
+                      </span>
+                    </h1>
+                  </div>
+                  <div className="mt-8 inline-flex items-start gap-4 bg-background/60 backdrop-blur-sm border-2 border-border rounded-2xl p-4 w-full max-w-lg shadow-bento-sm">
+                    <div className="w-10 h-10 rounded-full bg-background border-2 border-border flex items-center justify-center shrink-0 shadow-sm">
+                      <InsightIcon className="w-5 h-5 text-foreground" />
+                    </div>
+                    <div className="mt-0.5">
+                      <p className="text-sm font-bold uppercase tracking-wider">
+                        {insight.message
+                          .replace(/🔥|👋|🏆|🏅|🎯|💎|📈|⚡|🚀|💪|⏱️|⭐|📚/g, "")
+                          .trim()}
+                      </p>
+                      <p className="text-xs font-medium text-foreground/80 mt-0.5">
+                        {insight.subtext}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </>
+                <div className="hidden md:block self-end w-full max-w-[250px] md:max-w-[290px] lg:w-[290px] pointer-events-none">
+                  <Image
+                    src="/greeting-illustration.svg"
+                    alt="Productive study illustration"
+                    width={620}
+                    height={470}
+                    className="block dark:hidden w-full h-auto"
+                    priority
+                  />
+                  <Image
+                    src="/greeting-illustration-dark.svg"
+                    alt="Productive study illustration"
+                    width={620}
+                    height={470}
+                    className="hidden dark:block w-full h-auto"
+                    priority
+                  />
+                </div>
+              </div>
             )}
           </div>
         </div>

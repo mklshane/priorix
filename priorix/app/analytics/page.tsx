@@ -60,7 +60,7 @@ export default function AnalyticsPage() {
 
   if (!session?.user?.id) {
     return (
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto">
         <p>Please sign in to view analytics</p>
       </div>
     );
@@ -69,7 +69,7 @@ export default function AnalyticsPage() {
   const isLoading = statsLoading || decksLoading || patternsLoading;
 
   return (
-    <div className="mx-auto max-w-7xl">
+    <div className="mx-auto">
       <div className="mb-8 space-y-2">
         <h1 className="text-3xl font-bold font-sora leading-tight">Learning Analytics</h1>
         <p className="text-muted-foreground text-sm sm:text-base">
