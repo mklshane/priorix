@@ -223,7 +223,7 @@ const DeckDetailPage = () => {
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-6 max-w-5xl mx-auto" key={retryKey}>
+    <div className="min-h-screen p-4 md:p-6 mx-auto" key={retryKey}>
       <ImportModal
         isOpen={showImportModal}
         onClose={handleCloseImportModal}
