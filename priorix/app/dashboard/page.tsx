@@ -300,7 +300,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 </div>
-                <div className="hidden md:block self-end w-full max-w-[250px] md:max-w-[290px] lg:w-[290px] pointer-events-none">
+                <div className="hidden xl:block self-end w-full max-w-[250px] md:max-w-[290px] lg:w-[290px] pointer-events-none">
                   <Image
                     src="/greeting-illustration.svg"
                     alt="Productive study illustration"

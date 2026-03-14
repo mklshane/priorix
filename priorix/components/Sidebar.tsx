@@ -144,7 +144,7 @@ export default function Sidebar() {
               </span>
 
               {!isMobile && !isOpen && (
-                <span className="hidden lg:group-hover:block absolute left-[110%] ml-2 px-2.5 py-1.5 bg-foreground text-background font-bold text-[10px] uppercase tracking-widest rounded-lg whitespace-nowrap z-50 shadow-bento">
+                <span className="hidden lg:group-hover:block absolute left-[110%] ml-2 px-2.5 py-1.5 bg-foreground text-background font-bold text-[10px] uppercase tracking-widest rounded-lg whitespace-nowrap z-50">
                   {item.name}
                 </span>
               )}
