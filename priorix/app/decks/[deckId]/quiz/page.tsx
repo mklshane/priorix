@@ -245,7 +245,7 @@ const QuizPage = () => {
 
       {/* Quiz Interface */}
       {!showConfigModal && !showResults && questions.length > 0 && (
-        <div className="container mx-auto px-4 py-4 md:py-8 max-w-3xl flex-1 flex flex-col">
+        <div className="container mx-auto px-4 max-w-5xl flex-1 flex flex-col">
           {/* Header */}
           <div className="mb-6 shrink-0">
             <Button
