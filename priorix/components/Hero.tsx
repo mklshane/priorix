@@ -4,7 +4,7 @@ import { ArrowRight, Sparkles, BookOpen } from "lucide-react";
 export default function Hero() {
   return (
     <section className="relative min-h-[85vh] flex flex-col items-center justify-center px-4 overflow-hidden pt-30">
-      <div className="absolute top-30 left-[10%] hidden lg:flex flex-col gap-4 animate-fade-in">
+      <div className="absolute top-1/2 left-1/2 -translate-x-[clamp(24rem,40vw,37rem)] -translate-y-[clamp(10rem,16vh,13rem)] hidden lg:flex flex-col gap-4 animate-fade-in">
         <div className="bg-mint border-2 border-border rounded-3xl p-4 shadow-bento rotate-[-6deg] w-48 hover:rotate-0 transition-transform duration-300">
           <Sparkles className="w-6 h-6 mb-2" />
           <p className="font-bold text-sm">Spaced Repetition</p>
@@ -12,7 +12,7 @@ export default function Hero() {
       </div>
 
       <div
-        className="absolute bottom-30 right-[10%] hidden lg:flex flex-col gap-4 animate-fade-in"
+        className="absolute top-1/2 left-1/2 translate-x-[clamp(14rem,26vw,24rem)] translate-y-[clamp(8rem,13vh,11rem)] hidden lg:flex flex-col gap-4 animate-fade-in"
         style={{ animationDelay: "200ms" }}
       >
         <div className="bg-citrus border-2 border-border rounded-3xl p-4 shadow-bento rotate-[8deg] w-56 hover:rotate-0 transition-transform duration-300">
