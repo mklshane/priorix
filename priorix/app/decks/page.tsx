@@ -727,7 +727,7 @@ const DecksPageContent = () => {
   );
 
   return (
-    <div className="min-h-[100dvh] p-4 md:p-8 mx-auto">
+    <div className="min-h-[100dvh] mx-auto">
       <div className="space-y-8">
         <ConfirmDeleteModal
           isOpen={deleteModalOpen}
@@ -742,7 +742,7 @@ const DecksPageContent = () => {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 flex-wrap">
             <div>
               <p className="text-xs uppercase tracking-widest font-bold text-muted-foreground mb-2">Overview</p>
-              <h1 className="text-3xl md:text-4xl font-bold text-foreground font-editorial tracking-wide">
+              <h1 className="text-3xl md:text-4xl text-foreground font-editorial tracking-wide">
                 Decks
               </h1>
             </div>
@@ -846,7 +846,7 @@ const DecksPageContent = () => {
 
         {/* Tab Navigation */}
         {!isInFolder && (
-          <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
+          <div className="flex gap-3 overflow-x-auto pb-0 scrollbar-hide">
             {[
               { key: "workspace" as DeckTab, label: "Workspace" },
               { key: "favorites" as DeckTab, label: "Favorites" },

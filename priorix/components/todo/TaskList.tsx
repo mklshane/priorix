@@ -151,7 +151,7 @@ export default function TaskList({
               items={activeTaskIds}
               strategy={verticalListSortingStrategy}
             >
-              <div className="flex flex-col">
+              <div className="flex flex-col gap-3">
                 <AnimatePresence mode="popLayout">
                   {activeTasks.map((task) => (
                     <TaskCard
@@ -175,16 +175,18 @@ export default function TaskList({
                 <h4 className="font-editorial italic text-xl md:text-2xl mb-4 md:mb-6 text-foreground/40">
                   Completed Tasks
                 </h4>
-                {completedTasks.map((task) => (
-                  <TaskCard
-                    key={task._id}
-                    task={task}
-                    variant="completed"
-                    onRestore={restoreTask.mutate}
-                    onDelete={deleteTask.mutate}
-                    onEdit={() => {}}
-                  />
-                ))}
+                <div className="flex flex-col gap-3">
+                  {completedTasks.map((task) => (
+                    <TaskCard
+                      key={task._id}
+                      task={task}
+                      variant="completed"
+                      onRestore={restoreTask.mutate}
+                      onDelete={deleteTask.mutate}
+                      onEdit={() => {}}
+                    />
+                  ))}
+                </div>
               </div>
             )}
           </>

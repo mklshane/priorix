@@ -378,7 +378,9 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 ) : patterns?.insights ? (
-                  <InsightsPanel insights={patterns.insights} />
+                  <div data-dashboard-insights-panel="true">
+                    <InsightsPanel insights={patterns.insights} />
+                  </div>
                 ) : (
                   <div className="bento-card bg-muted/30 border-dashed text-center p-8 h-full flex flex-col justify-center items-center">
                     <p className="font-editorial text-2xl text-muted-foreground">
@@ -398,7 +400,11 @@ export default function DashboardPage() {
                  <div className="h-24 bg-black/5 dark:bg-white/5 rounded-2xl w-full"></div>
                </div>
             ) : userStats?.overview ? (
-              <OverviewStats stats={userStats.overview} layout="vertical" />
+              <OverviewStats
+                stats={userStats.overview}
+                layout="vertical"
+                syncHeightSelector='[data-dashboard-insights-panel="true"]'
+              />
             ) : null}
           </div>
         </div>

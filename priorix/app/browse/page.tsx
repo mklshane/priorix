@@ -144,7 +144,7 @@ function BrowseContent() {
               <Compass className="h-4 w-4" />
               Community Library
             </div>
-            <h1 className="text-3xl font-bold tracking-tight font-sora lg:text-4xl">
+            <h1 className="text-3xl tracking-tight lg:text-4xl">
               Explore
             </h1>
             <p className="text-base md:text-lg text-muted-foreground">
@@ -241,13 +241,13 @@ function BrowseContent() {
         {/* Decks Grid */}
         {!isLoading && filteredDecks.length > 0 && (
           <>
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-8">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
               {paginatedDecks.map((deck) => (
                 <DeckCard
                   key={deck._id}
                   deck={deck}
                   showMenu={false}
-                  className="h-full bg-tangerine/70 dark:bg-tangerine hover:bg-sky/20 dark:hover:bg-sky/10 transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
+                  className="h-full bg-mint/70 dark:bg-mint hover:bg-mint dark:hover:bg-mint/80 transition-all duration-200 hover:scale-[1.02] shadow-none hover:shadow-lg"
                 />
               ))}
             </div>

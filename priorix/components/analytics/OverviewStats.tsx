@@ -1,14 +1,21 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { BookOpen, Clock, Target, Flame, Activity } from "lucide-react";
+
+interface OverviewStatsProps {
+  stats: any;
+  layout?: string;
+  syncHeightSelector?: string;
+}
 
 export default function OverviewStats({
   stats,
   layout = "grid",
-}: {
-  stats: any;
-  layout?: string;
-}) {
+  syncHeightSelector,
+}: OverviewStatsProps) {
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const [syncedMinHeight, setSyncedMinHeight] = useState<number | null>(null);
   const colors = ["bg-citrus", "bg-mint", "bg-lilac", "bg-blush"];
   const items = [
     {
@@ -37,8 +44,51 @@ export default function OverviewStats({
     },
   ];
 
+  useEffect(() => {
+    if (layout !== "vertical" || !syncHeightSelector) {
+      setSyncedMinHeight(null);
+      return;
+    }
+
+    const mediaQuery = window.matchMedia(
+      "(min-width: 1024px) and (min-height: 1366px)",
+    );
+    const target = document.querySelector<HTMLElement>(syncHeightSelector);
+
+    if (!target) {
+      setSyncedMinHeight(null);
+      return;
+    }
+
+    const updateHeight = () => {
+      if (!mediaQuery.matches) {
+        setSyncedMinHeight(null);
+        return;
+      }
+      setSyncedMinHeight(target.getBoundingClientRect().height);
+    };
+
+    updateHeight();
+
+    const observer = new ResizeObserver(updateHeight);
+    observer.observe(target);
+
+    mediaQuery.addEventListener("change", updateHeight);
+    window.addEventListener("resize", updateHeight);
+
+    return () => {
+      observer.disconnect();
+      mediaQuery.removeEventListener("change", updateHeight);
+      window.removeEventListener("resize", updateHeight);
+    };
+  }, [layout, syncHeightSelector]);
+
   return (
-    <div className={`h-full flex flex-col ${layout === "vertical" ? "bento-card bg-card p-6 font-sans" : ""}`}>
+    <div
+      ref={rootRef}
+      className={`h-full flex flex-col ${layout === "vertical" ? "bento-card bg-card p-6 font-sans" : ""}`}
+      style={syncedMinHeight ? { minHeight: `${syncedMinHeight}px` } : undefined}
+    >
       {layout === "vertical" && (
         <div className="flex items-center gap-3 mb-6 shrink-0">
           <div className="w-10 h-10 rounded-xl bg-citrus border-2 border-border flex items-center justify-center shadow-bento-sm">
@@ -53,7 +103,7 @@ export default function OverviewStats({
           layout === "compact"
             ? "grid grid-cols-1 sm:grid-cols-2 gap-4 h-full"
             : layout === "vertical"
-              ? "grid grid-cols-2 gap-3 flex-1 h-full"
+              ? "grid grid-cols-2 auto-rows-fr gap-3 flex-1 h-full"
               : "grid grid-cols-1 md:grid-cols-4 gap-4"
         }
       >

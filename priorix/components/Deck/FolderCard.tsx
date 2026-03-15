@@ -122,7 +122,7 @@ const FolderCard: FC<FolderCardProps> = ({
           <div className="flex-1 flex flex-col justify-between gap-2 z-10 px-2 pt-1 pb-2">
             <div className="flex flex-1 min-w-0 justify-between gap-2">
               <div className="min-w-0">
-                <p className="font-bold font-editorial text-xl line-clamp-1 text-foreground">
+                <p className="font-semibold text-xl line-clamp-1 text-foreground">
                   {displayName}
                 </p>
                 <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mt-1">

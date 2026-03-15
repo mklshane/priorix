@@ -126,7 +126,7 @@ export default function NoteCard({
 			</div>
 
 			{/* Title */}
-			<h3 className="mt-3 line-clamp-2 text-xl font-editorial italic tracking-tight text-foreground">
+			<h3 className="mt-3 line-clamp-2 text-xl font-sans font-semibold tracking-tight text-foreground">
 				{note.title}
 			</h3>
 

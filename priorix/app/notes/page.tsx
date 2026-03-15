@@ -239,7 +239,7 @@ export default function NotesPage() {
       <section className="bento-card">
         <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
           <div className="space-y-2">
-            <h1 className="text-3xl lg:text-4xl font-editorial italic tracking-tight">Notes</h1>
+            <h1 className="text-3xl lg:text-4xl font-editorial tracking-tight">Notes</h1>
             <p className="text-sm uppercase tracking-widest font-bold text-muted-foreground/50">
               Capture ideas fast, organize with folders.
             </p>
