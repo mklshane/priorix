@@ -12,7 +12,7 @@ interface DeckLayoutProps {
 export default function DeckLayout({ children }: DeckLayoutProps) {
   return (
     <DeckProvider>
-      <SidebarLayout contentClassName="p-2 md:p-2">{children}</SidebarLayout>
+      <SidebarLayout>{children}</SidebarLayout>
       <Toaster
         position="top-right"
         toastOptions={{
