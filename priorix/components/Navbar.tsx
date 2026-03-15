@@ -47,6 +47,12 @@ export default function Navbar() {
 
         {/* Desktop Actions */}
         <div className="hidden md:flex items-center gap-4">
+          <Link
+            href="/browse"
+            className="text-sm font-bold uppercase tracking-widest hover:text-muted-foreground transition-colors px-2"
+          >
+            Browse Decks
+          </Link>
           {session ? (
             <Link
               href="/dashboard"
@@ -81,6 +87,13 @@ export default function Navbar() {
       {/* Mobile Dropdown */}
       {isOpen && (
         <div className="absolute top-[120%] left-0 w-full bg-background border-2 border-border rounded-3xl p-6 shadow-bento flex flex-col gap-6 md:hidden animate-in slide-in-from-top-4">
+          <Link
+            href="/browse"
+            className="btn-base bg-card w-full text-center"
+            onClick={() => setIsOpen(false)}
+          >
+            Browse Decks
+          </Link>
           {session ? (
             <Link
               href="/dashboard"

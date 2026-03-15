@@ -28,13 +28,13 @@ export default function Hero() {
         </div>
 
         <h1 className="text-5xl md:text-7xl lg:text-[6rem] leading-[0.9] tracking-tight">
-          Prior to everything else <br />
-          <span className="italic text-muted-foreground/80">—learn what matters.</span>
+          AI flashcards for <br />
+          <span className="italic text-muted-foreground/80">spaced repetition study.</span>
         </h1>
 
         <p className="max-w-2xl mx-auto text-lg md:text-xl font-medium text-muted-foreground mt-6">
-          A beautifully structured workspace for your notes, flashcards, and
-          tasks. Stop fighting your tools and start absorbing knowledge.
+          Create smarter flashcards, organize notes, and track progress with a
+          study planner built for college students.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
