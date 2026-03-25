@@ -35,7 +35,7 @@ export default function Hero() {
         </h1>
         <p className="max-w-2xl mx-auto text-lg md:text-xl font-medium text-muted-foreground mt-6">
           Create smarter flashcards, organize notes, and track progress with a
-          study planner built for college students.
+          study planner built for students.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
