@@ -23,7 +23,7 @@ const instrumentSerif = Instrument_Serif({
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Priorix | AI Flashcard App for Spaced Repetition",
+    default: "Priorix | The smarter way to learn, plan, and remember.",
     template: "%s | Priorix",
   },
   description:
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "Priorix | AI Flashcard App for Spaced Repetition",
+    title: "Priorix | The smarter way to learn, plan, and remember.",
     description:
       "Learn smarter with adaptive spaced repetition, AI flashcard generation, and student-friendly study tools.",
     url: siteUrl,
@@ -64,7 +64,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Priorix | AI Flashcard App for Spaced Repetition",
+    title: "Priorix | The smarter way to learn, plan, and remember.",
     description:
       "AI flashcards, spaced repetition, and study analytics for students.",
     images: ["/og-image.png"],
