@@ -120,7 +120,7 @@ export default function TodoPage() {
   if (sessionStatus === "loading") return null;
 
   return (
-    <div className="space-y-8 mx-auto pb-12 font-sans selection:bg-mint selection:text-foreground">
+    <div className="space-y-8 mx-auto pb-12 px-4 font-sans selection:bg-mint selection:text-foreground">
       {/* 1. Header Section */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
         <div className="space-y-3">

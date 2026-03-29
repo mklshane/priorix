@@ -122,7 +122,7 @@ function BrowseContent() {
   }, [filteredDecks, currentPage]);
 
   return (
-    <div className="min-h-[100dvh] bg-background relative overflow-hidden">
+    <div className="min-h-[100dvh] bg-background relative overflow-hidden px-4">
        {/* Background decorative elements */}
       <div className="absolute top-0 right-0 -translate-y-12 translate-x-1/3 w-96 h-96 bg-sky/20 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-0 translate-y-1/3 -translate-x-1/3 w-96 h-96 bg-lilac/20 rounded-full blur-3xl pointer-events-none" />
