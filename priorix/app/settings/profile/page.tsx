@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/useToast";
-import { User, Mail, Lock, Info } from "lucide-react";
+import { User, Mail, Lock, Info, CalendarDays, ShieldCheck } from "lucide-react";
 
 interface UserProfile {
   name: string;
@@ -101,170 +101,221 @@ export default function ProfileSettingsPage() {
   if (isLoading) {
     return (
       <div className="animate-pulse space-y-6">
-        <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-64"></div>
-        <div className="h-48 bg-gray-300 dark:bg-gray-700 rounded"></div>
+        <div className="h-10 bg-muted rounded w-64 mb-2"></div>
+        <div className="h-4 bg-muted rounded w-96 mb-8"></div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+           <div className="h-64 bg-muted rounded-3xl md:col-span-2"></div>
+           <div className="h-48 bg-muted rounded-3xl md:col-span-2"></div>
+           <div className="h-48 bg-muted rounded-3xl md:col-span-2"></div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold font-sora flex items-center gap-3 mb-2">
-          <User className="h-8 w-8" />
+    <div className="pb-12 max-w-5xl mx-auto">
+      <div className="mb-10">
+        <h1 className="text-4xl md:text-5xl font-editorial tracking-tight mb-3 flex items-center gap-3">
+          <User className="h-8 w-8 md:h-10 md:w-10 text-primary" />
           Profile Settings
         </h1>
-        <p className="text-muted-foreground">
-          Manage your account information
+        <p className="text-lg text-muted-foreground font-sans">
+          Manage your account information and security preferences.
         </p>
       </div>
 
-      <div className="space-y-6">
-        {/* Display Name */}
-        <Card className="border-2 border-black dark:border-darkborder rounded-xl bg-sky/30 dark:bg-sky/10">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <User className="h-5 w-5" />
-              <div>
-                <h3 className="font-semibold font-sora">Display Name</h3>
-                <p className="text-sm text-muted-foreground">
-                  This name appears across your account
-                </p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Profile Info (Full Width) */}
+        <Card className="md:col-span-2 border-2 border-border shadow-bento-sm rounded-3xl bg-card transition-all hover:shadow-bento">
+          <CardContent className="p-6 md:p-8">
+            <div className="flex flex-col md:flex-row gap-8">
+              {/* Display Name Section */}
+              <div className="flex-1 space-y-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-full bg-mint border-2 border-border flex items-center justify-center shadow-sm">
+                    <User className="h-5 w-5 text-foreground" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold font-sans text-foreground">Display Name</h3>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <Label htmlFor="name" className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Name</Label>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <Input
+                      id="name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="flex-1 h-12 rounded-2xl border-2 border-border bg-background px-4 font-medium focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-primary"
+                      maxLength={100}
+                    />
+                    <Button
+                      onClick={() => nameMutation.mutate(name)}
+                      disabled={nameMutation.isPending || name === profile?.name}
+                      className="h-12 px-6 rounded-2xl border-2 border-border font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm hover:-translate-y-0.5 transition-transform active:translate-y-0"
+                    >
+                      {nameMutation.isPending ? "Saving..." : "Update Name"}
+                    </Button>
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="space-y-3">
-              <Label htmlFor="name">Name</Label>
-              <Input
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="border-2 border-black/10 dark:border-darkborder"
-                maxLength={100}
-              />
-              <div className="flex justify-end">
-                <Button
-                  onClick={() => nameMutation.mutate(name)}
-                  disabled={nameMutation.isPending || name === profile?.name}
-                  className="border-2 border-black dark:border-darkborder font-sora"
-                >
-                  {nameMutation.isPending ? "Saving..." : "Save Name"}
-                </Button>
+
+              {/* Vertical Divider on Desktop */}
+              <div className="hidden md:block w-0.5 bg-border rounded-full"></div>
+              {/* Horizontal Divider on Mobile */}
+              <div className="md:hidden h-0.5 w-full bg-border rounded-full"></div>
+
+              {/* Email Section */}
+              <div className="flex-1 space-y-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-full bg-citrus border-2 border-border flex items-center justify-center shadow-sm">
+                    <Mail className="h-5 w-5 text-foreground" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold font-sans text-foreground">Email Address</h3>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                   <div className="flex justify-between items-center">
+                    <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Email</Label>
+                    {profile?.isOAuthUser && (
+                       <span className="text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20">Google Auth</span>
+                    )}
+                   </div>
+                  <Input
+                    value={profile?.email ?? ""}
+                    readOnly
+                    className="h-12 rounded-2xl border-2 border-border bg-muted/30 px-4 font-medium text-muted-foreground cursor-not-allowed focus-visible:ring-0 focus-visible:ring-offset-0"
+                  />
+                  <p className="text-xs text-muted-foreground font-medium ml-1">
+                    {profile?.isOAuthUser
+                      ? "Your email is managed securely via Google."
+                      : "Primary email address for login and notifications."}
+                  </p>
+                </div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Email */}
-        <Card className="border-2 border-black dark:border-darkborder rounded-xl bg-citrus/30 dark:bg-citrus/10">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <Mail className="h-5 w-5" />
-              <div>
-                <h3 className="font-semibold font-sora">Email Address</h3>
-                <p className="text-sm text-muted-foreground">
-                  {profile?.isOAuthUser
-                    ? "Managed by your Google account"
-                    : "Your login email address"}
-                </p>
-              </div>
-            </div>
-            <Input
-              value={profile?.email ?? ""}
-              readOnly
-              className="border-2 border-black/10 dark:border-darkborder bg-muted/50 cursor-not-allowed"
-            />
-          </CardContent>
-        </Card>
-
-        {/* Change Password — hidden for OAuth users */}
+        {/* Change Password (Only visible if not OAuth) */}
         {!profile?.isOAuthUser && (
-          <Card className="border-2 border-black dark:border-darkborder rounded-xl bg-blush/30 dark:bg-blush/10">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <Lock className="h-5 w-5" />
+          <Card className="md:col-span-2 border-2 border-border shadow-bento-sm rounded-3xl bg-card transition-all hover:shadow-bento">
+            <CardContent className="p-6 md:p-8">
+              <div className="flex items-start gap-4 mb-6">
+                <div className="w-10 h-10 rounded-full bg-blush border-2 border-border flex flex-shrink-0 items-center justify-center shadow-sm">
+                  <Lock className="h-5 w-5 text-foreground" />
+                </div>
                 <div>
-                  <h3 className="font-semibold font-sora">Change Password</h3>
-                  <p className="text-sm text-muted-foreground">
+                  <h3 className="text-lg font-bold font-sans mb-1 text-foreground">Security Settings</h3>
+                  <p className="text-sm text-muted-foreground font-medium">
                     Update your account password
                   </p>
                 </div>
               </div>
-              <div className="space-y-3">
-                <div>
-                  <Label htmlFor="currentPassword">Current Password</Label>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="currentPassword" className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Current Password</Label>
                   <Input
                     id="currentPassword"
                     type="password"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
-                    className="border-2 border-black/10 dark:border-darkborder mt-1"
+                    className="h-12 rounded-2xl border-2 border-border bg-background px-4 font-medium focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-primary"
                   />
                 </div>
-                <div>
-                  <Label htmlFor="newPassword">New Password</Label>
+                
+                <div className="row-span-2 hidden md:flex flex-col justify-end pb-1">
+                   <div className="p-4 rounded-2xl bg-muted/30 border-2 border-border/50 text-sm font-medium text-muted-foreground">
+                     Choose a strong, unique password. We recommend using a mix of letters, numbers, and symbols to keep your account secure.
+                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="newPassword" className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">New Password</Label>
                   <Input
                     id="newPassword"
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="border-2 border-black/10 dark:border-darkborder mt-1"
+                    className="h-12 rounded-2xl border-2 border-border bg-background px-4 font-medium focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-primary"
                   />
                 </div>
-                <div>
-                  <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword" className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Confirm Password</Label>
                   <Input
                     id="confirmPassword"
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="border-2 border-black/10 dark:border-darkborder mt-1"
+                    className="h-12 rounded-2xl border-2 border-border bg-background px-4 font-medium focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-primary"
                   />
                 </div>
-                <div className="flex justify-end">
-                  <Button
-                    onClick={handlePasswordSave}
-                    disabled={
-                      passwordMutation.isPending ||
-                      !currentPassword ||
-                      !newPassword ||
-                      !confirmPassword
-                    }
-                    className="border-2 border-black dark:border-darkborder font-sora"
-                  >
-                    {passwordMutation.isPending ? "Saving..." : "Update Password"}
-                  </Button>
-                </div>
+              </div>
+
+              <div className="mt-6 flex justify-end">
+                <Button
+                  onClick={handlePasswordSave}
+                  disabled={
+                    passwordMutation.isPending ||
+                    !currentPassword ||
+                    !newPassword ||
+                    !confirmPassword
+                  }
+                  className="w-full md:w-auto h-12 px-8 rounded-full border-2 border-border font-bold bg-foreground text-background hover:bg-foreground/90 shadow-sm hover:-translate-y-0.5 transition-transform active:translate-y-0"
+                >
+                  {passwordMutation.isPending ? "Updating..." : "Update Password"}
+                </Button>
               </div>
             </CardContent>
           </Card>
         )}
 
-        {/* Account Info */}
-        <Card className="border-2 border-black dark:border-darkborder rounded-xl bg-mint/30 dark:bg-mint/10">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <Info className="h-5 w-5" />
+        {/* Expanded Account Info Stats */}
+        <Card className="md:col-span-2 border-2 border-border shadow-bento-sm rounded-3xl bg-lilac/50 transition-all hover:shadow-bento">
+          <CardContent className="p-6 md:p-8 flex flex-col h-full">
+            <div className="flex items-start gap-4 mb-6">
+              <div className="w-10 h-10 rounded-full bg-background border-2 border-border flex flex-shrink-0 items-center justify-center shadow-sm">
+                <Info className="h-5 w-5 text-foreground" />
+              </div>
               <div>
-                <h3 className="font-semibold font-sora">Account Info</h3>
-                <p className="text-sm text-muted-foreground">
-                  Details about your account
+                <h3 className="text-lg font-bold font-sans mb-1 text-foreground">Account Details</h3>
+                <p className="text-sm text-foreground/70 font-medium">
+                  Quick facts about your profile
                 </p>
               </div>
             </div>
-            <div className="text-sm space-y-1">
-              <p>
-                <span className="font-semibold">Member since:</span>{" "}
-                {profile?.createdAt
-                  ? new Date(profile.createdAt).toLocaleDateString()
-                  : "—"}
-              </p>
-              <p>
-                <span className="font-semibold">Account type:</span>{" "}
-                {profile?.isOAuthUser ? "Google" : "Email & Password"}
-              </p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-auto">
+              <div className="flex flex-col p-5 rounded-2xl bg-background border-2 border-border/50 shadow-sm">
+                <div className="flex items-center gap-3 mb-2">
+                  <CalendarDays className="h-5 w-5 text-muted-foreground" />
+                  <span className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Member Since</span>
+                </div>
+                <span className="text-xl md:text-2xl font-bold font-sans">
+                  {profile?.createdAt
+                    ? new Date(profile.createdAt).toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
+                    : "—"}
+                </span>
+              </div>
+              
+              <div className="flex flex-col p-5 rounded-2xl bg-background border-2 border-border/50 shadow-sm">
+                <div className="flex items-center gap-3 mb-2">
+                  <ShieldCheck className="h-5 w-5 text-muted-foreground" />
+                  <span className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Auth Provider</span>
+                </div>
+                <span className="text-xl md:text-2xl font-bold font-sans capitalize">
+                  {profile?.isOAuthUser ? "Google Auth" : "Email / Password"}
+                </span>
+              </div>
             </div>
           </CardContent>
         </Card>
+
       </div>
     </div>
   );

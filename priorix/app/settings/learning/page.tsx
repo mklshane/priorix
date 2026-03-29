@@ -5,7 +5,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import {
   Select,
@@ -21,7 +20,8 @@ import {
   Clock, 
   TrendingUp, 
   Zap,
-  RefreshCw
+  RefreshCw,
+  Bell
 } from "lucide-react";
 
 interface LearningProfile {
@@ -131,48 +131,56 @@ export default function LearningSettingsPage() {
   if (isLoading) {
     return (
       <div className="animate-pulse space-y-6">
-        <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-64"></div>
-        <div className="h-64 bg-gray-300 dark:bg-gray-700 rounded"></div>
+        <div className="h-10 bg-muted rounded w-64 mb-2"></div>
+        <div className="h-4 bg-muted rounded w-96 mb-8"></div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+           <div className="h-48 bg-muted rounded-3xl"></div>
+           <div className="h-48 bg-muted rounded-3xl"></div>
+           <div className="h-48 bg-muted rounded-3xl"></div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold font-sora flex items-center gap-3 mb-2">
-          <Settings className="h-8 w-8" />
+    <div className="pb-12 max-w-5xl mx-auto">
+      <div className="mb-10">
+        <h1 className="text-4xl md:text-5xl font-editorial tracking-tight mb-3 flex items-center gap-3">
+          <Settings className="h-8 w-8 md:h-10 md:w-10 text-primary" />
           Learning Settings
         </h1>
-        <p className="text-muted-foreground">
-          Customize your adaptive learning experience
+        <p className="text-lg text-muted-foreground font-sans">
+          Customize your adaptive learning experience and study preferences.
         </p>
       </div>
 
-      <div className="space-y-6">
-        {/* Learning Speed Status */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Learning Speed Status (Full Width if present) */}
         {profile?.isCalibrated && (
-          <Card className="border-2 border-black dark:border-darkborder rounded-xl bg-mint/30 dark:bg-mint/10">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold font-sora flex items-center gap-2 mb-1">
-                    <TrendingUp className="h-5 w-5" />
-                    Profile Calibrated
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    Your learning speed: <span className="font-semibold capitalize">{profile.learningSpeed}</span>
-                  </p>
+          <Card className="md:col-span-2 border-2 border-border shadow-bento-sm rounded-3xl bg-mint overflow-hidden transition-all hover:shadow-bento">
+            <CardContent className="p-6 md:p-8">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-full bg-background border-2 border-border flex flex-shrink-0 items-center justify-center shadow-sm">
+                    <TrendingUp className="h-6 w-6 text-foreground" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold font-sans mb-1 text-foreground">
+                      Profile Calibrated
+                    </h3>
+                    <p className="text-sm font-medium text-foreground/80">
+                      Your learning speed is currently mapped as: <span className="font-bold capitalize bg-background px-2 py-0.5 rounded-full border-2 border-border ml-1">{profile.learningSpeed}</span>
+                    </p>
+                  </div>
                 </div>
                 <Button
                   variant="outline"
-                  size="sm"
                   onClick={() => recalibrateMutation.mutate()}
                   disabled={recalibrateMutation.isPending}
-                  className="border-2 border-black dark:border-darkborder"
+                  className="w-full md:w-auto h-12 px-6 rounded-full border-2 border-border font-bold bg-background hover:-translate-y-0.5 active:translate-y-0 transition-all shadow-sm"
                 >
                   <RefreshCw className={`h-4 w-4 mr-2 ${recalibrateMutation.isPending ? 'animate-spin' : ''}`} />
-                  Recalibrate
+                  {recalibrateMutation.isPending ? 'Recalibrating...' : 'Recalibrate Profile'}
                 </Button>
               </div>
             </CardContent>
@@ -180,146 +188,160 @@ export default function LearningSettingsPage() {
         )}
 
         {/* Daily Review Goal */}
-        <Card className="border-2 border-black dark:border-darkborder rounded-xl bg-citrus/30 dark:bg-citrus/10">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <Target className="h-5 w-5" />
+        <Card className="border-2 border-border shadow-bento-sm rounded-3xl bg-card transition-all hover:shadow-bento">
+          <CardContent className="p-6 md:p-8 flex flex-col h-full">
+            <div className="flex items-start gap-4 mb-6">
+              <div className="w-10 h-10 rounded-full bg-citrus border-2 border-border flex flex-shrink-0 items-center justify-center shadow-sm">
+                <Target className="h-5 w-5 text-foreground" />
+              </div>
               <div>
-                <h3 className="font-semibold font-sora">Daily Review Goal</h3>
-                <p className="text-sm text-muted-foreground">
-                  How many cards do you want to review each day?
+                <h3 className="text-lg font-bold font-sans mb-1 text-foreground">Daily Goal</h3>
+                <p className="text-sm text-muted-foreground font-medium">
+                  How many cards to review daily?
                 </p>
               </div>
             </div>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-2xl font-bold font-sora">
-                  {dailyGoal} cards
+            
+            <div className="mt-auto space-y-6">
+              <div className="flex items-baseline justify-between">
+                <span className="text-4xl font-editorial tracking-tight text-foreground">
+                  {dailyGoal}
                 </span>
-                <input
-                  type="range"
-                  min="10"
-                  max="100"
-                  step="5"
-                  value={dailyGoal}
-                  onChange={(e) => setDailyGoal(Number(e.target.value))}
-                  className="w-64"
-                />
+                <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Cards</span>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Session Length */}
-        <Card className="border-2 border-black dark:border-darkborder rounded-xl bg-lilac/30 dark:bg-lilac/10">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <Clock className="h-5 w-5" />
-              <div>
-                <h3 className="font-semibold font-sora">Preferred Session Length</h3>
-                <p className="text-sm text-muted-foreground">
-                  Ideal number of cards per study session
-                </p>
-              </div>
-            </div>
-            <Select
-              value={sessionLength.toString()}
-              onValueChange={(value) => setSessionLength(Number(value))}
-            >
-              <SelectTrigger className="w-full border-2 border-black/10 dark:border-darkborder">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="10">10 cards (Quick session)</SelectItem>
-                <SelectItem value="20">20 cards (Standard)</SelectItem>
-                <SelectItem value="30">30 cards (Extended)</SelectItem>
-                <SelectItem value="40">40 cards (Intensive)</SelectItem>
-              </SelectContent>
-            </Select>
-          </CardContent>
-        </Card>
-
-        {/* Difficulty Preference */}
-        <Card className="border-2 border-black dark:border-darkborder rounded-xl bg-blush/30 dark:bg-blush/10">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <Zap className="h-5 w-5" />
-              <div>
-                <h3 className="font-semibold font-sora">Difficulty Preference</h3>
-                <p className="text-sm text-muted-foreground">
-                  Choose your card prioritization strategy
-                </p>
-              </div>
-            </div>
-            <Select
-              value={difficulty}
-              onValueChange={(value: any) => setDifficulty(value)}
-            >
-              <SelectTrigger className="w-full border-2 border-black/10 dark:border-darkborder">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="challenge">
-                  <div className="flex flex-col">
-                    <span className="font-semibold">Challenge Mode</span>
-                    <span className="text-xs text-muted-foreground">
-                      Prioritize harder cards
-                    </span>
-                  </div>
-                </SelectItem>
-                <SelectItem value="balanced">
-                  <div className="flex flex-col">
-                    <span className="font-semibold">Balanced</span>
-                    <span className="text-xs text-muted-foreground">
-                      Mix of all difficulty levels
-                    </span>
-                  </div>
-                </SelectItem>
-                <SelectItem value="confidence">
-                  <div className="flex flex-col">
-                    <span className="font-semibold">Confidence Building</span>
-                    <span className="text-xs text-muted-foreground">
-                      Include more mastered cards
-                    </span>
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </CardContent>
-        </Card>
-
-        {/* Smart Notifications (Future Feature) */}
-        <Card className="border-2 border-black dark:border-darkborder rounded-xl bg-sky/30 dark:bg-sky/10 opacity-60">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div>
-                  <h3 className="font-semibold font-sora">Smart Notifications</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Get reminders during your optimal study times (Coming soon)
-                  </p>
-                </div>
-              </div>
-              <Switch
-                checked={smartNotifications}
-                onCheckedChange={setSmartNotifications}
-                disabled={true}
+              <input
+                type="range"
+                min="10"
+                max="100"
+                step="5"
+                value={dailyGoal}
+                onChange={(e) => setDailyGoal(Number(e.target.value))}
+                className="w-full accent-primary h-2 bg-muted rounded-lg appearance-none cursor-pointer"
               />
             </div>
           </CardContent>
         </Card>
 
-        {/* Save Button */}
-        <div className="flex justify-end gap-4">
-          <Button
-            size="lg"
-            onClick={handleSave}
-            disabled={updateMutation.isPending}
-            className="bg-mint dark:bg-mint/90 text-black hover:bg-mint/80 dark:hover:bg-mint/70 border-2 border-black dark:border-darkborder font-sora"
-          >
-            {updateMutation.isPending ? "Saving..." : "Save Settings"}
-          </Button>
-        </div>
+        {/* Session Length */}
+        <Card className="border-2 border-border shadow-bento-sm rounded-3xl bg-card transition-all hover:shadow-bento">
+          <CardContent className="p-6 md:p-8 flex flex-col h-full">
+            <div className="flex items-start gap-4 mb-6">
+              <div className="w-10 h-10 rounded-full bg-lilac border-2 border-border flex flex-shrink-0 items-center justify-center shadow-sm">
+                <Clock className="h-5 w-5 text-foreground" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold font-sans mb-1 text-foreground">Session Length</h3>
+                <p className="text-sm text-muted-foreground font-medium">
+                  Ideal cards per study session
+                </p>
+              </div>
+            </div>
+            
+            <div className="mt-auto pt-4">
+              <Select
+                value={sessionLength.toString()}
+                onValueChange={(value) => setSessionLength(Number(value))}
+              >
+                <SelectTrigger className="w-full h-12 rounded-2xl border-2 border-border bg-background font-medium focus:ring-0 focus:ring-offset-0">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl border-2 border-border shadow-bento-sm">
+                  <SelectItem value="10" className="font-medium cursor-pointer rounded-xl">10 cards (Quick)</SelectItem>
+                  <SelectItem value="20" className="font-medium cursor-pointer rounded-xl">20 cards (Standard)</SelectItem>
+                  <SelectItem value="30" className="font-medium cursor-pointer rounded-xl">30 cards (Extended)</SelectItem>
+                  <SelectItem value="40" className="font-medium cursor-pointer rounded-xl">40 cards (Intensive)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Difficulty Preference */}
+        <Card className="border-2 border-border shadow-bento-sm rounded-3xl bg-card transition-all hover:shadow-bento">
+          <CardContent className="p-6 md:p-8 flex flex-col h-full">
+            <div className="flex items-start gap-4 mb-6">
+              <div className="w-10 h-10 rounded-full bg-blush border-2 border-border flex flex-shrink-0 items-center justify-center shadow-sm">
+                <Zap className="h-5 w-5 text-foreground" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold font-sans mb-1 text-foreground">Difficulty Bias</h3>
+                <p className="text-sm text-muted-foreground font-medium">
+                  Card prioritization strategy
+                </p>
+              </div>
+            </div>
+            
+            <div className="mt-auto pt-4">
+              <Select
+                value={difficulty}
+                onValueChange={(value: any) => setDifficulty(value)}
+              >
+                <SelectTrigger className="w-full h-12 rounded-2xl border-2 border-border bg-background font-medium focus:ring-0 focus:ring-offset-0">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl border-2 border-border shadow-bento-sm">
+                  <SelectItem value="challenge" className="cursor-pointer rounded-xl">
+                    <div className="flex flex-col py-1">
+                      <span className="font-bold">Challenge Mode</span>
+                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground mt-0.5">Prioritize harder cards</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="balanced" className="cursor-pointer rounded-xl">
+                    <div className="flex flex-col py-1">
+                      <span className="font-bold">Balanced</span>
+                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground mt-0.5">Mix of all levels</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="confidence" className="cursor-pointer rounded-xl">
+                    <div className="flex flex-col py-1">
+                      <span className="font-bold">Confidence Building</span>
+                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground mt-0.5">Include mastered cards</span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Smart Notifications */}
+        <Card className="border-2 border-border shadow-bento-sm rounded-3xl bg-sky/50 transition-all hover:shadow-bento opacity-80">
+          <CardContent className="p-6 md:p-8 flex flex-col h-full justify-between">
+             <div className="flex items-start gap-4 mb-6">
+              <div className="w-10 h-10 rounded-full bg-background border-2 border-border flex flex-shrink-0 items-center justify-center shadow-sm">
+                <Bell className="h-5 w-5 text-foreground" />
+              </div>
+              <div className="pr-4">
+                <h3 className="text-lg font-bold font-sans mb-1 text-foreground">Smart Notifications</h3>
+                <p className="text-sm text-foreground/70 font-medium">
+                  Get reminders during your optimal study times.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between mt-auto pt-4 border-t-2 border-border/20">
+              <span className="text-xs font-bold uppercase tracking-widest text-foreground/60 bg-background/50 px-3 py-1 rounded-full border-2 border-border/20">Coming Soon</span>
+              <Switch
+                checked={smartNotifications}
+                onCheckedChange={setSmartNotifications}
+                disabled={true}
+                className="data-[state=checked]:bg-primary"
+              />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Save Action */}
+      <div className="mt-8 flex justify-end">
+        <Button
+          size="lg"
+          onClick={handleSave}
+          disabled={updateMutation.isPending}
+          className="w-full md:w-auto h-14 px-8 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground border-2 border-border font-bold text-base hover:-translate-y-1 hover:shadow-bento transition-all active:translate-y-0 active:shadow-none"
+        >
+          {updateMutation.isPending ? "Saving changes..." : "Save Settings"}
+        </Button>
       </div>
     </div>
   );
