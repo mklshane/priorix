@@ -3,9 +3,8 @@
 import { Suspense, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { Compass, Loader2, Search, TrendingUp, Layers } from "lucide-react";
+import { Compass, Loader2, Search, ArrowLeft, ArrowRight } from "lucide-react";
 import DeckCard from "@/components/DeckCard";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -122,90 +121,95 @@ function BrowseContent() {
     return filteredDecks.slice(start, end);
   }, [filteredDecks, currentPage]);
 
-  const totalCards = useMemo(
-    () =>
-      filteredDecks.reduce(
-        (sum, deck) =>
-          sum +
-          (deck.length ||
-            (Array.isArray(deck.flashcards) ? deck.flashcards.length : 0)),
-        0,
-      ),
-    [filteredDecks],
-  );
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-secondary/5">
-      <div className="mx-auto">
+    <div className="min-h-[100dvh] bg-background relative overflow-hidden">
+       {/* Background decorative elements */}
+      <div className="absolute top-0 right-0 -translate-y-12 translate-x-1/3 w-96 h-96 bg-sky/20 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-0 translate-y-1/3 -translate-x-1/3 w-96 h-96 bg-lilac/20 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="container max-w-7xl mx-auto relative z-10">
+        
         {/* Header Section */}
-        <div className="mb-6">
-          <div className="space-y-2 mb-4">
-            <div className="inline-flex items-center gap-2 rounded-full bg-sky/75 dark:bg-sky/10 px-4 py-2 text-sm font-semibold text-foreground border-2 border-black dark:border-darkborder">
-              <Compass className="h-4 w-4" />
-              Community Library
-            </div>
-            <h1 className="text-3xl tracking-tight lg:text-4xl">
-              Explore
-            </h1>
-            <p className="text-base md:text-lg text-muted-foreground">
-              Discover and learn from thousands of flashcards created by learners worldwide
-            </p>
+        <div className="max-w-3xl mx-auto text-center mb-12">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border-2 border-border bg-sky/30 shadow-sm text-xs font-bold uppercase tracking-widest text-foreground mb-6">
+            <Compass className="h-4 w-4" />
+            Community Library
           </div>
+          <h1 className="text-5xl md:text-6xl font-editorial tracking-tight mb-4 text-foreground">
+            Explore Decks
+          </h1>
+          <p className="text-lg md:text-xl text-muted-foreground font-sans max-w-2xl mx-auto">
+            Discover and learn from thousands of flashcards created by the Priorix community.
+          </p>
         </div>
 
         {/* Search Section */}
-        <div className="mb-8 max-w-2xl">
-          <div className="relative w-full">
-            <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={search}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              placeholder="Search flashcards..."
-              className="h-12 pl-12 text-base border-2 border-black dark:border-darkborder focus:border-black dark:focus:border-white transition-colors"
-            />
+        <div className="max-w-2xl mx-auto mb-16">
+          <div className="relative group">
+            <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl transition-all group-hover:bg-primary/30 opacity-50" />
+            <div className="relative flex items-center bg-background border-2 border-border rounded-full shadow-bento-sm overflow-hidden p-1 hover:shadow-bento transition-shadow duration-300">
+               <div className="pl-5 pr-3 text-muted-foreground">
+                 <Search className="h-6 w-6" />
+               </div>
+              <Input
+                value={search}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                placeholder="Search by topic, keyword, or creator..."
+                className="flex-1 h-14 border-0 bg-transparent text-lg shadow-none focus-visible:ring-0 px-0 placeholder:text-muted-foreground/50 font-medium"
+              />
+              {search && (
+                 <Button 
+                   variant="ghost" 
+                   size="sm" 
+                   onClick={() => handleSearchChange("")}
+                   className="h-10 px-4 mr-1 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-muted"
+                 >
+                   Clear
+                 </Button>
+              )}
+            </div>
           </div>
         </div>
 
         {/* Error State */}
         {error && (
-          <Card className="mb-6 border-2 border-destructive bg-destructive/5">
-            <CardContent className="py-8 text-center">
-              <div className="mx-auto w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
-                <Compass className="h-8 w-8 text-destructive" />
+          <Card className="max-w-md mx-auto border-2 border-red-500/50 bg-red-50 dark:bg-red-500/10 shadow-bento-sm rounded-3xl">
+            <CardContent className="p-8 text-center">
+              <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 border-2 border-red-500/30 flex items-center justify-center mx-auto mb-4">
+                <Compass className="h-8 w-8 text-red-600 dark:text-red-400" />
               </div>
-              <h3 className="text-lg font-semibold text-destructive mb-2">
-                Failed to load decks
+              <h3 className="text-xl font-bold font-sans text-red-900 dark:text-red-200 mb-2">
+                Connection Error
               </h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Please check your connection and try again
+              <p className="text-sm font-medium text-red-700 dark:text-red-300 mb-6">
+                We couldn't load the community library. Please check your connection.
               </p>
               <Button
                 onClick={() => window.location.reload()}
-                className="bg-destructive hover:bg-destructive/90 text-white font-semibold border-2 border-black dark:border-darkborder"
+                className="h-12 px-8 rounded-full bg-red-600 hover:bg-red-700 text-white font-bold border-2 border-red-800 shadow-sm"
               >
-                Retry
+                Try Again
               </Button>
             </CardContent>
           </Card>
         )}
 
-        {/* Loading State - only show on initial load, not refetches */}
+        {/* Loading State */}
         {(isLoading || isFetching) && decks.length === 0 && (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {Array.from({ length: 6 }).map((_, idx) => (
-              <Card key={idx} className="border-2 border-black dark:border-darkborder bg-muted/20 overflow-hidden">
-                <CardContent className="p-6">
-                  <div className="space-y-4">
-                    <div className="h-6 bg-muted animate-pulse rounded-lg w-3/4"></div>
-                    <div className="h-4 bg-muted animate-pulse rounded w-full"></div>
-                    <div className="h-4 bg-muted animate-pulse rounded w-5/6"></div>
-                    <div className="flex items-center gap-3 pt-4">
-                      <div className="h-10 w-10 rounded-full bg-muted animate-pulse"></div>
-                      <div className="space-y-2 flex-1">
-                        <div className="h-3 bg-muted animate-pulse rounded w-24"></div>
-                        <div className="h-3 bg-muted animate-pulse rounded w-16"></div>
-                      </div>
-                    </div>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, idx) => (
+              <Card key={idx} className="border-2 border-border bg-card shadow-bento-sm rounded-[2rem] h-[180px] overflow-hidden">
+                <CardContent className="p-5 h-full flex flex-col justify-between">
+                  <div>
+                     <div className="h-6 bg-muted/60 animate-pulse rounded-lg w-3/4 mb-3" />
+                     <div className="space-y-2">
+                       <div className="h-3 bg-muted/40 animate-pulse rounded-full w-full" />
+                       <div className="h-3 bg-muted/40 animate-pulse rounded-full w-5/6" />
+                     </div>
+                  </div>
+                  <div className="flex justify-between items-center mt-4">
+                     <div className="h-6 w-20 bg-muted/40 animate-pulse rounded-md" />
+                     <div className="h-4 w-16 bg-muted/40 animate-pulse rounded-md" />
                   </div>
                 </CardContent>
               </Card>
@@ -215,23 +219,23 @@ function BrowseContent() {
 
         {/* Empty State */}
         {!isLoading && filteredDecks.length === 0 && !error && (
-          <Card className="border-2 border-dashed border-black dark:border-darkborder bg-muted/20">
-            <CardContent className="py-16 text-center">
-              <div className="mx-auto w-20 h-20 rounded-full bg-sky/20 dark:bg-sky/10 flex items-center justify-center mb-6 border-2 border-black dark:border-darkborder">
-                <Compass className="h-10 w-10 text-foreground" />
+          <Card className="max-w-lg mx-auto border-2 border-dashed border-border bg-card/50 shadow-none rounded-[3rem]">
+            <CardContent className="p-12 text-center">
+              <div className="w-24 h-24 rounded-full bg-muted border-2 border-border flex items-center justify-center mx-auto mb-6">
+                <Search className="h-10 w-10 text-muted-foreground opacity-50" />
               </div>
-              <h3 className="text-xl font-bold mb-2 font-sora">No decks found</h3>
-              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+              <h3 className="text-2xl font-bold font-sans mb-3 text-foreground">No matches found</h3>
+              <p className="text-base font-medium text-muted-foreground mb-8">
                 {search
-                  ? `We couldn't find any decks matching "${search}". Try different keywords or clear your search.`
-                  : "No public decks are available yet. Be the first to create and share one!"}
+                  ? `We couldn't find any decks matching "${search}". Try adjusting your keywords.`
+                  : "No public decks are available right now. Be the first to share one!"}
               </p>
               {search && (
                 <Button 
-                  onClick={() => setSearch("")}
-                  className="bg-sky hover:bg-sky/90 text-black font-bold border-2 border-black dark:border-darkborder"
+                  onClick={() => handleSearchChange("")}
+                  className="h-12 px-8 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold border-2 border-border shadow-bento-sm hover:-translate-y-0.5 transition-all"
                 >
-                  Clear search
+                  Clear Search
                 </Button>
               )}
             </CardContent>
@@ -241,78 +245,76 @@ function BrowseContent() {
         {/* Decks Grid */}
         {!isLoading && filteredDecks.length > 0 && (
           <>
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-              {paginatedDecks.map((deck) => (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 mb-12">
+              {paginatedDecks.map((deck, idx) => (
                 <DeckCard
                   key={deck._id}
                   deck={deck}
                   showMenu={false}
-                  className="h-full bg-mint/70 dark:bg-mint hover:bg-mint dark:hover:bg-mint/80 transition-all duration-200 hover:scale-[1.02] shadow-none hover:shadow-lg"
+                  index={idx}
+                  className="h-[160px] rounded-[2rem] bg-mint" // Ensures consistent sizing
                 />
               ))}
             </div>
 
-            {/* Pagination */}
+            {/* Pagination Container */}
             {filteredDecks.length > PAGE_SIZE && (
-              <Card className="border-2 border-black dark:border-darkborder bg-card">
-                <CardContent className="p-2 px-4">
-                  <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-                    <div className="text-sm text-muted-foreground font-medium">
-                      Showing <span className="font-bold text-foreground">{(currentPage - 1) * PAGE_SIZE + 1}</span> to <span className="font-bold text-foreground">{Math.min(currentPage * PAGE_SIZE, filteredDecks.length)}</span> of <span className="font-bold text-foreground">{filteredDecks.length}</span>
-                    </div>
+              <div className="flex justify-center mt-8">
+                <div className="inline-flex items-center gap-2 p-2 rounded-full border-2 border-border bg-card shadow-bento-sm">
+                  
+                  {/* Prev Button */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    disabled={currentPage <= 1}
+                    onClick={() => setPageInUrl(Math.max(1, currentPage - 1))}
+                    className="h-10 w-10 rounded-full hover:bg-muted"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                  </Button>
 
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={currentPage <= 1}
-                        onClick={() => setPageInUrl(Math.max(1, currentPage - 1))}
-                        className="h-10 px-4 border-2 border-black dark:border-darkborder font-semibold"
-                      >
-                        Previous
-                      </Button>
-
-                      <div className="flex items-center gap-1">
-                        {paginationItems.map((item, idx) =>
-                          item === "ellipsis" ? (
-                            <span
-                              key={`ellipsis-${idx}`}
-                              className="px-2 text-muted-foreground font-bold"
-                            >
-                              …
-                            </span>
-                          ) : (
-                            <Button
-                              key={item}
-                              variant={item === currentPage ? "default" : "outline"}
-                              size="sm"
-                              onClick={() => handlePageClick(item)}
-                              className={`h-10 w-10 p-0 font-bold border-2 border-black dark:border-darkborder ${
-                                item === currentPage 
-                                  ? "bg-tangerine hover:bg-tangerine/90 text-black" 
-                                  : "hover:bg-tangerine/20 dark:hover:bg-tangerine/10"
-                              }`}
-                              aria-current={item === currentPage ? "page" : undefined}
-                            >
-                              {item}
-                            </Button>
-                          ),
-                        )}
-                      </div>
-
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={currentPage >= totalPages}
-                        onClick={() => setPageInUrl(Math.min(totalPages, currentPage + 1))}
-                        className="h-10 px-4 border-2 border-black dark:border-darkborder font-semibold"
-                      >
-                        Next
-                      </Button>
-                    </div>
+                  {/* Page Numbers */}
+                  <div className="flex items-center gap-1 px-2 border-x-2 border-border/50">
+                    {paginationItems.map((item, idx) =>
+                      item === "ellipsis" ? (
+                        <span
+                          key={`ellipsis-${idx}`}
+                          className="px-2 text-muted-foreground font-bold"
+                        >
+                          …
+                        </span>
+                      ) : (
+                        <Button
+                          key={item}
+                          variant={item === currentPage ? "default" : "ghost"}
+                          size="sm"
+                          onClick={() => handlePageClick(item)}
+                          className={`h-10 w-10 p-0 rounded-full font-bold text-sm transition-all ${
+                            item === currentPage 
+                              ? "bg-foreground text-background shadow-md border-2 border-foreground hover:bg-foreground/90" 
+                              : "hover:bg-muted border-2 border-transparent"
+                          }`}
+                          aria-current={item === currentPage ? "page" : undefined}
+                        >
+                          {item}
+                        </Button>
+                      ),
+                    )}
                   </div>
-                </CardContent>
-              </Card>
+
+                  {/* Next Button */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    disabled={currentPage >= totalPages}
+                    onClick={() => setPageInUrl(Math.min(totalPages, currentPage + 1))}
+                    className="h-10 w-10 rounded-full hover:bg-muted"
+                  >
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+
+                </div>
+              </div>
             )}
           </>
         )}
@@ -325,9 +327,11 @@ export default function BrowsePage() {
   return (
     <Suspense
       fallback={
-        <div className="flex items-center justify-center p-6 text-muted-foreground">
-          <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
-          <span className="ml-2 text-sm">Loading browse…</span>
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <div className="flex flex-col items-center gap-4 text-muted-foreground">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <span className="text-sm font-bold uppercase tracking-widest">Loading Library</span>
+          </div>
         </div>
       }
     >
