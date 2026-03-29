@@ -5,14 +5,6 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -43,11 +35,11 @@ import {
   Trash2,
   StickyNote,
   X,
-  ArrowUpDown,
   FolderPlus,
+  Layers,
+  ArrowUpDown
 } from "lucide-react";
 
-/* ── colour palette cycling ── */
 const NOTE_COLORS = [
   "bg-blush dark:bg-blush text-foreground",
   "bg-citrus dark:bg-citrus text-foreground",
@@ -55,14 +47,6 @@ const NOTE_COLORS = [
   "bg-lilac dark:bg-lilac text-foreground",
   "bg-mint dark:bg-mint text-foreground",
   "bg-tangerine dark:bg-tangerine text-foreground",
-];
-
-const FOLDER_COLORS = [
-  { bg: "bg-lilac dark:bg-lilac", icon: "text-foreground" },
-  { bg: "bg-citrus dark:bg-citrus", icon: "text-foreground" },
-  { bg: "bg-sky dark:bg-sky", icon: "text-foreground" },
-  { bg: "bg-blush dark:bg-blush", icon: "text-foreground" },
-  { bg: "bg-mint dark:bg-mint", icon: "text-foreground" },
 ];
 
 export default function NotesPage() {
@@ -118,11 +102,6 @@ export default function NotesPage() {
     [activeFolder, folders]
   );
 
-  const rootNotesCount = useMemo(
-    () => allNotes.filter((n) => !n.folder).length,
-    [allNotes]
-  );
-
   const hasFilters = !!activeFolder || !!searchQuery.trim();
 
   useEffect(() => {
@@ -136,7 +115,6 @@ export default function NotesPage() {
     }
   }, []);
 
-  /* ── handlers ── */
   const handleCreateNote = async () => {
     if (!noteTitle.trim()) { showToast("Note title is required", "error"); return; }
     try {
@@ -221,84 +199,96 @@ export default function NotesPage() {
   if (status === "loading") {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <div className="flex flex-col items-center gap-4 text-muted-foreground">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+          <span className="text-sm font-bold uppercase tracking-widest">Loading Workspace</span>
+        </div>
       </div>
     );
   }
   if (!session?.user?.id) {
     return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 text-muted-foreground">
-        <FileText className="h-10 w-10" />
-        <p>Please sign in to access notes.</p>
+      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 text-muted-foreground">
+        <div className="p-4 rounded-full bg-muted border-2 border-border">
+          <FileText className="h-8 w-8" />
+        </div>
+        <p className="font-bold uppercase tracking-widest text-sm">Please sign in to access notes.</p>
       </div>
     );
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-6">
-      <section className="bento-card">
-        <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
-          <div className="space-y-2">
-            <h1 className="text-3xl lg:text-4xl font-editorial tracking-tight">Notes</h1>
-            <p className="text-sm uppercase tracking-widest font-bold text-muted-foreground/50">
-              Capture ideas fast, organize with folders.
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-10 px-4 py-8 md:py-12">
+      
+      <section className="flex flex-col gap-8">
+        <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+          <div className="space-y-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border-2 border-border bg-lilac/30 shadow-sm text-xs font-bold uppercase tracking-widest text-foreground">
+              <Layers className="h-3.5 w-3.5" /> Workspace
+            </div>
+            <h1 className="text-5xl md:text-6xl font-editorial tracking-tight text-foreground">Notes</h1>
+            <p className="text-lg font-sans text-muted-foreground max-w-xl">
+              Capture your thoughts, organize with folders, and never lose an idea.
             </p>
           </div>
 
-          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-            <button
-              className="btn-primary"
-              onClick={() => setIsCreateChooserOpen(true)}
-            >
-              <Plus className="h-4 w-4" />
-              ADD NEW
-            </button>
-          </div>
+          <Button
+            className="h-12 md:h-14 px-8 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold border-2 border-border shadow-bento-sm hover:-translate-y-1 hover:shadow-bento transition-all active:translate-y-0 text-base"
+            onClick={() => setIsCreateChooserOpen(true)}
+          >
+            <Plus className="h-5 w-5 mr-2" />
+            Add New
+          </Button>
         </div>
 
-        <div className="mt-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="relative w-full lg:max-w-md">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <input
+        {/* Search & Filters Row */}
+        <div className="flex flex-col gap-3 md:flex-row md:items-center p-2 rounded-[1.5rem] bg-card border-2 border-border shadow-bento-sm">
+          <div className="relative w-full flex-1">
+            <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+            <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search notes..."
-              className="w-full h-10 rounded-xl border-2 border-border bg-background pl-9 focus:outline-none focus:ring-0 text-sm font-bold uppercase tracking-widest"
+              placeholder="Search your notes..."
+              className="w-full h-12 rounded-2xl border-0 bg-transparent pl-11 text-base font-medium focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/60"
             />
           </div>
+          
+          <div className="w-px h-8 bg-border hidden md:block" />
 
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="relative border-2 border-border bg-card rounded-xl shadow-sm">
+          <div className="flex items-center gap-2 px-2 pb-2 md:pb-0">
+            <div className="relative min-w-[160px]">
               <select
                 value={sortBy}
                 onChange={(e: any) => setSortBy(e.target.value)}
-                className="appearance-none bg-transparent pl-4 pr-10 py-2.5 text-xs md:text-sm uppercase tracking-widest font-bold focus:outline-none focus:ring-0 cursor-pointer text-foreground"
+                className="w-full h-12 appearance-none bg-muted/50 rounded-xl px-4 pr-10 text-xs md:text-sm font-bold uppercase tracking-widest focus:outline-none cursor-pointer text-foreground hover:bg-muted transition-colors border-2 border-transparent hover:border-border"
               >
                 <option value="recent">Most recent</option>
                 <option value="name">Name (A-Z)</option>
                 <option value="date">Created date</option>
               </select>
-              <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-xs text-foreground/50">
-                ▼
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground">
+                <ArrowUpDown className="h-4 w-4" />
               </div>
             </div>
 
             {hasFilters && (
-              <button
-                className="btn-base border-2 border-border text-xs uppercase tracking-widest hover:bg-muted"
+              <Button
+                variant="ghost"
                 onClick={handleClearFilters}
+                className="h-12 rounded-xl text-xs font-bold uppercase tracking-widest text-muted-foreground hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400"
               >
-                <X className="h-4 w-4" />
+                <X className="h-4 w-4 mr-1.5" />
                 Clear
-              </button>
+              </Button>
             )}
           </div>
         </div>
       </section>
 
-      <section className="space-y-3">
+      {/* ═══════ FOLDERS ═══════ */}
+      <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-editorial italic tracking-tight text-foreground/70">Folders</h2>
+          <h2 className="text-2xl font-editorial tracking-tight text-foreground">Collections</h2>
           {activeFolderObj && (
             <span className="text-[10px] uppercase font-bold tracking-widest bg-mint text-mint-foreground px-3 py-1 rounded-full border-2 border-border shadow-sm">
               Viewing {activeFolderObj.name}
@@ -306,31 +296,32 @@ export default function NotesPage() {
           )}
         </div>
 
-        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none">
+        <div className="flex gap-4 overflow-x-auto pb-4 pt-1 px-1 scrollbar-none snap-x">
+          {/* "All Notes" Card */}
           <button
             onClick={() => setActiveFolder(null)}
-            className={`flex w-44 lg:w-52 shrink-0 flex-col gap-2 rounded-2xl border-2 p-4 text-left transition-all ${
+            className={`flex w-48 md:w-56 shrink-0 flex-col gap-3 rounded-[2rem] border-2 p-5 text-left transition-all snap-start ${
               !activeFolder
-                ? "border-border shadow-bento bg-tangerine dark:bg-tangerine"
-                : "border-border shadow-sm bg-card hover:-translate-y-1 hover:shadow-bento"
+                ? "border-border shadow-bento bg-tangerine text-black scale-[1.02]"
+                : "border-border shadow-sm bg-card hover:-translate-y-1 hover:shadow-bento-sm hover:bg-accent/50"
             }`}
           >
-            <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-background border-2 border-border shadow-sm`}>
-              <StickyNote className="h-5 w-5 text-foreground" />
+            <div className={`flex h-12 w-12 items-center justify-center rounded-2xl border-2 border-border shadow-sm ${!activeFolder ? "bg-background text-foreground" : "bg-muted text-foreground"}`}>
+              <StickyNote className="h-5 w-5" />
             </div>
             <div className="mt-2 min-w-0">
-              <p className={`truncate text-sm font-bold uppercase tracking-widest ${!activeFolder ? "text-black" : ""}`}>All Notes</p>
-              <p className={`text-xs font-medium ${!activeFolder ? "text-black/70" : "text-muted-foreground"}`}>{allNotes.length} total</p>
+              <p className={`truncate text-base font-bold font-sans ${!activeFolder ? "text-black" : "text-foreground"}`}>All Notes</p>
+              <p className={`text-xs font-bold uppercase tracking-widest mt-1 ${!activeFolder ? "text-black/70" : "text-muted-foreground"}`}>{allNotes.length} total</p>
             </div>
           </button>
 
+          {/* Folder Cards */}
           {foldersLoading
             ? Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="h-28 w-44 lg:w-52 shrink-0 animate-pulse rounded-2xl bg-muted border-2 border-border shadow-sm" />
+                <div key={i} className="h-36 w-48 md:w-56 shrink-0 animate-pulse rounded-[2rem] bg-muted border-2 border-border shadow-sm snap-start" />
               ))
             : folders.map((folder, idx) => {
                 const isActive = activeFolder === folder._id;
-                // We'll map the legacy colors to our new ones based on index
                 const folderStyle = [
                   "bg-lilac dark:bg-lilac",
                   "bg-citrus dark:bg-citrus",
@@ -342,15 +333,15 @@ export default function NotesPage() {
                 return (
                   <div
                     key={folder._id}
-                    className={`group relative flex w-44 lg:w-52 shrink-0 cursor-pointer flex-col gap-3 rounded-2xl border-2 p-4 transition-all ${
+                    className={`group relative flex w-48 md:w-56 shrink-0 cursor-pointer flex-col gap-3 rounded-[2rem] border-2 p-5 transition-all snap-start ${
                       isActive
-                        ? `border-border shadow-bento ${folderStyle}`
-                        : "border-border bg-card shadow-sm hover:-translate-y-1 hover:shadow-bento"
+                        ? `border-border shadow-bento scale-[1.02] ${folderStyle}`
+                        : "border-border bg-card shadow-sm hover:-translate-y-1 hover:shadow-bento-sm hover:bg-accent/50"
                     }`}
                     onClick={() => setActiveFolder(isActive ? null : folder._id)}
                   >
                     <div className="flex items-start justify-between">
-                      <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-background border-2 border-border shadow-sm`}>
+                      <div className={`flex h-12 w-12 items-center justify-center rounded-2xl border-2 border-border shadow-sm ${isActive ? "bg-background" : "bg-muted"}`}>
                         <FolderOpen className="h-5 w-5 text-foreground" />
                       </div>
                       <DropdownMenu>
@@ -358,14 +349,15 @@ export default function NotesPage() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-7 w-7 opacity-0 transition-opacity group-hover:opacity-100"
+                            className="h-8 w-8 rounded-full opacity-0 transition-opacity group-hover:opacity-100 hover:bg-background/50"
                             onClick={(e) => e.stopPropagation()}
                           >
-                            <MoreHorizontal className="h-4 w-4" />
+                            <MoreHorizontal className="h-5 w-5" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-36">
+                        <DropdownMenuContent align="end" className="w-40 rounded-2xl border-2 border-border shadow-bento-sm">
                           <DropdownMenuItem
+                            className="rounded-xl cursor-pointer"
                             onClick={(e) => {
                               e.stopPropagation();
                               setRenameFolderId(folder._id);
@@ -376,9 +368,10 @@ export default function NotesPage() {
                             <Pencil className="mr-2 h-4 w-4" />
                             Rename
                           </DropdownMenuItem>
-                          <DropdownMenuSeparator />
+                          <DropdownMenuSeparator className="bg-border/50" />
                           <DropdownMenuItem
                             variant="destructive"
+                            className="rounded-xl cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-500/10"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleDeleteFolder(folder._id);
@@ -391,66 +384,73 @@ export default function NotesPage() {
                       </DropdownMenu>
                     </div>
 
-                    <div className="min-w-0">
-                      <p className={`truncate text-sm font-bold uppercase tracking-widest ${isActive ? "text-black" : ""}`}>{folder.name}</p>
-                      <p className={`mt-0.5 text-xs font-medium ${isActive ? "text-black/70" : "text-muted-foreground"}`}>
+                    <div className="mt-2 min-w-0">
+                      <p className={`truncate text-base font-bold font-sans ${isActive ? "text-black" : "text-foreground"}`}>{folder.name}</p>
+                      <p className={`text-xs font-bold uppercase tracking-widest mt-1 ${isActive ? "text-black/60" : "text-muted-foreground"}`}>
                         {folder.noteCount || 0} note{(folder.noteCount || 0) !== 1 ? "s" : ""}
                       </p>
                     </div>
                   </div>
                 );
               })}
-
         </div>
       </section>
 
-      <section className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-xl font-editorial italic tracking-tight text-foreground/70">
-            {activeFolder ? `Notes in ` : "All Notes"} 
-            {activeFolder && <span className="text-foreground not-italic font-bold ml-1">"{activeFolderObj?.name}"</span>}
-            <span className="ml-2 text-sm font-sans font-bold uppercase tracking-widest text-muted-foreground/50">({displayedNotes.length})</span>
+      {/* ═══════ NOTES GRID ═══════ */}
+      <section className="space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 border-b-2 border-border pb-4">
+          <h2 className="text-2xl font-editorial tracking-tight text-foreground flex items-baseline gap-2">
+            {activeFolder ? `Notes in ` : "Recent Notes"} 
+            {activeFolder && <span className="font-bold font-sans text-xl">"{activeFolderObj?.name}"</span>}
           </h2>
 
-          {searchQuery.trim() && (
-            <p className="text-xs uppercase tracking-widest font-bold text-muted-foreground">
-              Results for <span className="text-foreground">“{searchQuery.trim()}”</span>
-            </p>
-          )}
+          <div className="flex items-center gap-4">
+            {searchQuery.trim() && (
+              <p className="text-xs uppercase tracking-widest font-bold text-muted-foreground">
+                Results for <span className="text-foreground">“{searchQuery.trim()}”</span>
+              </p>
+            )}
+            <span className="text-xs font-bold uppercase tracking-widest bg-muted px-2 py-1 rounded-md border-2 border-border/50">
+               {displayedNotes.length} Items
+            </span>
+          </div>
         </div>
 
         {notesLoading ? (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-56 animate-pulse rounded-2xl bg-muted border-2 border-border" />
+              <div key={i} className="h-[220px] animate-pulse rounded-3xl bg-muted border-2 border-border" />
             ))}
           </div>
         ) : displayedNotes.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border/60 bg-card py-20 text-center shadow-sm">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted border-2 border-border">
-              <StickyNote className="h-7 w-7 text-muted-foreground" />
+          <div className="flex flex-col items-center justify-center rounded-[3rem] border-2 border-dashed border-border/60 bg-card/50 py-24 text-center">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-background border-2 border-border shadow-sm mb-6">
+              <StickyNote className="h-8 w-8 text-muted-foreground opacity-50" />
             </div>
-            <h3 className="mt-5 text-lg font-bold uppercase tracking-widest">
-              {activeFolder ? "No notes in this folder" : "No notes yet"}
+            <h3 className="text-2xl font-bold font-sans text-foreground mb-2">
+              {activeFolder ? "This folder is empty" : "No notes yet"}
             </h3>
-            <p className="mt-1.5 max-w-sm text-sm text-muted-foreground font-medium">
+            <p className="max-w-md text-base text-muted-foreground font-medium mb-8">
               {activeFolder
-                ? "Create a note here or move one from another folder."
-                : "Create your first note to start writing and organizing ideas."}
+                ? "Start adding notes to this collection to keep your thoughts organized."
+                : "Create your first note to start writing, planning, and organizing ideas."}
             </p>
-            <button className="btn-primary mt-6" onClick={() => setIsCreateChooserOpen(true)}>
-              <Plus className="h-4 w-4" />
-              ADD NOTE
-            </button>
+            <Button 
+              className="h-12 px-8 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold border-2 border-border shadow-bento-sm hover:-translate-y-1 transition-all" 
+              onClick={() => setIsCreateNoteOpen(true)}
+            >
+              <Plus className="h-5 w-5 mr-2" />
+              Create Note
+            </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 pb-12">
             {displayedNotes.map((note, idx) => (
               <NoteCard
                 key={note._id}
                 note={note}
                 folders={folders}
-                colorClass={NOTE_COLORS[idx % NOTE_COLORS.length]}
+                colorClass={`${NOTE_COLORS[idx % NOTE_COLORS.length]} rounded-3xl`}
                 onOpen={(noteId) => router.push(`/notes/${noteId}`)}
                 onRename={(n) => {
                   setSelectedNote(n);
@@ -467,222 +467,185 @@ export default function NotesPage() {
 
       {/* ═══════ DIALOGS ═══════ */}
       <Dialog open={isCreateChooserOpen} onOpenChange={setIsCreateChooserOpen}>
-        <DialogContent className="modal-surface p-0 sm:max-w-[520px]">
-          <DialogHeader className="flex flex-row items-start gap-3 border-b border-border/60 bg-gradient-to-r from-primary/10 via-muted/40 to-transparent px-6 py-5">
-            <div className="flex size-12 items-center justify-center rounded-lg bg-primary/15 text-primary shadow-inner ring-1 ring-primary/20">
-              <Plus className="h-5 w-5" />
-            </div>
-            <div className="space-y-1 text-left">
-              <DialogTitle className="text-xl">Add to notes</DialogTitle>
-              <DialogDescription>
-                Choose what you want to create.
-              </DialogDescription>
-            </div>
+        <DialogContent className="sm:max-w-[500px] rounded-[2rem] p-0 border-2 border-border shadow-bento overflow-hidden bg-card">
+          <DialogHeader className="p-6 md:p-8 bg-muted/30 border-b-2 border-border text-center">
+            <DialogTitle className="text-2xl font-editorial tracking-tight">Create New</DialogTitle>
+            <DialogDescription className="text-sm font-medium">
+              Choose what you want to add to your workspace.
+            </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 px-6 pb-6 pt-4">
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Button
-                variant="default"
-                className="h-full justify-between border border-yellow/60 bg-yellow text-foreground shadow-[0_12px_30px_rgba(255,215,0,0.35)] transition-transform hover:scale-[1.01] hover:shadow-[0_16px_36px_rgba(255,215,0,0.4)]"
-                onClick={() => {
-                  setIsCreateChooserOpen(false);
-                  setIsCreateNoteOpen(true);
-                }}
-              >
-                <div className="flex flex-col items-start gap-1 text-left">
-                  <span className="font-semibold">New Note</span>
-                  <span className="text-xs text-foreground/80">
-                    Start writing instantly.
-                  </span>
-                </div>
-                <FileText className="h-4 w-4" />
-              </Button>
+          <div className="p-6 md:p-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <button
+              onClick={() => {
+                setIsCreateChooserOpen(false);
+                setIsCreateNoteOpen(true);
+              }}
+              className="group flex flex-col items-center justify-center p-6 rounded-3xl border-2 border-border bg-tangerine/20 hover:bg-tangerine/40 transition-all hover:-translate-y-1 hover:shadow-bento-sm"
+            >
+              <div className="h-14 w-14 rounded-full bg-tangerine border-2 border-border shadow-sm flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                 <FileText className="h-6 w-6 text-tangerine-foreground" />
+              </div>
+              <span className="font-bold font-sans text-lg">New Note</span>
+              <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground mt-1 text-center">Start writing</span>
+            </button>
 
-              <Button
-                variant="secondary"
-                className="h-full justify-between border border-pink/60 bg-pink text-foreground shadow-[0_12px_30px_rgba(255,182,251,0.35)] transition-transform hover:scale-[1.01] hover:shadow-[0_16px_36px_rgba(255,182,251,0.45)]"
-                onClick={() => {
-                  setIsCreateChooserOpen(false);
-                  setIsCreateFolderOpen(true);
-                }}
-              >
-                <div className="flex flex-col items-start gap-1 text-left">
-                  <span className="font-semibold">New Folder</span>
-                  <span className="text-xs text-foreground/80">
-                    Organize notes by topic.
-                  </span>
-                </div>
-                <FolderPlus className="h-4 w-4" />
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              You can move notes between folders anytime.
-            </p>
+            <button
+              onClick={() => {
+                setIsCreateChooserOpen(false);
+                setIsCreateFolderOpen(true);
+              }}
+              className="group flex flex-col items-center justify-center p-6 rounded-3xl border-2 border-border bg-sky/20 hover:bg-sky/40 transition-all hover:-translate-y-1 hover:shadow-bento-sm"
+            >
+              <div className="h-14 w-14 rounded-full bg-sky border-2 border-border shadow-sm flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                 <FolderPlus className="h-6 w-6 text-sky-foreground" />
+              </div>
+              <span className="font-bold font-sans text-lg">New Folder</span>
+              <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground mt-1 text-center">Organize items</span>
+            </button>
           </div>
         </DialogContent>
       </Dialog>
 
       <Dialog open={isCreateNoteOpen} onOpenChange={setIsCreateNoteOpen}>
-        <DialogContent className="modal-surface p-0 sm:max-w-[560px]">
-          <DialogHeader className="flex flex-row items-start gap-3 border-b border-border/60 bg-gradient-to-r from-primary/10 via-muted/40 to-transparent px-6 py-5">
-            <div className="flex size-12 items-center justify-center rounded-lg bg-primary/15 text-primary shadow-inner ring-1 ring-primary/20">
-              <FileText className="h-5 w-5" />
-            </div>
-            <div className="space-y-1 text-left">
-              <DialogTitle className="text-xl">Create note</DialogTitle>
-              <DialogDescription>
-                {activeFolder
-                  ? `This note will be added to "${activeFolderObj?.name}".`
-                  : "Give your note a clear title so it’s easy to find later."}
-              </DialogDescription>
-            </div>
+        <DialogContent className="sm:max-w-md rounded-[2rem] p-0 border-2 border-border shadow-bento overflow-hidden bg-card">
+          <DialogHeader className="p-6 md:p-8 pb-0">
+            <DialogTitle className="text-2xl font-editorial tracking-tight flex items-center gap-3">
+               <div className="h-10 w-10 rounded-full bg-tangerine border-2 border-border flex items-center justify-center shadow-sm">
+                 <FileText className="h-5 w-5 text-tangerine-foreground" />
+               </div>
+               Create Note
+            </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-3 px-6 pb-5 pt-4">
-            <div className="space-y-1.5">
-              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Note title
-              </p>
+          <div className="p-6 md:p-8 space-y-4">
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">
+                Note Title
+              </label>
               <Input
                 value={noteTitle}
                 onChange={(e) => setNoteTitle(e.target.value)}
-                placeholder="e.g., Biology - Chapter 3 Summary"
+                placeholder="e.g., Biology Chapter 3"
                 autoFocus
-                className="h-11 rounded-xl border-border bg-background"
+                className="h-14 rounded-2xl border-2 border-border bg-background px-4 font-medium text-lg focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-primary shadow-inner"
                 onKeyDown={(e) => e.key === "Enter" && handleCreateNote()}
               />
             </div>
-            <p className="text-xs text-muted-foreground">
-              Press Enter to create quickly.
-            </p>
-          </div>
-
-          <DialogFooter className="border-t border-border/60 bg-background/60 px-6 py-4 sm:justify-between">
+            
             <Button
-              variant="outline"
-              className="rounded-xl"
-              onClick={() => setIsCreateNoteOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              className="rounded-xl"
+              className="w-full h-14 rounded-full bg-foreground text-background font-bold border-2 border-border shadow-bento-sm hover:bg-foreground/90 hover:-translate-y-0.5 transition-all text-base mt-4"
               onClick={handleCreateNote}
-              disabled={createNote.isPending}
+              disabled={createNote.isPending || !noteTitle.trim()}
             >
               {createNote.isPending ? "Creating..." : "Create Note"}
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
 
       <Dialog open={isRenameNoteOpen} onOpenChange={setIsRenameNoteOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Rename note</DialogTitle>
-            <DialogDescription>Update your note title.</DialogDescription>
+        <DialogContent className="sm:max-w-md rounded-[2rem] p-0 border-2 border-border shadow-bento overflow-hidden bg-card">
+          <DialogHeader className="p-6 md:p-8 pb-0">
+            <DialogTitle className="text-2xl font-editorial tracking-tight">Rename Note</DialogTitle>
           </DialogHeader>
-          <Input
-            value={noteTitle}
-            onChange={(e) => setNoteTitle(e.target.value)}
-            placeholder="Note title"
-            autoFocus
-            onKeyDown={(e) => e.key === "Enter" && handleRenameNote()}
-          />
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsRenameNoteOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button onClick={handleRenameNote} disabled={updateNote.isPending}>
-              {updateNote.isPending ? "Saving..." : "Save"}
-            </Button>
-          </DialogFooter>
+          <div className="p-6 md:p-8 pt-4 space-y-6">
+            <Input
+              value={noteTitle}
+              onChange={(e) => setNoteTitle(e.target.value)}
+              placeholder="Note title"
+              autoFocus
+              className="h-14 rounded-2xl border-2 border-border bg-background px-4 font-medium text-lg focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-primary shadow-inner"
+              onKeyDown={(e) => e.key === "Enter" && handleRenameNote()}
+            />
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                className="flex-1 h-12 rounded-full border-2 border-border font-bold hover:bg-muted"
+                onClick={() => setIsRenameNoteOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button 
+                className="flex-1 h-12 rounded-full border-2 border-border font-bold bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
+                onClick={handleRenameNote} 
+                disabled={updateNote.isPending || !noteTitle.trim()}
+              >
+                {updateNote.isPending ? "Saving..." : "Save"}
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
       <Dialog open={isCreateFolderOpen} onOpenChange={setIsCreateFolderOpen}>
-        <DialogContent className="modal-surface p-0 sm:max-w-[560px]">
-          <DialogHeader className="flex flex-row items-start gap-3 border-b border-border/60 bg-gradient-to-r from-primary/10 via-muted/40 to-transparent px-6 py-5">
-            <div className="flex size-12 items-center justify-center rounded-lg bg-primary/15 text-primary shadow-inner ring-1 ring-primary/20">
-              <FolderPlus className="h-5 w-5" />
-            </div>
-            <div className="space-y-1 text-left">
-              <DialogTitle className="text-xl">Create folder</DialogTitle>
-              <DialogDescription>
-                Group related notes in one place for faster navigation.
-              </DialogDescription>
-            </div>
+        <DialogContent className="sm:max-w-md rounded-[2rem] p-0 border-2 border-border shadow-bento overflow-hidden bg-card">
+          <DialogHeader className="p-6 md:p-8 pb-0">
+            <DialogTitle className="text-2xl font-editorial tracking-tight flex items-center gap-3">
+               <div className="h-10 w-10 rounded-full bg-sky border-2 border-border flex items-center justify-center shadow-sm">
+                 <FolderPlus className="h-5 w-5 text-sky-foreground" />
+               </div>
+               Create Folder
+            </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-3 px-6 pb-5 pt-4">
-            <div className="space-y-1.5">
-              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Folder name
-              </p>
+          <div className="p-6 md:p-8 space-y-4">
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">
+                Folder Name
+              </label>
               <Input
                 value={folderName}
                 onChange={(e) => setFolderName(e.target.value)}
-                placeholder="e.g., Project Notes"
+                placeholder="e.g., Project Ideas"
                 autoFocus
-                className="h-11 rounded-xl border-border bg-background"
+                className="h-14 rounded-2xl border-2 border-border bg-background px-4 font-medium text-lg focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-primary shadow-inner"
                 onKeyDown={(e) => e.key === "Enter" && handleCreateFolder()}
               />
             </div>
-            <p className="text-xs text-muted-foreground">
-              Keep folder names short and descriptive.
-            </p>
-          </div>
-
-          <DialogFooter className="border-t border-border/60 bg-background/60 px-6 py-4 sm:justify-between">
+            
             <Button
-              variant="outline"
-              className="rounded-xl"
-              onClick={() => setIsCreateFolderOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              className="rounded-xl"
+              className="w-full h-14 rounded-full bg-foreground text-background font-bold border-2 border-border shadow-bento-sm hover:bg-foreground/90 hover:-translate-y-0.5 transition-all text-base mt-4"
               onClick={handleCreateFolder}
-              disabled={createFolder.isPending}
+              disabled={createFolder.isPending || !folderName.trim()}
             >
               {createFolder.isPending ? "Creating..." : "Create Folder"}
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
 
       <Dialog open={isRenameFolderOpen} onOpenChange={setIsRenameFolderOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Rename folder</DialogTitle>
-            <DialogDescription>Update your folder name.</DialogDescription>
+        <DialogContent className="sm:max-w-md rounded-[2rem] p-0 border-2 border-border shadow-bento overflow-hidden bg-card">
+          <DialogHeader className="p-6 md:p-8 pb-0">
+            <DialogTitle className="text-2xl font-editorial tracking-tight">Rename Folder</DialogTitle>
           </DialogHeader>
-          <Input
-            value={folderName}
-            onChange={(e) => setFolderName(e.target.value)}
-            placeholder="Folder name"
-            autoFocus
-            onKeyDown={(e) => e.key === "Enter" && handleRenameFolder()}
-          />
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsRenameFolderOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleRenameFolder}
-              disabled={renameFolder.isPending}
-            >
-              {renameFolder.isPending ? "Saving..." : "Save"}
-            </Button>
-          </DialogFooter>
+          <div className="p-6 md:p-8 pt-4 space-y-6">
+            <Input
+              value={folderName}
+              onChange={(e) => setFolderName(e.target.value)}
+              placeholder="Folder name"
+              autoFocus
+              className="h-14 rounded-2xl border-2 border-border bg-background px-4 font-medium text-lg focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-primary shadow-inner"
+              onKeyDown={(e) => e.key === "Enter" && handleRenameFolder()}
+            />
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                className="flex-1 h-12 rounded-full border-2 border-border font-bold hover:bg-muted"
+                onClick={() => setIsRenameFolderOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button 
+                className="flex-1 h-12 rounded-full border-2 border-border font-bold bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
+                onClick={handleRenameFolder} 
+                disabled={renameFolder.isPending || !folderName.trim()}
+              >
+                {renameFolder.isPending ? "Saving..." : "Save"}
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
