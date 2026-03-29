@@ -1,4 +1,4 @@
-import { BookOpen, Calendar, Layers, Globe, Lock } from "lucide-react";
+import { Calendar, Layers, Globe, Lock } from "lucide-react";
 
 interface DeckStatsProps {
   flashcardCount: number;
@@ -16,7 +16,7 @@ const DeckStats = ({ flashcardCount, createdAt, isPublic }: DeckStatsProps) => {
   };
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-8">
       {/* Cards Stat */}
       <div className="bento-card bg-mint p-5 flex flex-col justify-between hover:-translate-y-1 transition-transform">
         <div className="flex items-center gap-2 mb-2">
@@ -63,20 +63,6 @@ const DeckStats = ({ flashcardCount, createdAt, isPublic }: DeckStatsProps) => {
         </div>
         <div className="text-2xl font-editorial mt-2 text-foreground capitalize">
           {isPublic ? "Public" : "Private"}
-        </div>
-      </div>
-      
-      <div className="bento-card bg-citrus p-5 flex flex-col justify-between hover:-translate-y-1 transition-transform">
-        <div className="flex items-center gap-2 mb-2">
-          <div className="w-8 h-8 rounded-full bg-background border-2 border-border flex items-center justify-center shadow-sm">
-            <BookOpen className="h-4 w-4" />
-          </div>
-          <span className="text-[10px] font-bold uppercase tracking-widest text-foreground">
-            Mastery
-          </span>
-        </div>
-        <div className="text-2xl font-editorial mt-2 text-foreground opacity-50">
-          N/A
         </div>
       </div>
     </div>
