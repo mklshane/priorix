@@ -30,7 +30,7 @@ export default function MasteryDistribution({
   const total = Object.values(distribution).reduce((sum, val) => sum + val, 0);
 
   return (
-    <Card className="bg-perry/20 dark:bg-card border-2 border-black dark:border-darkborder rounded-xl">
+    <Card className="bg-sky/20 dark:bg-card border-2 border-black dark:border-darkborder rounded-xl">
       <CardContent className="p-6">
         <h3 className="text-lg font-semibold mb-4 font-sora">Card Mastery Distribution</h3>
         {total === 0 ? (

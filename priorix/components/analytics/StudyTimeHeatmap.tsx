@@ -14,11 +14,11 @@ interface StudyTimeHeatmapProps {
 export default function StudyTimeHeatmap({ timeOfDayStats }: StudyTimeHeatmapProps) {
   const getIntensityColor = (accuracy: number, sessions: number) => {
     if (sessions === 0) return "bg-muted dark:bg-gray-800";
-    if (accuracy >= 90) return "bg-green dark:bg-green/70";
-    if (accuracy >= 80) return "bg-perry dark:bg-perry/70";
-    if (accuracy >= 70) return "bg-yellow dark:bg-yellow/70";
-    if (accuracy >= 60) return "bg-purple dark:bg-purple/70";
-    return "bg-pink dark:bg-pink/70";
+    if (accuracy >= 90) return "bg-mint dark:bg-mint/70";
+    if (accuracy >= 80) return "bg-sky dark:bg-sky/70";
+    if (accuracy >= 70) return "bg-citrus dark:bg-citrus/70";
+    if (accuracy >= 60) return "bg-lilac dark:bg-lilac/70";
+    return "bg-blush dark:bg-blush/70";
   };
 
   const formatHour = (hour: number) => {

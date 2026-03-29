@@ -10,6 +10,7 @@ import {
   Compass,
   PanelLeftClose,
   PanelLeftOpen,
+  BarChart2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter, usePathname } from "next/navigation";
@@ -44,6 +45,12 @@ const navigation = [
     name: "Notes",
     href: "/notes",
     icon: FileText,
+    hoverClass: "hover:bg-sky/30",
+  },
+  {
+    name: "Analytics",
+    href: "/analytics",
+    icon: BarChart2,
     hoverClass: "hover:bg-sky/30",
   },
 ];

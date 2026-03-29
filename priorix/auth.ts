@@ -69,9 +69,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         // Add the MongoDB ID to the session user object
         session.user.id = token.sub;
       }
+      if (session.user && token.name) {
+        session.user.name = token.name as string;
+      }
       return session;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.sub = user.id;
         // Set token expiry based on remember me
@@ -81,6 +84,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         } else {
           token.exp = Math.floor(Date.now() / 1000) + 24 * 60 * 60; // 1 day
         }
+      }
+      if (trigger === "update" && session?.name) {
+        token.name = session.name;
       }
       return token;
     },

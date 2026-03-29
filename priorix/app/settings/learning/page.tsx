@@ -89,10 +89,10 @@ export default function LearningSettingsPage() {
 
   useEffect(() => {
     if (profile) {
-      setDailyGoal(profile.dailyReviewGoal);
-      setSessionLength(profile.sessionLengthPreference);
-      setDifficulty(profile.difficultyPreference);
-      setSmartNotifications(profile.smartNotifications);
+      setDailyGoal(profile.dailyReviewGoal ?? 50);
+      setSessionLength(profile.sessionLengthPreference ?? 20);
+      setDifficulty(profile.difficultyPreference ?? "balanced");
+      setSmartNotifications(profile.smartNotifications ?? false);
     }
   }, [profile]);
 
@@ -130,17 +130,15 @@ export default function LearningSettingsPage() {
 
   if (isLoading) {
     return (
-      <div className="max-w-4xl mx-auto">
-        <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-64"></div>
-          <div className="h-64 bg-gray-300 dark:bg-gray-700 rounded"></div>
-        </div>
+      <div className="animate-pulse space-y-6">
+        <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-64"></div>
+        <div className="h-64 bg-gray-300 dark:bg-gray-700 rounded"></div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div>
       <div className="mb-8">
         <h1 className="text-3xl font-bold font-sora flex items-center gap-3 mb-2">
           <Settings className="h-8 w-8" />
@@ -154,7 +152,7 @@ export default function LearningSettingsPage() {
       <div className="space-y-6">
         {/* Learning Speed Status */}
         {profile?.isCalibrated && (
-          <Card className="border-2 border-black dark:border-darkborder rounded-xl bg-green/30 dark:bg-green/10">
+          <Card className="border-2 border-black dark:border-darkborder rounded-xl bg-mint/30 dark:bg-mint/10">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -182,7 +180,7 @@ export default function LearningSettingsPage() {
         )}
 
         {/* Daily Review Goal */}
-        <Card className="border-2 border-black dark:border-darkborder rounded-xl bg-yellow/30 dark:bg-yellow/10">
+        <Card className="border-2 border-black dark:border-darkborder rounded-xl bg-citrus/30 dark:bg-citrus/10">
           <CardContent className="p-6">
             <div className="flex items-center gap-3 mb-4">
               <Target className="h-5 w-5" />
@@ -213,7 +211,7 @@ export default function LearningSettingsPage() {
         </Card>
 
         {/* Session Length */}
-        <Card className="border-2 border-black dark:border-darkborder rounded-xl bg-purple/30 dark:bg-purple/10">
+        <Card className="border-2 border-black dark:border-darkborder rounded-xl bg-lilac/30 dark:bg-lilac/10">
           <CardContent className="p-6">
             <div className="flex items-center gap-3 mb-4">
               <Clock className="h-5 w-5" />
@@ -242,7 +240,7 @@ export default function LearningSettingsPage() {
         </Card>
 
         {/* Difficulty Preference */}
-        <Card className="border-2 border-black dark:border-darkborder rounded-xl bg-pink/30 dark:bg-pink/10">
+        <Card className="border-2 border-black dark:border-darkborder rounded-xl bg-blush/30 dark:bg-blush/10">
           <CardContent className="p-6">
             <div className="flex items-center gap-3 mb-4">
               <Zap className="h-5 w-5" />
@@ -291,7 +289,7 @@ export default function LearningSettingsPage() {
         </Card>
 
         {/* Smart Notifications (Future Feature) */}
-        <Card className="border-2 border-black dark:border-darkborder rounded-xl bg-perry/30 dark:bg-perry/10 opacity-60">
+        <Card className="border-2 border-black dark:border-darkborder rounded-xl bg-sky/30 dark:bg-sky/10 opacity-60">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -317,7 +315,7 @@ export default function LearningSettingsPage() {
             size="lg"
             onClick={handleSave}
             disabled={updateMutation.isPending}
-            className="bg-green dark:bg-green/90 text-black hover:bg-green/80 dark:hover:bg-green/70 border-2 border-black dark:border-darkborder font-sora"
+            className="bg-mint dark:bg-mint/90 text-black hover:bg-mint/80 dark:hover:bg-mint/70 border-2 border-black dark:border-darkborder font-sora"
           >
             {updateMutation.isPending ? "Saving..." : "Save Settings"}
           </Button>

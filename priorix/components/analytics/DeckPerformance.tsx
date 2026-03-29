@@ -14,10 +14,10 @@ interface DeckPerformanceProps {
 }
 
 export default function DeckPerformance({ decks }: DeckPerformanceProps) {
-  const colors = ["bg-purple/20", "bg-pink/20", "bg-yellow/20", "bg-perry/20"];
-  
+  const colors = ["bg-lilac/20", "bg-blush/20", "bg-citrus/20", "bg-sky/20"];
+
   return (
-    <Card className="bg-purple/20 dark:bg-card border-2 border-black dark:border-darkborder rounded-xl">
+    <Card className="bg-lilac/20 dark:bg-card border-2 border-black dark:border-darkborder rounded-xl">
       <CardContent className="p-6">
         <h3 className="text-lg font-semibold mb-4 font-sora">Deck Performance</h3>
         {decks.length === 0 ? (
@@ -72,7 +72,7 @@ export default function DeckPerformance({ decks }: DeckPerformanceProps) {
                 <div className="mt-3">
                   <div className="h-2 bg-background dark:bg-gray-700 rounded-full overflow-hidden border border-black/10 dark:border-darkborder">
                     <div
-                      className="h-full bg-green dark:bg-green/80 rounded-full transition-all"
+                      className="h-full bg-mint dark:bg-mint/80 rounded-full transition-all"
                       style={{
                         width: `${(deck.cardsMastered / deck.totalCards) * 100}%`,
                       }}

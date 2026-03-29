@@ -24,7 +24,7 @@ interface PerformanceChartProps {
 
 export default function PerformanceChart({ dailyStats }: PerformanceChartProps) {
   return (
-    <Card className="bg-green/20 dark:bg-card border-2 border-black dark:border-darkborder rounded-xl">
+    <Card className="bg-mint/20 dark:bg-card border-2 border-black dark:border-darkborder rounded-xl">
       <CardContent className="p-6">
         <h3 className="text-lg font-semibold mb-4 font-sora">Performance Over Time</h3>
         <div className="h-[300px]">

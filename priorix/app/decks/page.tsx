@@ -997,7 +997,7 @@ const DecksPageContent = () => {
           onOpenChange={setIsCreateChooserOpen}
         >
           <DialogContent className="sm:max-w-md !rounded-[2rem] border-2 border-border p-0 overflow-hidden bg-card shadow-bento-lg">
-            <DialogHeader className="px-6 pt-6 pb-4 bg-pink/20 border-b-2 border-border flex flex-col items-center text-center">
+            <DialogHeader className="px-6 pt-6 pb-4 bg-blush/20 border-b-2 border-border flex flex-col items-center text-center">
               <div className="flex size-14 items-center justify-center rounded-2xl bg-background border-2 border-border shadow-bento-sm mb-4">
                 <Plus className="h-6 w-6 text-foreground" />
               </div>
@@ -1012,7 +1012,7 @@ const DecksPageContent = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Button
                   variant="default"
-                  className="h-auto p-5 flex-col items-start gap-4 rounded-2xl bg-yellow hover:bg-yellow/90 text-foreground border-2 border-border shadow-bento-sm hover:-translate-y-1 hover:shadow-bento transition-all duration-300"
+                  className="h-auto p-5 flex-col items-start gap-4 rounded-2xl bg-citrus hover:bg-citrus/90 text-foreground border-2 border-border shadow-bento-sm hover:-translate-y-1 hover:shadow-bento transition-all duration-300"
                   onClick={() => {
                     setIsCreateChooserOpen(false);
                     setIsAddDeckModalOpen(true);
@@ -1028,7 +1028,7 @@ const DecksPageContent = () => {
                 </Button>
                 <Button
                   variant="secondary"
-                  className="h-auto p-5 flex-col items-start gap-4 rounded-2xl bg-pink hover:bg-pink/90 text-foreground border-2 border-border shadow-bento-sm hover:-translate-y-1 hover:shadow-bento transition-all duration-300"
+                  className="h-auto p-5 flex-col items-start gap-4 rounded-2xl bg-blush hover:bg-blush/90 text-foreground border-2 border-border shadow-bento-sm hover:-translate-y-1 hover:shadow-bento transition-all duration-300"
                   onClick={() => {
                     setIsCreateChooserOpen(false);
                     setIsAddFolderModalOpen(true);

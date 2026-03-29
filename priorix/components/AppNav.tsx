@@ -128,6 +128,7 @@ export default function AppNav() {
     "/notes": "Notes",
     "/analytics": "Analytics",
     "/settings/learning": "Settings",
+    "/settings/profile": "Settings",
   };
 
   const getCurrentPage = () => {
@@ -210,8 +211,8 @@ export default function AppNav() {
                 </p>
               </div>
               <DropdownMenuItem
-                disabled
-                className="cursor-not-allowed text-muted-foreground font-bold text-xs uppercase tracking-widest rounded-lg py-2 focus:bg-transparent"
+                onClick={() => router.push("/settings/profile")}
+                className="cursor-pointer font-bold text-xs uppercase tracking-widest rounded-lg py-2 focus:bg-muted focus:text-foreground"
               >
                 <User className="mr-3 h-4 w-4" /> Profile
               </DropdownMenuItem>

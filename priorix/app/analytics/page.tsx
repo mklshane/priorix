@@ -169,7 +169,7 @@ export default function AnalyticsPage() {
             {selectedTab === "insights" && (
               <div className="space-y-6">
                 {patterns?.requiresMoreSessions ? (
-                  <div className="bg-purple/20 dark:bg-card p-12 rounded-xl border-2 border-black/10 dark:border-darkborder text-center">
+                  <div className="bg-lilac/20 dark:bg-card p-12 rounded-xl border-2 border-black/10 dark:border-darkborder text-center">
                     <div className="max-w-md mx-auto">
                       <h3 className="text-lg font-semibold mb-2 font-sora">
                         Not Enough Data Yet
@@ -186,7 +186,7 @@ export default function AnalyticsPage() {
                   <>
                     <InsightsPanel insights={patterns.insights} />
                     {patterns.performanceTrend && (
-                      <div className="bg-green/20 dark:bg-card p-6 rounded-xl border-2 border-black/10 dark:border-darkborder">
+                      <div className="bg-mint/20 dark:bg-card p-6 rounded-xl border-2 border-black/10 dark:border-darkborder">
                         <h3 className="text-lg font-semibold mb-4 font-sora">
                           Performance Trend
                         </h3>
@@ -218,7 +218,7 @@ export default function AnalyticsPage() {
                     )}
                   </>
                 ) : (
-                  <div className="bg-pink/20 dark:bg-card p-12 rounded-xl border-2 border-black/10 dark:border-darkborder text-center">
+                  <div className="bg-blush/20 dark:bg-card p-12 rounded-xl border-2 border-black/10 dark:border-darkborder text-center">
                     <p className="text-muted-foreground font-sora">No insights available</p>
                   </div>
                 )}
@@ -229,7 +229,7 @@ export default function AnalyticsPage() {
             {selectedTab === "patterns" && (
               <div className="space-y-6">
                 {patterns?.requiresMoreSessions ? (
-                  <div className="bg-yellow/20 dark:bg-card p-12 rounded-xl border-2 border-black/10 dark:border-darkborder text-center">
+                  <div className="bg-citrus/20 dark:bg-card p-12 rounded-xl border-2 border-black/10 dark:border-darkborder text-center">
                     <div className="max-w-md mx-auto">
                       <h3 className="text-lg font-semibold mb-2 font-sora">
                         Not Enough Data Yet
@@ -246,7 +246,7 @@ export default function AnalyticsPage() {
                   <>
                     <StudyTimeHeatmap timeOfDayStats={patterns.timeOfDayStats} />
                     {patterns.weekdayPerformance && (
-                      <div className="bg-perry/20 dark:bg-card p-6 rounded-xl border-2 border-black/10 dark:border-darkborder">
+                      <div className="bg-sky/20 dark:bg-card p-6 rounded-xl border-2 border-black/10 dark:border-darkborder">
                         <h3 className="text-lg font-semibold mb-4 font-sora">
                           Day of Week Performance
                         </h3>
@@ -271,7 +271,7 @@ export default function AnalyticsPage() {
                     )}
                   </>
                 ) : (
-                  <div className="bg-purple/20 dark:bg-card p-12 rounded-xl border-2 border-black/10 dark:border-darkborder text-center">
+                  <div className="bg-lilac/20 dark:bg-card p-12 rounded-xl border-2 border-black/10 dark:border-darkborder text-center">
                     <p className="text-muted-foreground font-sora">No patterns available</p>
                   </div>
                 )}
