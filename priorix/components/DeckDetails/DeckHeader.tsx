@@ -63,7 +63,7 @@ const DeckHeader = ({
           {flashcards.length > 0 && (
             <Button
               onClick={onStudyClick}
-              className="flex items-center justify-center gap-2 px-8 py-6 rounded-full border-2 border-border bg-primary text-primary-foreground font-bold text-lg hover:-translate-y-1 hover:shadow-bento transition-all duration-300 active:translate-y-0 active:shadow-none"
+              className="flex items-center justify-center gap-2 px-8 py-6 rounded-full border-2 border-border bg-tangerine  text-primary font-bold text-lg hover:-translate-y-1 hover:shadow-bento transition-all duration-300 active:translate-y-0 active:shadow-none"
             >
               <BookOpen className="h-5 w-5" />
               Study Now
