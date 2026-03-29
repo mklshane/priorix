@@ -276,26 +276,26 @@ export default function LearningSettingsPage() {
                 value={difficulty}
                 onValueChange={(value: any) => setDifficulty(value)}
               >
-                <SelectTrigger className="w-full h-12 rounded-2xl border-2 border-border bg-background font-medium focus:ring-0 focus:ring-offset-0">
-                  <SelectValue />
+                <SelectTrigger className="w-full h-12 rounded-2xl border-2 border-border bg-background font-medium focus:ring-0 focus:ring-offset-0 h-auto py-3">
+                  <SelectValue placeholder="Select strategy" />
                 </SelectTrigger>
                 <SelectContent className="rounded-2xl border-2 border-border shadow-bento-sm">
-                  <SelectItem value="challenge" className="cursor-pointer rounded-xl">
-                    <div className="flex flex-col py-1">
-                      <span className="font-bold">Challenge Mode</span>
-                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground mt-0.5">Prioritize harder cards</span>
+                  <SelectItem value="challenge" className="cursor-pointer rounded-xl py-3 px-4 my-1">
+                    <div className="flex items-center justify-between w-full min-w-[200px] gap-4">
+                      <span className="font-bold text-foreground">Challenge</span>
+                      <span className="text-xs font-medium text-muted-foreground truncate">Prioritize hard cards</span>
                     </div>
                   </SelectItem>
-                  <SelectItem value="balanced" className="cursor-pointer rounded-xl">
-                    <div className="flex flex-col py-1">
-                      <span className="font-bold">Balanced</span>
-                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground mt-0.5">Mix of all levels</span>
+                  <SelectItem value="balanced" className="cursor-pointer rounded-xl py-3 px-4 my-1">
+                    <div className="flex items-center justify-between w-full min-w-[200px] gap-4">
+                      <span className="font-bold text-foreground">Balanced</span>
+                      <span className="text-xs font-medium text-muted-foreground truncate">Mix of all levels</span>
                     </div>
                   </SelectItem>
-                  <SelectItem value="confidence" className="cursor-pointer rounded-xl">
-                    <div className="flex flex-col py-1">
-                      <span className="font-bold">Confidence Building</span>
-                      <span className="text-[10px] uppercase tracking-wider text-muted-foreground mt-0.5">Include mastered cards</span>
+                  <SelectItem value="confidence" className="cursor-pointer rounded-xl py-3 px-4 my-1">
+                    <div className="flex items-center justify-between w-full min-w-[200px] gap-4">
+                      <span className="font-bold text-foreground">Confidence</span>
+                      <span className="text-xs font-medium text-muted-foreground truncate">Include easy cards</span>
                     </div>
                   </SelectItem>
                 </SelectContent>

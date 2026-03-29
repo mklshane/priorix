@@ -171,7 +171,7 @@ export default function Sidebar() {
             "group flex w-full items-center rounded-xl px-3 py-2.5 transition-all duration-200 select-none border-2",
             pathname === "/settings/learning" ||
               pathname.startsWith("/settings/")
-              ? "bg-citrus text-primary-foreground border-primary"
+              ? "bg-citrus text-primary border-primary"
               : "bg-transparent text-foreground border-transparent hover:border-border/20 hover:bg-muted/50",
             !isMobile && !isOpen && "lg:justify-center lg:px-0",
           )}
