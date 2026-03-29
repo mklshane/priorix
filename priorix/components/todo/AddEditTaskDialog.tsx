@@ -96,29 +96,29 @@ export default function AddEditTaskDialog({
   };
 
   const fieldStyles =
-    "w-full min-h-[48px] rounded-xl border-2 border-border bg-background px-4 py-2 font-medium focus-visible:outline-none focus-visible:ring-0 focus-visible:border-foreground disabled:opacity-60 transition-colors";
+    "w-full h-14 rounded-2xl border-2 border-border bg-background px-4 py-2 font-medium text-base focus-visible:outline-none focus-visible:ring-0 focus-visible:border-primary disabled:opacity-60 transition-colors shadow-inner";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden border-2 border-border shadow-bento !rounded-[2rem] bg-card max-h-[95dvh] flex flex-col">
-        <DialogHeader className="flex flex-col items-center justify-center gap-2 border-b-2 border-border bg-mint px-6 py-6 shrink-0">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border-2 border-border bg-white shadow-bento-sm">
-            <CheckSquare className="h-6 w-6 text-foreground" />
+        <DialogHeader className="flex flex-col items-center justify-center gap-2 border-b-2 border-border bg-muted/30 px-6 py-6 shrink-0">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-border bg-primary shadow-sm">
+            <CheckSquare className="h-6 w-6 text-primary-foreground" />
           </div>
           <div className="space-y-1 text-center">
             <DialogTitle className="font-editorial text-3xl text-foreground">
               {isEditing ? "Edit Task" : "New Task"}
             </DialogTitle>
-            <DialogDescription className="text-foreground/70 font-medium text-xs">
-              {isEditing ? "Update your existing task details." : "Add a new task to your agenda."}
+            <DialogDescription className="text-muted-foreground font-bold uppercase tracking-widest text-[10px]">
+              {isEditing ? "Update existing details" : "Add to your agenda"}
             </DialogDescription>
           </div>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto flex-1 font-sans">
+        <form onSubmit={handleSubmit} className="p-6 md:p-8 space-y-6 overflow-y-auto flex-1 font-sans">
           
           <div className="space-y-2">
-            <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Task Name *</Label>
+            <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Task Name *</Label>
             <Input
               className={fieldStyles}
               placeholder="What needs to be done?"
@@ -130,9 +130,9 @@ export default function AddEditTaskDialog({
           </div>
 
           <div className="space-y-2">
-            <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Description (Optional)</Label>
+            <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Description (Optional)</Label>
             <Textarea
-              className={fieldStyles}
+              className={`${fieldStyles} min-h-[100px] resize-none py-3`}
               placeholder="Add details, links, or notes..."
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -142,7 +142,9 @@ export default function AddEditTaskDialog({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3"/> Date</Label>
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5 ml-1">
+                <Clock className="w-3.5 h-3.5"/> Date
+              </Label>
               <Input
                 type="date"
                 className={fieldStyles + " block"}
@@ -151,7 +153,9 @@ export default function AddEditTaskDialog({
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3"/> Time</Label>
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5 ml-1">
+                <Clock className="w-3.5 h-3.5"/> Time
+              </Label>
               <Input
                 type="time"
                 className={fieldStyles + " block"}
@@ -163,20 +167,29 @@ export default function AddEditTaskDialog({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1"><Flag className="w-3 h-3"/> Priority</Label>
-              <select
-                className={fieldStyles + " appearance-none cursor-pointer"}
-                value={form.priority}
-                onChange={(e) => setForm({ ...form, priority: e.target.value as TaskPriority })}
-              >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-                <option value="urgent">Urgent</option>
-              </select>
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5 ml-1">
+                <Flag className="w-3.5 h-3.5"/> Priority
+              </Label>
+              <div className="relative">
+                <select
+                  className={fieldStyles + " appearance-none cursor-pointer pr-10"}
+                  value={form.priority}
+                  onChange={(e) => setForm({ ...form, priority: e.target.value as TaskPriority })}
+                >
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                  <option value="urgent">Urgent</option>
+                </select>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground text-xs">
+                  ▼
+                </div>
+              </div>
             </div>
             <div className="space-y-2">
-              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1"><Tag className="w-3 h-3"/> Tags (comma separated)</Label>
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5 ml-1">
+                <Tag className="w-3.5 h-3.5"/> Tags (CSV)
+              </Label>
               <Input
                 className={fieldStyles}
                 placeholder="work, personal..."
@@ -186,21 +199,21 @@ export default function AddEditTaskDialog({
             </div>
           </div>
 
-          <DialogFooter className="pt-2">
+          <DialogFooter className="pt-4">
             <div className="flex w-full items-center justify-end gap-3 border-t-2 border-transparent">
               <Button
                 type="button"
-                variant="ghost"
+                variant="outline"
                 onClick={() => onOpenChange(false)}
                 disabled={isLoading}
-                className="h-12 px-6 rounded-xl font-bold hover:bg-muted"
+                className="h-12 px-6 rounded-full font-bold border-2 border-border hover:bg-muted"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={isLoading || !form.taskTitle.trim()}
-                className="h-12 px-8 rounded-xl border-2 border-border bg-foreground text-background font-bold hover:bg-foreground/90 hover:-translate-y-0.5 transition-transform"
+                className="h-12 px-8 rounded-full border-2 border-border bg-primary text-primary-foreground font-bold hover:bg-primary/90 hover:-translate-y-0.5 shadow-sm transition-all"
               >
                 {isLoading ? "Saving..." : isEditing ? "Save Changes" : "Create Task"}
               </Button>
