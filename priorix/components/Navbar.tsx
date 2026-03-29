@@ -58,7 +58,7 @@ export default function Navbar() {
               href="/dashboard"
               className="btn-pastel-mint px-6 py-2 text-sm"
             >
-              Enter Ledger
+              Dashboard
             </Link>
           ) : (
             <>
@@ -100,7 +100,7 @@ export default function Navbar() {
               className="btn-pastel-mint w-full text-center"
               onClick={() => setIsOpen(false)}
             >
-              Enter Ledger
+              Dashboard
             </Link>
           ) : (
             <div className="flex flex-col gap-3">

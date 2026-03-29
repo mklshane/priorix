@@ -1,7 +1,12 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight, Sparkles, BookOpen } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 export default function Hero() {
+  const { data: session } = useSession();
+
   return (
     <section className="relative min-h-[85vh] flex flex-col items-center justify-center px-4 overflow-hidden pt-30">
       <div className="absolute top-1/2 left-1/2 -translate-x-[clamp(24rem,40vw,37rem)] -translate-y-[clamp(10rem,16vh,13rem)] hidden lg:flex flex-col gap-4 animate-fade-in">
@@ -39,19 +44,31 @@ export default function Hero() {
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
-          <Link
-            href="/signup"
-            className="w-full sm:w-auto btn-primary text-lg px-8 py-4 group"
-          >
-            Start Learning
-            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-          </Link>
-          <Link
-            href="/login"
-            className="w-full sm:w-auto btn-base bg-card text-card-foreground hover:-translate-y-1 hover:shadow-bento px-8 py-4"
-          >
-            I already have an account
-          </Link>
+          {session ? (
+            <Link
+              href="/dashboard"
+              className="w-full sm:w-auto btn-primary text-lg px-8 py-4 group"
+            >
+              Go to my dashboard
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          ) : (
+            <>
+              <Link
+                href="/signup"
+                className="w-full sm:w-auto btn-primary text-lg px-8 py-4 group"
+              >
+                Start Learning
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </Link>
+              <Link
+                href="/login"
+                className="w-full sm:w-auto btn-base bg-card text-card-foreground hover:-translate-y-1 hover:shadow-bento px-8 py-4"
+              >
+                I already have an account
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </section>
