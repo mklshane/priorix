@@ -408,7 +408,7 @@ const QuizPage = () => {
               </Card>
 
               {/* Stats */}
-              <div className="grid grid-cols-3 gap-4 shrink-0">
+              <div className="grid grid-cols-2 gap-4 shrink-0">
                 <Card className="border-2 border-border shadow-bento-sm rounded-2xl">
                   <CardContent className="p-4 py-0 text-center">
                     <div className="text-2xl font-bold">{answers.filter((a) => a.isCorrect).length}</div>
@@ -419,12 +419,6 @@ const QuizPage = () => {
                   <CardContent className="p-4 py-0 text-center">
                     <div className="text-2xl font-bold">{answers.filter((a) => !a.isCorrect).length}</div>
                     <div className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Incorrect</div>
-                  </CardContent>
-                </Card>
-                <Card className="border-2 border-border shadow-bento-sm rounded-2xl bg-primary/5">
-                  <CardContent className="p-4 py-0 text-center">
-                    <div className="text-2xl font-bold text-primary">{sessionQuality}%</div>
-                    <div className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Quality</div>
                   </CardContent>
                 </Card>
               </div>

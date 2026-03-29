@@ -126,7 +126,7 @@ const QuizResultsModal = ({
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 shrink-0">
+            <div className="grid grid-cols-3 gap-2 md:gap-3 shrink-0">
               <Card className="border-2 border-border rounded-2xl shadow-bento-sm bg-card hover:-translate-y-1 py-0 transition-transform">
                 <CardContent className="p-2 py-3 md:p-3 text-center flex flex-col items-center justify-center">
                   <CheckCircle2 className="h-5 w-5 mb-1 text-green-500" />
@@ -148,14 +148,6 @@ const QuizResultsModal = ({
                   <Clock className="h-5 w-5 mb-1 text-blue-500" />
                   <div className="text-lg md:text-xl font-bold font-sans">{averageTime}s</div>
                   <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Avg Time</div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-2 border-border rounded-2xl shadow-bento-sm bg-card hover:-translate-y-1 py-0 transition-transform">
-                <CardContent className="p-2 py-3 md:p-3 text-center flex flex-col items-center justify-center">
-                  <Target className="h-5 w-5 mb-1 text-purple-500" />
-                  <div className="text-lg md:text-xl font-bold font-sans">{sessionQuality}%</div>
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Quality</div>
                 </CardContent>
               </Card>
             </div>

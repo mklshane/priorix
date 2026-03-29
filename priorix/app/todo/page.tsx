@@ -143,7 +143,7 @@ export default function TodoPage() {
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="grid grid-cols-1 xl:grid-cols-[360px_1fr] gap-6 md:gap-4 items-start">
+        <div className="grid grid-cols-1 xl:grid-cols-[450px_1fr] gap-6 md:gap-4 items-start">
           <div className="bento-card bg-card p-6 h-full flex flex-col shrink-0 overflow-hidden shadow-sm">
             <TodoCalendar
               currentDate={currentDate}
