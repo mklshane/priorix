@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import Deck from "@/lib/models/Deck";
 import { ConnectDB } from "@/lib/config/db";
 import UserDeckActivity from "@/lib/models/UserDeckActivity";
+import UserCardProgress from "@/lib/models/UserCardProgress";
+import UserStudySession from "@/lib/models/UserStudySession";
+import Favorites from "@/lib/models/Favorites";
 import { Flashcard } from "@/lib/models";
 import mongoose from "mongoose";
 import * as deckController from "../controller";
@@ -55,12 +58,17 @@ export async function DELETE(
       return NextResponse.json({ message: "Deck not found" }, { status: 404 });
     }
 
-    const result = await Flashcard.deleteMany({
-      deck: new mongoose.Types.ObjectId(deckId),
-    });
+    const deckObjectId = new mongoose.Types.ObjectId(deckId);
+
+    const [result] = await Promise.all([
+      Flashcard.deleteMany({ deck: deckObjectId }),
+      UserCardProgress.deleteMany({ deckId: deckObjectId }),
+      UserStudySession.deleteMany({ deckId: deckObjectId }),
+      UserDeckActivity.deleteMany({ deckId: deckObjectId }),
+      Favorites.deleteMany({ deckId: deckObjectId }),
+    ]);
     console.log("Deleted flashcards:", result.deletedCount);
 
-    
     const deleted = await Deck.findByIdAndDelete(deckId).populate(
       "user",
       "name"
