@@ -27,7 +27,6 @@ import { CreateDeckRequest } from "@/types/deck";
 import { useToast } from "@/hooks/useToast";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import LearningStatsWidget from "@/components/dashboard/LearningStatsWidget";
 import DailyGoalWidget from "@/components/dashboard/DailyGoalWidget";
 import StudyQueueWidget from "@/components/dashboard/StudyQueueWidget";
 import RetentionRiskWidget from "@/components/dashboard/RetentionRiskWidget";
@@ -261,9 +260,9 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8 mx-auto pb-8 font-sans selection:bg-mint selection:text-foreground">
-
+      
       {/* ── Row 1: Greeting + Quick Actions ── */}
-      <div className="flex flex-col lg:flex-row gap-6 md:gap-8">
+      <div className="flex flex-col lg:flex-row gap-6 md:gap-8 items-stretch">
         <div className={`bento-card ${insight.bgColor} flex-1 flex flex-col justify-center relative overflow-hidden group min-h-[240px]`}>
           <div className="absolute -right-8 -top-8 w-48 h-48 bg-background/30 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700 pointer-events-none" />
           <div className="relative z-10 h-full">
@@ -320,14 +319,14 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="lg:w-[320px] shrink-0">
+        <div className="lg:w-[320px] shrink-0 flex flex-col [&>div]:h-full">
           <QuickActions onOpenAddDeckModal={() => setIsAddDeckModalOpen(true)} />
         </div>
       </div>
 
-      {/* ── Row 2: Recent Decks (full width) ── */}
-      <div>
-        <div className="flex items-center justify-between mb-6">
+      {/* ── Row 2: Recent Decks (Full Width) ── */}
+      <div className="w-full">
+        <div className="flex items-center justify-between mb-4">
           <h2 className="text-3xl font-editorial italic text-foreground/80">Recent Decks</h2>
           <Button
             variant="ghost"
@@ -340,80 +339,110 @@ export default function DashboardPage() {
         <RecentDecks />
       </div>
 
-      {/* ── Row 3: Insights (left) + Widgets + OverviewStats (right) ── */}
-      <div className="flex flex-col lg:flex-row gap-6 md:gap-8 items-start">
-        {/* Left: InsightsPanel */}
-        <div className="flex-1 min-w-0">
-          {isPatternsLoading ? (
-            <div className="bento-card bg-muted/30 border-dashed p-6 flex flex-col min-h-[300px] animate-pulse justify-center items-center">
-              <div className="w-full max-w-md space-y-4 flex flex-col items-center">
-                <div className="h-8 bg-black/5 dark:bg-white/5 rounded-lg w-1/2 mb-2"></div>
-                <div className="h-4 bg-black/5 dark:bg-white/5 rounded w-3/4"></div>
-                <div className="h-4 bg-black/5 dark:bg-white/5 rounded w-2/3"></div>
-                <div className="h-10 bg-black/5 dark:bg-white/5 rounded-full w-32 mt-4"></div>
+      {/* ── Row 3: Insights & Overview Stats (Same Row, Stretch Height) ── */}
+      <div className="flex flex-col lg:flex-row gap-6 md:gap-8 items-stretch">
+        
+        {/* Left: Learning Insights */}
+        <div className="flex-1 flex flex-col min-w-0">
+          <h2 className="text-3xl font-editorial italic text-foreground/80 mb-4">Learning Insights</h2>
+          <div className="flex-1 [&>div]:h-full">
+            {isPatternsLoading ? (
+              <div className="bento-card bg-muted/30 border-dashed p-6 flex flex-col min-h-[300px] animate-pulse justify-center items-center">
+                <div className="w-full max-w-md space-y-4 flex flex-col items-center">
+                  <div className="h-8 bg-black/5 dark:bg-white/5 rounded-lg w-1/2 mb-2"></div>
+                  <div className="h-4 bg-black/5 dark:bg-white/5 rounded w-3/4"></div>
+                  <div className="h-4 bg-black/5 dark:bg-white/5 rounded w-2/3"></div>
+                  <div className="h-10 bg-black/5 dark:bg-white/5 rounded-full w-32 mt-4"></div>
+                </div>
               </div>
-            </div>
-          ) : patterns ? (
-            <>
-              {patterns.requiresMoreSessions ? (
-                <div className="bento-card bg-muted/30 border-dashed text-center p-8 flex flex-col justify-center items-center min-h-[300px]">
-                  <div className="max-w-md mx-auto space-y-4">
-                    <h3 className="text-2xl font-editorial">Unlock Insights</h3>
-                    <p className="text-muted-foreground font-medium">
-                      Complete at least {patterns.minimumRequired} study sessions to get personalized learning insights.
-                    </p>
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-card border-2 border-border shadow-bento-sm font-bold text-sm">
-                      <span>{patterns.currentSessions} / {patterns.minimumRequired}</span>
-                      <span className="text-muted-foreground">sessions</span>
+            ) : patterns ? (
+              <>
+                {patterns.requiresMoreSessions ? (
+                  <div className="bento-card bg-muted/30 border-dashed text-center p-8 flex flex-col justify-center items-center min-h-[300px]">
+                    <div className="max-w-md mx-auto space-y-4">
+                      <h3 className="text-2xl font-editorial">Unlock Insights</h3>
+                      <p className="text-muted-foreground font-medium">
+                        Complete at least {patterns.minimumRequired} study sessions to get personalized learning insights.
+                      </p>
+                      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-card border-2 border-border shadow-bento-sm font-bold text-sm">
+                        <span>{patterns.currentSessions} / {patterns.minimumRequired}</span>
+                        <span className="text-muted-foreground">sessions</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ) : patterns.insights ? (
-                <InsightsPanel insights={patterns.insights} />
-              ) : (
-                <div className="bento-card bg-muted/30 border-dashed text-center p-8 flex flex-col justify-center items-center min-h-[300px]">
-                  <p className="font-editorial text-2xl text-muted-foreground">Start studying to unlock insights</p>
-                </div>
-              )}
-            </>
-          ) : null}
+                ) : patterns.insights ? (
+                  <InsightsPanel insights={patterns.insights} />
+                ) : (
+                  <div className="bento-card bg-muted/30 border-dashed text-center p-8 flex flex-col justify-center items-center min-h-[300px]">
+                    <p className="font-editorial text-2xl text-muted-foreground">Start studying to unlock insights</p>
+                  </div>
+                )}
+              </>
+            ) : null}
+          </div>
         </div>
 
-        {/* Right: new widgets + OverviewStats */}
-        <div className="lg:w-[320px] shrink-0 space-y-4">
-          {userStats?.dailyGoalProgress && (
-            <DailyGoalWidget progress={userStats.dailyGoalProgress} />
-          )}
-          <StudyQueueWidget decks={dueTodayData?.decks ?? []} isLoading={isDueTodayLoading} />
-          {dueTodayData && dueTodayData.totalAtRisk > 0 && (
-            <RetentionRiskWidget totalAtRisk={dueTodayData.totalAtRisk} atRiskDecks={dueTodayData.atRiskDecks ?? []} />
-          )}
-          {isStatsLoading ? (
-            <div className="w-full bg-muted/30 rounded-3xl border-2 border-dashed border-border p-6 animate-pulse flex flex-col gap-4">
-              <div className="h-8 bg-black/5 dark:bg-white/5 rounded-lg w-1/2 mb-4"></div>
-              <div className="h-24 bg-black/5 dark:bg-white/5 rounded-2xl w-full"></div>
-              <div className="h-24 bg-black/5 dark:bg-white/5 rounded-2xl w-full"></div>
-              <div className="h-24 bg-black/5 dark:bg-white/5 rounded-2xl w-full"></div>
-            </div>
-          ) : userStats?.overview ? (
-            <OverviewStats stats={userStats.overview} layout="vertical" />
-          ) : null}
+        {/* Right: Overview Stats */}
+        <div className="lg:w-[320px] shrink-0 flex flex-col">
+          {/* Invisible title to perfectly align the top of the card with the left column */}
+          <h2 className="text-3xl font-editorial italic text-foreground/80 mb-4 hidden lg:block invisible">Stats</h2>
+          <div className="flex-1 [&>div]:h-full">
+            {isStatsLoading ? (
+              <div className="w-full h-full bg-muted/30 rounded-3xl border-2 border-dashed border-border p-6 animate-pulse flex flex-col gap-4">
+                <div className="h-8 bg-black/5 dark:bg-white/5 rounded-lg w-1/2 mb-4"></div>
+                <div className="h-24 bg-black/5 dark:bg-white/5 rounded-2xl w-full"></div>
+                <div className="h-24 bg-black/5 dark:bg-white/5 rounded-2xl w-full"></div>
+              </div>
+            ) : userStats?.overview ? (
+              <OverviewStats stats={userStats.overview} layout="vertical" />
+            ) : null}
+          </div>
         </div>
       </div>
 
-      {/* ── Row 4: Heatmap ── */}
-      {isStatsLoading ? (
-        <div className="w-full">
+      {/* ── Row 4: Tasks & Queue Widgets (Same Row, Stretch Height) ── */}
+      <div className="flex flex-col lg:flex-row gap-6 md:gap-8 items-stretch">
+        
+        {/* Left: Tasks */}
+        <div className="flex-1 flex flex-col min-w-0">
+          <h2 className="text-3xl font-editorial italic text-foreground/80 mb-4 hidden lg:block">Tasks</h2>
+          <div className="flex-1 [&>div]:h-full">
+            <TodoList />
+          </div>
+        </div>
+
+        {/* Right: Study Queue / Daily Goal Stack */}
+        <div className="lg:w-[320px] shrink-0 flex flex-col">
+          <h2 className="text-3xl font-editorial italic text-foreground/80 mb-4 hidden lg:block invisible">Queue</h2>
+          <div className="flex flex-col gap-4 flex-1">
+            {userStats?.dailyGoalProgress && (
+              <DailyGoalWidget progress={userStats.dailyGoalProgress} />
+            )}
+            <div className="flex-1 [&>div]:h-full">
+              <StudyQueueWidget decks={dueTodayData?.decks ?? []} isLoading={isDueTodayLoading} />
+            </div>
+            {dueTodayData && dueTodayData.totalAtRisk > 0 && (
+              <RetentionRiskWidget totalAtRisk={dueTodayData.totalAtRisk} atRiskDecks={dueTodayData.atRiskDecks ?? []} />
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Row 5: Heatmap (Full Width) ── */}
+      <div className="w-full">
+        {isStatsLoading ? (
           <div className="bento-card bg-muted/30 border-dashed border-border p-6 animate-pulse min-h-[300px]">
             <div className="h-6 bg-black/5 dark:bg-white/5 rounded w-1/4 mb-4"></div>
             <div className="h-40 bg-black/5 dark:bg-white/5 rounded-xl w-full"></div>
           </div>
-        </div>
-      ) : userStats?.dailyStats && userStats.dailyStats.length > 0 ? (
-        <div className="w-full">
+        ) : userStats?.dailyStats && userStats.dailyStats.length > 0 ? (
           <HeatmapCalendar dailyStats={userStats.dailyStats} />
-        </div>
-      ) : null}
+        ) : (
+          <div className="bento-card bg-muted/30 border-dashed text-center p-8 flex flex-col justify-center items-center">
+            <p className="font-editorial text-xl text-muted-foreground">No recent activity</p>
+          </div>
+        )}
+      </div>
 
       <AddDeckModal
         open={isAddDeckModalOpen}

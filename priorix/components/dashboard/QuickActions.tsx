@@ -35,11 +35,11 @@ export default function QuickActions({
   ];
 
   return (
-    <div className="bento-card bg-card h-full flex flex-col p-6">
+    <div className="bento-card bg-card flex flex-col p-6">
       <h2 className="text-2xl font-editorial italic mb-5 text-foreground">
         Quick Actions
       </h2>
-      <div className="flex flex-col gap-3 flex-1 justify-center">
+      <div className="flex flex-col gap-3">
         {actions.map((action) => (
           <button
             key={action.title}
