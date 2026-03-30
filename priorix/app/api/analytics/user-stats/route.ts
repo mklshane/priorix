@@ -218,6 +218,23 @@ export async function GET(req: NextRequest) {
       }
     });
 
+    // Compute daily goal progress
+    const dailyGoal = profile.dailyReviewGoal || 50;
+    const reviewed = todayCardsStudied;
+    const goalPercentage = Math.min(100, Math.round((reviewed / dailyGoal) * 100));
+    const currentHour = new Date().getHours();
+    let goalStatus: "complete" | "on_track" | "behind";
+    if (reviewed >= dailyGoal) {
+      goalStatus = "complete";
+    } else {
+      // Expected fraction of the day gone (treat study window as 6am-11pm = 17hrs)
+      const studyHoursElapsed = Math.max(0, currentHour - 6);
+      const studyWindowHours = 17;
+      const expectedFraction = Math.min(1, studyHoursElapsed / studyWindowHours);
+      const expectedReviewed = Math.floor(dailyGoal * expectedFraction);
+      goalStatus = reviewed >= expectedReviewed * 0.8 ? "on_track" : "behind";
+    }
+
     const stats = {
       overview: {
         totalCardsStudied: todayCardsStudied,
@@ -228,6 +245,12 @@ export async function GET(req: NextRequest) {
         longestStreak: streak.longest,
         totalCards: cardProgress.length,
         sessionsCompleted: sessions.length,
+      },
+      dailyGoalProgress: {
+        reviewed,
+        goal: dailyGoal,
+        percentage: goalPercentage,
+        status: goalStatus,
       },
       dailyStats,
       masteryDistribution,

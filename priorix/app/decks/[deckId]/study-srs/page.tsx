@@ -1,9 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { useQuery } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
-import { BarChart3, Check, Clock, RotateCcw, Target, Zap } from "lucide-react";
+import { AlertTriangle, BarChart3, Check, Clock, RotateCcw, Target, Zap } from "lucide-react";
 
 import LoadingState from "@/components/DeckDetails/LoadingState";
 import { Button } from "@/components/ui/button";
@@ -185,11 +187,12 @@ const StudySrsPage = () => {
   const deckId = params.deckId as string;
   const router = useRouter();
   const { showToast } = useToast();
+  const { data: session } = useSession();
 
   // Session tracking
-  const { recordCardReview, endSession, startSession, sessionQuality } = useStudySession({ 
+  const { recordCardReview, endSession, startSession, sessionQuality } = useStudySession({
     deckId,
-    enabled: true 
+    enabled: true
   });
 
   const [sessionSize, setSessionSize] = useState<number>(() => {
@@ -198,6 +201,26 @@ const StudySrsPage = () => {
     const parsed = raw ? parseInt(raw, 10) : 10;
     return Number.isNaN(parsed) ? 10 : parsed;
   });
+
+  // Fetch learning profile to use optimalSessionLength as default when no localStorage value exists
+  const { data: learningProfile } = useQuery({
+    queryKey: ["learning-profile", session?.user?.id],
+    queryFn: async () => {
+      const res = await fetch(`/api/user/learning-profile?userId=${session!.user!.id}`);
+      if (!res.ok) return null;
+      return res.json();
+    },
+    enabled: !!session?.user?.id,
+    staleTime: 60_000,
+  });
+
+  useEffect(() => {
+    if (!learningProfile?.optimalSessionLength) return;
+    const raw = window.localStorage.getItem(sessionSizeStorageKey(deckId));
+    if (!raw) {
+      setSessionSize(learningProfile.optimalSessionLength);
+    }
+  }, [learningProfile, deckId]);
 
   const [pendingCards, setPendingCards] = useState<IFlashcard[]>([]);
   const [queue, setQueue] = useState<IFlashcard[]>([]);
@@ -215,6 +238,10 @@ const StudySrsPage = () => {
     {},
   );
   const [lastRatings, setLastRatings] = useState<Record<string, SrsRating>>({});
+  const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
+  const [recentRatings, setRecentRatings] = useState<SrsRating[]>([]);
+  const [showFatigueWarning, setShowFatigueWarning] = useState(false);
+  const [againCountByCard, setAgainCountByCard] = useState<Record<string, number>>({});
 
   const { deck, isLoading: isDeckLoading, error: deckError } = useDeck(deckId);
   const { flashcards: deckCards, isLoading: isFlashcardsLoading } =
@@ -287,6 +314,10 @@ const StudySrsPage = () => {
     setRoundCards(ordered);
     setSeenCardIds(new Set());
     setLastRatings({});
+    setSessionStartTime(Date.now());
+    setRecentRatings([]);
+    setShowFatigueWarning(false);
+    setAgainCountByCard({});
   };
 
   const handleRating = async (rating: SrsRating) => {
@@ -310,6 +341,22 @@ const StudySrsPage = () => {
       }
       setStats((prev) => ({ ...prev, [rating]: prev[rating] + 1 }));
       setCompletedCount((prev) => prev + 1);
+
+      // Track rolling window for fatigue detection
+      setRecentRatings((prev) => {
+        const next = [...prev, rating].slice(-5);
+        const hardCount = next.filter((r) => r === "again" || r === "hard").length;
+        if (next.length === 5 && hardCount >= 4) setShowFatigueWarning(true);
+        return next;
+      });
+
+      // Track again counts per card for "struggled most" summary
+      if (rating === "again") {
+        setAgainCountByCard((prev) => ({
+          ...prev,
+          [currentCard._id]: (prev[currentCard._id] ?? 0) + 1,
+        }));
+      }
 
       const nextQueue = queue.filter((_, idx) => idx !== currentIndex);
       if (nextQueue.length === 0) {
@@ -922,6 +969,26 @@ const StudySrsPage = () => {
           </div>
         </motion.div>
 
+        {/* Mid-session fatigue warning */}
+        {showFatigueWarning && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4 flex items-start gap-3 bg-citrus border-2 border-border rounded-xl px-4 py-3"
+          >
+            <AlertTriangle className="h-4 w-4 text-foreground shrink-0 mt-0.5" />
+            <p className="text-xs font-medium text-foreground flex-1">
+              You&apos;re finding this tough — that&apos;s normal. Consider taking a short break.
+            </p>
+            <button
+              onClick={() => setShowFatigueWarning(false)}
+              className="text-foreground/60 hover:text-foreground text-xs font-bold shrink-0"
+            >
+              ✕
+            </button>
+          </motion.div>
+        )}
+
         <AnimatePresence mode="wait">
           <motion.div
             key={currentCard ? currentCard._id : "completed"}
@@ -1081,12 +1148,53 @@ const StudySrsPage = () => {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-center text-2xl">
-              Learning Progress
+              Session Complete
             </DialogTitle>
             <DialogDescription className="text-center text-xs">
-              Overall deck status after this study session
+              Great work — here&apos;s how this session went
             </DialogDescription>
           </DialogHeader>
+
+          {/* Session stats */}
+          {seenCardIds.size > 0 && (() => {
+            const totalReviewed = seenCardIds.size;
+            const accurate = stats.good + stats.easy;
+            const accuracy = totalReviewed > 0 ? Math.round((accurate / totalReviewed) * 100) : 0;
+            const elapsedMs = sessionStartTime ? Date.now() - sessionStartTime : 0;
+            const elapsedMin = Math.round(elapsedMs / 60000);
+            const struggledCards = Object.entries(againCountByCard)
+              .sort(([, a], [, b]) => b - a)
+              .slice(0, 2)
+              .map(([cardId]) => {
+                const card = deckCardsWithUpdates.find((c) => c._id === cardId);
+                return card?.definition ?? null;
+              })
+              .filter(Boolean) as string[];
+            return (
+              <div className="grid grid-cols-3 gap-2 mb-4">
+                <div className="bg-citrus rounded-xl border-2 border-border p-3 text-center">
+                  <div className="text-xl font-editorial font-bold">{totalReviewed}</div>
+                  <div className="text-[9px] font-bold uppercase tracking-widest text-foreground/70 mt-0.5">Reviewed</div>
+                </div>
+                <div className="bg-mint rounded-xl border-2 border-border p-3 text-center">
+                  <div className="text-xl font-editorial font-bold">{accuracy}%</div>
+                  <div className="text-[9px] font-bold uppercase tracking-widest text-foreground/70 mt-0.5">Accuracy</div>
+                </div>
+                <div className="bg-sky rounded-xl border-2 border-border p-3 text-center">
+                  <div className="text-xl font-editorial font-bold">{elapsedMin}m</div>
+                  <div className="text-[9px] font-bold uppercase tracking-widest text-foreground/70 mt-0.5">Time</div>
+                </div>
+                {struggledCards.length > 0 && (
+                  <div className="col-span-3 bg-blush rounded-xl border-2 border-border p-3">
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-foreground/70 mb-1">Struggled most</p>
+                    {struggledCards.map((term, i) => (
+                      <p key={i} className="text-xs font-medium text-foreground truncate">· {term}</p>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           <div className="space-y-3">
             <div className="grid grid-cols-2 sm:grid-cols-2 gap-3">

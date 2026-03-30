@@ -28,10 +28,17 @@ interface LearningProfile {
   learningSpeed: "slow" | "medium" | "fast";
   dailyReviewGoal: number;
   sessionLengthPreference: number;
+  optimalSessionLength?: number;
   difficultyPreference: "challenge" | "balanced" | "confidence";
   preferredStudyTimes: number[];
   smartNotifications: boolean;
   isCalibrated: boolean;
+  personalMultipliers?: {
+    again: number;
+    hard: number;
+    good: number;
+    easy: number;
+  };
 }
 
 async function fetchLearningProfile(userId: string): Promise<LearningProfile> {
@@ -86,13 +93,15 @@ export default function LearningSettingsPage() {
   const [sessionLength, setSessionLength] = useState(20);
   const [difficulty, setDifficulty] = useState<"challenge" | "balanced" | "confidence">("balanced");
   const [smartNotifications, setSmartNotifications] = useState(false);
+  const [preferredStudyTimes, setPreferredStudyTimes] = useState<number[]>([]);
 
   useEffect(() => {
     if (profile) {
       setDailyGoal(profile.dailyReviewGoal ?? 50);
-      setSessionLength(profile.sessionLengthPreference ?? 20);
+      setSessionLength(profile.sessionLengthPreference ?? profile.optimalSessionLength ?? 20);
       setDifficulty(profile.difficultyPreference ?? "balanced");
       setSmartNotifications(profile.smartNotifications ?? false);
+      setPreferredStudyTimes(profile.preferredStudyTimes ?? []);
     }
   }, [profile]);
 
@@ -119,12 +128,19 @@ export default function LearningSettingsPage() {
     },
   });
 
+  const toggleStudyHour = (hour: number) => {
+    setPreferredStudyTimes((prev) =>
+      prev.includes(hour) ? prev.filter((h) => h !== hour) : [...prev, hour]
+    );
+  };
+
   const handleSave = () => {
     updateMutation.mutate({
       dailyReviewGoal: dailyGoal,
       sessionLengthPreference: sessionLength,
       difficultyPreference: difficulty,
       smartNotifications,
+      preferredStudyTimes,
     });
   };
 
@@ -160,17 +176,34 @@ export default function LearningSettingsPage() {
           <Card className="md:col-span-2 border-2 border-border shadow-bento-sm rounded-3xl bg-mint overflow-hidden transition-all hover:shadow-bento">
             <CardContent className="p-6 md:p-8">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div className="flex items-start gap-4">
+                <div className="flex items-start gap-4 flex-1">
                   <div className="w-12 h-12 rounded-full bg-background border-2 border-border flex flex-shrink-0 items-center justify-center shadow-sm">
                     <TrendingUp className="h-6 w-6 text-foreground" />
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <h3 className="text-xl font-bold font-sans mb-1 text-foreground">
                       Profile Calibrated
                     </h3>
                     <p className="text-sm font-medium text-foreground/80">
-                      Your learning speed is currently mapped as: <span className="font-bold capitalize bg-background px-2 py-0.5 rounded-full border-2 border-border ml-1">{profile.learningSpeed}</span>
+                      Learning speed: <span className="font-bold capitalize bg-background px-2 py-0.5 rounded-full border-2 border-border ml-1">{profile.learningSpeed}</span>
                     </p>
+                    {profile.personalMultipliers && (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {(["again", "hard", "good", "easy"] as const).map((rating) => (
+                          <span
+                            key={rating}
+                            className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest bg-background/70 border-2 border-border px-2 py-1 rounded-full"
+                          >
+                            <span className="capitalize">{rating}</span>
+                            <span className="text-foreground/60">→</span>
+                            <span>{profile.personalMultipliers![rating].toFixed(1)}×</span>
+                          </span>
+                        ))}
+                        <span className="text-[10px] text-foreground/60 self-center font-medium">
+                          interval multipliers
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <Button
@@ -271,7 +304,7 @@ export default function LearningSettingsPage() {
               </div>
             </div>
             
-            <div className="mt-auto pt-4">
+            <div className="mt-auto pt-4 space-y-3">
               <Select
                 value={difficulty}
                 onValueChange={(value: any) => setDifficulty(value)}
@@ -300,6 +333,21 @@ export default function LearningSettingsPage() {
                   </SelectItem>
                 </SelectContent>
               </Select>
+              {difficulty === "challenge" && (
+                <p className="text-xs text-muted-foreground font-medium bg-muted/50 rounded-xl px-3 py-2">
+                  Hard and failed cards are shown first. Good for aggressive review sessions.
+                </p>
+              )}
+              {difficulty === "balanced" && (
+                <p className="text-xs text-muted-foreground font-medium bg-muted/50 rounded-xl px-3 py-2">
+                  Cards shown in order of urgency — the default. Works well for all learners.
+                </p>
+              )}
+              {difficulty === "confidence" && (
+                <p className="text-xs text-muted-foreground font-medium bg-muted/50 rounded-xl px-3 py-2">
+                  30% of each session includes mastered cards to reinforce memory and build momentum.
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -328,6 +376,47 @@ export default function LearningSettingsPage() {
                 className="data-[state=checked]:bg-primary"
               />
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Preferred Study Times */}
+        <Card className="md:col-span-2 border-2 border-border shadow-bento-sm rounded-3xl bg-card transition-all hover:shadow-bento">
+          <CardContent className="p-6 md:p-8">
+            <div className="flex items-start gap-4 mb-6">
+              <div className="w-10 h-10 rounded-full bg-sky border-2 border-border flex flex-shrink-0 items-center justify-center shadow-sm">
+                <Clock className="h-5 w-5 text-foreground" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold font-sans mb-1 text-foreground">Preferred Study Hours</h3>
+                <p className="text-sm text-muted-foreground font-medium">
+                  Click hours to toggle your preferred study times (0–23)
+                </p>
+              </div>
+            </div>
+            <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-12 gap-1.5">
+              {Array.from({ length: 24 }, (_, h) => {
+                const isSelected = preferredStudyTimes.includes(h);
+                const label = h === 0 ? "12a" : h < 12 ? `${h}a` : h === 12 ? "12p" : `${h - 12}p`;
+                return (
+                  <button
+                    key={h}
+                    onClick={() => toggleStudyHour(h)}
+                    className={`flex flex-col items-center justify-center rounded-xl border-2 py-2 px-1 text-[9px] font-bold uppercase tracking-wider transition-all ${
+                      isSelected
+                        ? "bg-citrus border-border text-foreground -translate-y-0.5"
+                        : "bg-card border-border/60 text-muted-foreground hover:border-border hover:bg-muted/30"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+            {preferredStudyTimes.length > 0 && (
+              <p className="text-xs text-muted-foreground mt-3">
+                {preferredStudyTimes.length} hour{preferredStudyTimes.length !== 1 ? "s" : ""} selected
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>

@@ -134,6 +134,58 @@ const initProgressIfNeeded = async (
   return updated;
 };
 
+export const getAtRiskFlashcards = async (
+  deckId: string,
+  limit = 10,
+  userId?: string,
+) => {
+  await ConnectDB();
+  const now = new Date();
+
+  if (!userId) throw new Error("userId is required for at-risk fetch");
+
+  const cards = await Flashcard.find({ deck: deckId }).sort({ createdAt: 1 });
+
+  const ensureProgressPromises = cards.map(async (card) => {
+    const prog = await UserCardProgress.findOneAndUpdate(
+      { userId, cardId: card._id },
+      { $setOnInsert: { deckId: card.deck } },
+      { upsert: true, new: true },
+    );
+    await initProgressIfNeeded(prog, card, userId);
+    return prog;
+  });
+
+  const progressList = await Promise.all(ensureProgressPromises);
+
+  // Filter to at-risk: forgetProbability > 0.65 AND not yet due
+  const atRiskProgress = progressList
+    .filter((p) => {
+      if (!p.nextReviewAt) return false; // new cards, not at risk
+      const notYetDue = new Date(p.nextReviewAt).getTime() > now.getTime();
+      return notYetDue && (p.forgetProbability ?? 0) > 0.65;
+    })
+    .sort((a, b) => (b.forgetProbability ?? 0) - (a.forgetProbability ?? 0))
+    .slice(0, limit);
+
+  const cardMap = new Map(cards.map((c) => [String(c._id), c]));
+
+  return atRiskProgress.map((prog) => {
+    const card = cardMap.get(String(prog.cardId));
+    if (!card) return null;
+    const plainCard = card.toObject();
+    const plainProg = prog.toObject ? prog.toObject() : { ...prog };
+    return {
+      ...plainCard,
+      ...plainProg,
+      _id: plainCard._id,
+      cardId: plainCard._id,
+      progressId: plainProg._id,
+      stalenessStatus: computeStalenessStatus(plainProg),
+    };
+  }).filter(Boolean);
+};
+
 export const getDueFlashcards = async (
   deckId: string,
   limit = 10,
@@ -200,7 +252,7 @@ export const getDueFlashcards = async (
     dueProgressList,
     profile,
     1.0, // deckImportance
-    undefined // no limit yet — we partition first
+    limit  // pass limit so confidence mode uses the actual session size
   );
 
   // ──────────────────────────────────────────────────────────────

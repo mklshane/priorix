@@ -90,6 +90,10 @@ interface DeckCardProps {
   showMenu?: boolean;
   queryClient?: ReturnType<typeof useQueryClient>;
   folders?: Folder[];
+  dueInfo?: {
+    dueCount: number;
+    overdueCount: number;
+  };
 }
 
 const colors = ["bg-sky", "bg-mint", "bg-blush", "bg-citrus", "bg-lilac", "bg-tangerine"];
@@ -103,6 +107,7 @@ const DeckCard: React.FC<DeckCardProps> = ({
   showMenu = true,
   queryClient,
   folders = [],
+  dueInfo,
 }) => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
@@ -350,6 +355,21 @@ const DeckCard: React.FC<DeckCardProps> = ({
             )}
           </div>
 
+          {/* Due badges */}
+          {dueInfo && (dueInfo.overdueCount > 0 || dueInfo.dueCount > 0) && (
+            <div className="flex gap-1.5 mt-1 mb-2">
+              {dueInfo.overdueCount > 0 && (
+                <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest bg-blush text-foreground border border-border/40 rounded-full px-2 py-0.5">
+                  {dueInfo.overdueCount} overdue
+                </span>
+              )}
+              {dueInfo.dueCount - dueInfo.overdueCount > 0 && (
+                <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest bg-citrus text-foreground border border-border/40 rounded-full px-2 py-0.5">
+                  {dueInfo.dueCount - dueInfo.overdueCount} due
+                </span>
+              )}
+            </div>
+          )}
           {/* Body */}<div className="flex-grow mb-4 mt-1">{deck.description ? (<p className="text-[11px] font-medium text-foreground/80 line-clamp-2">{deck.description}</p>) : (<p className="text-[11px] font-medium text-foreground/50 italic">No description</p>)}</div>
 
           {/* Footer */}<div className="mt-auto flex items-center justify-between text-[9px] font-bold uppercase tracking-widest text-foreground"><span className="bg-background/50 px-2 py-1.5 rounded-md border border-border/20 inline-flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-border opacity-70" />{deckLength} cards</span><span className="opacity-80 flex items-center gap-1">{getDisplayName()}{!isOwner && <span className="ml-1 opacity-60">• Shared</span>}</span></div>

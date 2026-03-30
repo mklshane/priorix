@@ -29,13 +29,20 @@ export async function GET(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
-    const { userId, ...updates } = body;
+    const { userId, sessionLengthPreference, smartNotifications, ...rest } = body;
 
     if (!userId) {
       return NextResponse.json({ error: "userId is required" }, { status: 400 });
     }
 
     await ConnectDB();
+
+    // Remap frontend field names to schema field names
+    const updates = {
+      ...rest,
+      ...(sessionLengthPreference !== undefined && { optimalSessionLength: sessionLengthPreference }),
+      ...(smartNotifications !== undefined && { enableSmartNotifications: smartNotifications }),
+    };
 
     const profile = await UserLearningProfile.findOneAndUpdate(
       { userId },

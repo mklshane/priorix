@@ -66,6 +66,18 @@ const fetchFavoriteDecks = async (userId: string): Promise<Deck[]> => {
   return res.json();
 };
 
+interface DeckDueInfo {
+  deckId: string;
+  dueCount: number;
+  overdueCount: number;
+}
+
+const fetchDueToday = async (userId: string): Promise<{ decks: DeckDueInfo[] }> => {
+  const res = await fetch(`/api/analytics/due-today?userId=${userId}`);
+  if (!res.ok) return { decks: [] };
+  return res.json();
+};
+
 type DeckTab = "workspace" | "favorites" | "recent";
 type SortOption = "name" | "date" | "updated";
 
@@ -142,6 +154,17 @@ const DecksPageContent = () => {
     queryFn: () => fetchFavoriteDecks(session?.user?.id!),
     enabled: !!session?.user?.id,
   });
+
+  const { data: dueTodayData } = useQuery({
+    queryKey: ["due-today", session?.user?.id],
+    queryFn: () => fetchDueToday(session?.user?.id!),
+    enabled: !!session?.user?.id,
+    staleTime: 60_000,
+  });
+
+  const dueTodayByDeckId = new Map<string, { dueCount: number; overdueCount: number }>(
+    (dueTodayData?.decks ?? []).map((d) => [d.deckId, { dueCount: d.dueCount, overdueCount: d.overdueCount }])
+  );
 
   // Filter and sort decks
   const filterAndSortDecks = (decksToFilter: Deck[]) => {
@@ -616,6 +639,7 @@ const DecksPageContent = () => {
                           onEditClick={handleEditDeck}
                           queryClient={queryClient}
                           folders={folders}
+                          dueInfo={dueTodayByDeckId.get(item.deck._id)}
                         />
                       </div>
                     </motion.div>
@@ -679,6 +703,7 @@ const DecksPageContent = () => {
                   onEditClick={handleEditDeck}
                   queryClient={queryClient}
                   folders={folders}
+                  dueInfo={dueTodayByDeckId.get(deck._id)}
                 />
               </motion.div>
             ))}

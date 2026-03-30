@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { srsRatings } from "@/lib/srs-config";
-import { getDueFlashcards, reviewFlashcard } from "./controller";
+import { getDueFlashcards, getAtRiskFlashcards, reviewFlashcard } from "./controller";
 
 export async function GET(req: NextRequest) {
   try {
@@ -9,6 +9,7 @@ export async function GET(req: NextRequest) {
     const userId = searchParams.get("userId");
     const limitParam = searchParams.get("limit");
     const limit = limitParam ? parseInt(limitParam, 10) : 10;
+    const atRisk = searchParams.get("atRisk") === "true";
 
     if (!deckId) {
       return NextResponse.json({ error: "deckId is required" }, { status: 400 });
@@ -18,11 +19,10 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "userId is required" }, { status: 400 });
     }
 
-    const cards = await getDueFlashcards(
-      deckId,
-      Number.isNaN(limit) ? 10 : limit,
-      userId || undefined,
-    );
+    const safeLimit = Number.isNaN(limit) ? 10 : limit;
+    const cards = atRisk
+      ? await getAtRiskFlashcards(deckId, safeLimit, userId)
+      : await getDueFlashcards(deckId, safeLimit, userId);
     return NextResponse.json(cards);
   } catch (err: any) {
     console.error("/api/flashcard/review GET error", err);
