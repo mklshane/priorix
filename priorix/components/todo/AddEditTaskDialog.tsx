@@ -9,8 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreateTask, useUpdateTask } from "@/hooks/useTasks";
-import type { Task, TaskPriority } from "@/types/task";
-import { CheckSquare, Clock, Tag, Flag } from "lucide-react";
+import { useAllDecks } from "@/hooks/useDeck";
+import { useNotes } from "@/hooks/useNotes";
+import type { Task, TaskPriority, LinkedEntity } from "@/types/task";
+import { CheckSquare, Clock, Tag, Flag, Library, FileText } from "lucide-react";
 
 export default function AddEditTaskDialog({
   open,
@@ -26,6 +28,8 @@ export default function AddEditTaskDialog({
   const { data: session } = useSession();
   const createTask = useCreateTask();
   const updateTask = useUpdateTask();
+  const { data: allDecks = [] } = useAllDecks();
+  const { data: allNotes = [] } = useNotes(true, {});
 
   const isEditing = !!editingTask;
   const [form, setForm] = useState({
@@ -35,6 +39,8 @@ export default function AddEditTaskDialog({
     dueTime: "",
     priority: "medium" as TaskPriority,
     tags: "",
+    linkedDeck: null as LinkedEntity | null,
+    linkedNote: null as LinkedEntity | null,
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -50,6 +56,14 @@ export default function AddEditTaskDialog({
         dueTime: editingTask.dueTime || "",
         priority: editingTask.priority || "medium",
         tags: editingTask.tags.join(", "),
+        linkedDeck:
+          editingTask.linkedDeck && typeof editingTask.linkedDeck === "object"
+            ? (editingTask.linkedDeck as LinkedEntity)
+            : null,
+        linkedNote:
+          editingTask.linkedNote && typeof editingTask.linkedNote === "object"
+            ? (editingTask.linkedNote as LinkedEntity)
+            : null,
       });
     } else {
       setForm({
@@ -59,6 +73,8 @@ export default function AddEditTaskDialog({
         dueTime: "",
         priority: "medium",
         tags: "",
+        linkedDeck: null,
+        linkedNote: null,
       });
     }
   }, [editingTask, selectedDate, open]);
@@ -79,6 +95,8 @@ export default function AddEditTaskDialog({
           .split(",")
           .map((t) => t.trim())
           .filter(Boolean),
+        linkedDeck: form.linkedDeck?._id ?? null,
+        linkedNote: form.linkedNote?._id ?? null,
         userId: session.user.id,
       };
       
@@ -196,6 +214,65 @@ export default function AddEditTaskDialog({
                 value={form.tags}
                 onChange={(e) => setForm({ ...form, tags: e.target.value })}
               />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5 ml-1">
+                <Library className="w-3.5 h-3.5" /> Link Deck
+              </Label>
+              <div className="relative">
+                <select
+                  className={fieldStyles + " appearance-none cursor-pointer pr-10"}
+                  value={form.linkedDeck?._id ?? ""}
+                  onChange={(e) => {
+                    const deck = allDecks.find((d) => d._id === e.target.value);
+                    setForm({
+                      ...form,
+                      linkedDeck: deck ? { _id: deck._id, title: deck.title } : null,
+                    });
+                  }}
+                >
+                  <option value="">— None —</option>
+                  {allDecks.map((deck) => (
+                    <option key={deck._id} value={deck._id}>
+                      {deck.title}
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground text-xs">
+                  ▼
+                </div>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5 ml-1">
+                <FileText className="w-3.5 h-3.5" /> Link Note
+              </Label>
+              <div className="relative">
+                <select
+                  className={fieldStyles + " appearance-none cursor-pointer pr-10"}
+                  value={form.linkedNote?._id ?? ""}
+                  onChange={(e) => {
+                    const note = allNotes.find((n) => n._id === e.target.value);
+                    setForm({
+                      ...form,
+                      linkedNote: note ? { _id: note._id, title: note.title } : null,
+                    });
+                  }}
+                >
+                  <option value="">— None —</option>
+                  {allNotes.map((note) => (
+                    <option key={note._id} value={note._id}>
+                      {note.title}
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-muted-foreground text-xs">
+                  ▼
+                </div>
+              </div>
             </div>
           </div>
 

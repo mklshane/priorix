@@ -3,7 +3,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { motion } from "framer-motion";
-import { GripVertical, X, Check, Clock, Tag } from "lucide-react";
+import { GripVertical, X, Check, Clock, Tag, Library, FileText } from "lucide-react";
 import type { Task } from "@/types/task";
 
 const PRIORITY_STYLES: Record<
@@ -161,6 +161,28 @@ export default function TaskCard({
                 {task.tags[0]}
                 {task.tags.length > 1 ? ` +${task.tags.length - 1}` : ""}
               </span>
+            )}
+
+            {task.linkedDeck && typeof task.linkedDeck === "object" && (
+              <a
+                href={`/decks/${(task.linkedDeck as { _id: string; title: string })._id}`}
+                onClick={(e) => e.stopPropagation()}
+                className="inline-flex items-center gap-1.5 rounded-full border-2 border-border bg-sky/30 px-3 py-1 text-foreground shadow-sm hover:bg-sky/50 transition-colors"
+              >
+                <Library className="h-3.5 w-3.5 opacity-70" />
+                {(task.linkedDeck as { _id: string; title: string }).title}
+              </a>
+            )}
+
+            {task.linkedNote && typeof task.linkedNote === "object" && (
+              <a
+                href={`/notes/${(task.linkedNote as { _id: string; title: string })._id}`}
+                onClick={(e) => e.stopPropagation()}
+                className="inline-flex items-center gap-1.5 rounded-full border-2 border-border bg-tangerine/30 px-3 py-1 text-foreground shadow-sm hover:bg-tangerine/50 transition-colors"
+              >
+                <FileText className="h-3.5 w-3.5 opacity-70" />
+                {(task.linkedNote as { _id: string; title: string }).title}
+              </a>
             )}
           </div>
         </div>

@@ -2,6 +2,17 @@ import { useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { Deck } from "@/types/deck";
 
+export const useAllDecks = () => {
+  const { data: session } = useSession();
+  return useQuery<Deck[]>({
+    queryKey: ["decks", session?.user?.id],
+    queryFn: () =>
+      fetch(`/api/deck?userId=${session!.user!.id}`).then((r) => r.json()),
+    enabled: !!session?.user?.id,
+    staleTime: 60_000,
+  });
+};
+
 const fetchDeck = async (deckId: string, userId: string) => {
   const res = await fetch(`/api/deck?id=${deckId}&userId=${userId}`);
   if (!res.ok) {
