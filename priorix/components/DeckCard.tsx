@@ -286,7 +286,7 @@ const DeckCard: React.FC<DeckCardProps> = ({
 
   return (
     <>
-      <div onClick={() => handleDeckClick(deck._id)} className={cn("bento-card p-4 flex flex-col justify-between min-h-[140px] relative cursor-pointer group hover:shadow-bento-hover active:shadow-bento-active transition-all duration-300 border-2 border-border", colors[index % colors.length], isClicked && "translate-y-0 shadow-bento", className)}><div className="flex flex-col h-full z-10 relative">{/* Header */}<div className="flex justify-between items-start mb-2"><h3 className="text-lg font-sans line-clamp-1 text-foreground">
+      <div onClick={() => handleDeckClick(deck._id)} className={cn("bento-card p-4 flex flex-col justify-between h-[160px] overflow-hidden relative cursor-pointer group shadow-none hover:shadow-bento-hover active:shadow-bento-active transition-all duration-300 border-2 border-border", colors[index % colors.length], isClicked && "translate-y-0 shadow-bento", className)}><div className="flex flex-col h-full z-10 relative">{/* Header */}<div className="flex justify-between items-start mb-2"><h3 className="text-lg font-sans line-clamp-1 text-foreground">
               {deck.title}
             </h3>
 

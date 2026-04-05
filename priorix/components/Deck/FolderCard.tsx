@@ -103,7 +103,7 @@ const FolderCard: FC<FolderCardProps> = ({
 
         <div
           className={cn(
-            "px-4 py-7 relative z-0 flex flex-col flex-1 gap-3 bg-sky border-2 border-border overflow-hidden rounded-b-md rounded-tr-md rounded-tl-none shadow-[4px_4px_0px_0px_var(--border)]",
+            "px-4 py-10 relative z-0 flex flex-col flex-1 gap-3 bg-sky border-2 border-border overflow-hidden rounded-b-md rounded-tr-md rounded-tl-none shadow-none",
             "group-hover:shadow-[6px_6px_0px_0px_var(--border)] active:shadow-[0px_0px_0px_0px_var(--border)] transition-shadow duration-200",
             isDragOver &&
               "ring-4 ring-mint ring-offset-4 ring-offset-background bg-mint border-mint",
