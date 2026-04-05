@@ -8,28 +8,12 @@ import type { Task } from "@/types/task";
 
 const PRIORITY_STYLES: Record<
   string,
-  { dot: string; badge: string; label: string }
+  { dot: string; label: string }
 > = {
-  urgent: {
-    dot: "bg-red-500",
-    badge: "bg-blush border-border text-foreground",
-    label: "Urgent",
-  },
-  high: {
-    dot: "bg-orange-500",
-    badge: "bg-tangerine border-border text-foreground",
-    label: "High",
-  },
-  medium: {
-    dot: "bg-sky-500",
-    badge: "bg-sky border-border text-foreground",
-    label: "Medium",
-  },
-  low: {
-    dot: "bg-zinc-400",
-    badge: "bg-muted border-border text-foreground",
-    label: "Low",
-  },
+  urgent: { dot: "bg-red-500", label: "Urgent" },
+  high: { dot: "bg-orange-500", label: "High" },
+  medium: { dot: "bg-sky-500", label: "Medium" },
+  low: { dot: "bg-zinc-400", label: "Low" },
 };
 
 export default function TaskCard({
@@ -60,10 +44,10 @@ export default function TaskCard({
   });
 
   const isCompleted = variant === "completed";
-  const priorityStyle =
-    PRIORITY_STYLES[task.priority] || PRIORITY_STYLES.medium;
+  const priorityStyle = PRIORITY_STYLES[task.priority] || PRIORITY_STYLES.medium;
   const hasDescription = Boolean(task.description?.trim());
   const hasTags = Array.isArray(task.tags) && task.tags.length > 0;
+  const hasLinks = task.linkedDeck || task.linkedNote;
 
   return (
     <motion.div
@@ -73,130 +57,167 @@ export default function TaskCard({
       initial={{ opacity: 0, scale: 0.98 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.98 }}
-      className={`group relative rounded-3xl border-2 border-border bg-card px-4 py-4 sm:px-5 sm:py-5 transition-all ${
+      className={`group relative rounded-2xl border-2 border-border bg-card px-3 py-2.5 sm:px-4 sm:py-3 transition-all ${
         isDragging
           ? "shadow-bento translate-y-1 z-50 bg-accent"
-          : "hover:-translate-y-1 hover:shadow-bento-sm"
+          : "hover:-translate-y-0.5 hover:shadow-bento-sm"
       } ${isCompleted ? "opacity-60 grayscale-[0.3]" : ""}`}
     >
-      <div className="flex items-start gap-4">
+      <div className="flex items-start gap-2 sm:gap-3">
+        {/* Drag Handle (Desktop only) */}
         {!isCompleted && (
           <div
             {...attributes}
             {...listeners}
-            className="mt-1 hidden sm:flex cursor-grab touch-none text-muted-foreground/40 hover:text-foreground transition-colors"
+            className="mt-0.5 hidden sm:flex cursor-grab touch-none text-muted-foreground/30 hover:text-foreground transition-colors shrink-0"
             aria-label="Drag task"
-            title="Drag to reorder"
           >
-            <GripVertical className="h-5 w-5" />
+            <GripVertical className="h-4 w-4" />
           </div>
         )}
 
+        {/* Checkbox */}
         <button
           onClick={(e) => {
             e.stopPropagation();
-            isCompleted && onRestore
-              ? onRestore(task._id)
-              : onComplete?.(task._id);
+            isCompleted && onRestore ? onRestore(task._id) : onComplete?.(task._id);
           }}
-          className={`mt-0.5 h-7 w-7 shrink-0 rounded-[0.6rem] border-2 flex items-center justify-center transition-all shadow-sm ${
+          className={`mt-0.5 h-5 w-5 sm:h-6 sm:w-6 shrink-0 rounded-md border-2 flex items-center justify-center transition-all ${
             isCompleted
               ? "bg-mint border-border text-foreground shadow-inner"
-              : "border-border bg-background hover:bg-mint hover:-translate-y-0.5"
+              : "border-border bg-background hover:bg-mint"
           }`}
-          aria-label={isCompleted ? "Mark as active" : "Mark as completed"}
         >
-          {isCompleted && <Check className="h-4 w-4" strokeWidth={3} />}
+          {isCompleted && <Check className="h-3 w-3 sm:h-4 sm:w-4" strokeWidth={3} />}
         </button>
 
+        {/* Main Content */}
         <div
-          className="min-w-0 flex-1 cursor-pointer"
+          className="min-w-0 flex-1 cursor-pointer flex flex-col justify-center"
           onClick={() => !isCompleted && onEdit(task)}
         >
-          <div className="flex items-center gap-2.5 min-w-0 mb-1">
-            <span
-              className={`h-3 w-3 rounded-full shrink-0 border-2 border-border shadow-sm ${priorityStyle.dot}`}
-              aria-hidden="true"
-            />
-            <h4
-              className={`truncate text-base sm:text-lg font-bold leading-tight ${
-                isCompleted
-                  ? "text-muted-foreground line-through decoration-2"
-                  : "text-foreground"
-              }`}
-            >
-              {task.taskTitle}
-            </h4>
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-1 md:gap-4">
+            
+            {/* Left Column: Title & Desc & Mobile Meta */}
+            <div className="min-w-0 flex-1">
+              <h4
+                className={`truncate text-sm sm:text-[18px] font-bold leading-tight ${
+                  isCompleted ? "text-muted-foreground line-through decoration-2" : "text-foreground"
+                }`}
+              >
+                {task.taskTitle}
+              </h4>
+              
+              {hasDescription && (
+                <p className={`truncate text-xs font-medium mt-0.5 ${
+                  isCompleted ? "text-muted-foreground/50" : "text-muted-foreground/80"
+                }`}>
+                  {task.description}
+                </p>
+              )}
+
+              {/* Mobile Meta Data: Always visible, wraps naturally */}
+              <div className="flex md:hidden flex-wrap items-center gap-3 mt-1.5 text-[10px] font-semibold text-muted-foreground/80">
+                {!isCompleted && (
+                  <span className="flex items-center gap-1.5">
+                    <span className={`h-2 w-2 rounded-full ${priorityStyle.dot}`} />
+                    {priorityStyle.label}
+                  </span>
+                )}
+                {task.dueTime && (
+                  <span className="flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    {task.dueTime}
+                  </span>
+                )}
+                {hasTags && (
+                  <span className="flex items-center gap-1">
+                    <Tag className="h-3 w-3" />
+                    {task.tags[0]}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Right Column (Desktop): Meta Data (Larger, separated by |) */}
+            <div className="hidden md:flex items-center gap-2.5 shrink-0 text-sm font-medium text-muted-foreground/80 pt-0.5">
+              {task.dueTime && (
+                <span className="flex items-center gap-1.5">
+                  <Clock className="h-4 w-4" />
+                  {task.dueTime}
+                </span>
+              )}
+
+              {/* First Pipe: Between Time and (Priority OR Tags) */}
+              {task.dueTime && (!isCompleted || hasTags) && (
+                <span className="text-muted-foreground/30 font-light">|</span>
+              )}
+
+              {!isCompleted && (
+                <span className="flex items-center gap-1.5">
+                  <span className={`h-2.5 w-2.5 rounded-full ${priorityStyle.dot}`} />
+                  {priorityStyle.label}
+                </span>
+              )}
+
+              {/* Second Pipe: Between Priority and Tags */}
+              {!isCompleted && hasTags && (
+                <span className="text-muted-foreground/30 font-light">|</span>
+              )}
+
+              {hasTags && (
+                <span className="flex items-center gap-1.5">
+                  <Tag className="h-4 w-4" />
+                  {task.tags[0]}
+                  {task.tags.length > 1 && ` +${task.tags.length - 1}`}
+                </span>
+              )}
+            </div>
           </div>
 
-          {hasDescription && (
-            <p
-              className={`line-clamp-2 text-sm font-medium ${
-                isCompleted ? "text-muted-foreground/70" : "text-muted-foreground"
-              }`}
-            >
-              {task.description}
-            </p>
+          {/* Bottom Row: Action Chips (Scrolls inline) */}
+          {hasLinks && (
+            <div className="mt-2 flex items-center flex-nowrap overflow-x-auto gap-2 pb-1 pt-0.5 px-0.5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+              {task.linkedDeck && typeof task.linkedDeck === "object" && (
+                <a
+                  href={`/decks/${(task.linkedDeck as { _id: string; title: string })._id}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="inline-flex items-center gap-1.5 rounded-lg border-2 border-primary bg-sky/50 px-2.5 py-1 text-[10px] sm:text-sm font-bold uppercase tracking-wider text-foreground shadow-sm hover:bg-sky/30 hover:shadow hover:-translate-y-0.5 active:translate-y-0 active:shadow-sm transition-all shrink-0 cursor-pointer"
+                >
+                  <Library className="h-3.5 w-3.5 opacity-80" />
+                  <span className="truncate max-w-[100px] sm:max-w-[150px]">
+                    {(task.linkedDeck as { _id: string; title: string }).title}
+                  </span>
+                </a>
+              )}
+
+              {task.linkedNote && typeof task.linkedNote === "object" && (
+                <a
+                  href={`/notes/${(task.linkedNote as { _id: string; title: string })._id}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="inline-flex items-center gap-1.5 rounded-lg border-2 border-primary bg-tangerine/50 px-2.5 py-1 text-[10px] sm:text-sm font-bold uppercase tracking-wider text-foreground shadow-sm hover:bg-tangerine/30 hover:shadow hover:-translate-y-0.5 active:translate-y-0 active:shadow-sm transition-all shrink-0 cursor-pointer"
+                >
+                  <FileText className="h-3.5 w-3.5 opacity-80" />
+                  <span className="truncate max-w-[100px] sm:max-w-[150px]">
+                    {(task.linkedNote as { _id: string; title: string }).title}
+                  </span>
+                </a>
+              )}
+            </div>
           )}
-
-          <div className="mt-4 flex flex-wrap items-center gap-2 text-[10px] sm:text-xs font-bold uppercase tracking-widest">
-            {task.dueTime && (
-              <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-border bg-background px-3 py-1 text-foreground shadow-sm">
-                <Clock className="h-3.5 w-3.5 opacity-70" />
-                {task.dueTime}
-              </span>
-            )}
-
-            {!isCompleted && (
-              <span
-                className={`inline-flex items-center rounded-full border-2 px-3 py-1 shadow-sm ${priorityStyle.badge}`}
-              >
-                {priorityStyle.label}
-              </span>
-            )}
-
-            {hasTags && (
-              <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-border bg-muted px-3 py-1 text-muted-foreground shadow-sm">
-                <Tag className="h-3.5 w-3.5 opacity-70" />
-                {task.tags[0]}
-                {task.tags.length > 1 ? ` +${task.tags.length - 1}` : ""}
-              </span>
-            )}
-
-            {task.linkedDeck && typeof task.linkedDeck === "object" && (
-              <a
-                href={`/decks/${(task.linkedDeck as { _id: string; title: string })._id}`}
-                onClick={(e) => e.stopPropagation()}
-                className="inline-flex items-center gap-1.5 rounded-full border-2 border-border bg-sky/30 px-3 py-1 text-foreground shadow-sm hover:bg-sky/50 transition-colors"
-              >
-                <Library className="h-3.5 w-3.5 opacity-70" />
-                {(task.linkedDeck as { _id: string; title: string }).title}
-              </a>
-            )}
-
-            {task.linkedNote && typeof task.linkedNote === "object" && (
-              <a
-                href={`/notes/${(task.linkedNote as { _id: string; title: string })._id}`}
-                onClick={(e) => e.stopPropagation()}
-                className="inline-flex items-center gap-1.5 rounded-full border-2 border-border bg-tangerine/30 px-3 py-1 text-foreground shadow-sm hover:bg-tangerine/50 transition-colors"
-              >
-                <FileText className="h-3.5 w-3.5 opacity-70" />
-                {(task.linkedNote as { _id: string; title: string }).title}
-              </a>
-            )}
-          </div>
         </div>
 
-        <div className="flex items-center shrink-0 ml-2">
+        {/* Delete Button */}
+        <div className="flex items-center shrink-0 ml-1">
           <button
             onClick={(e) => {
               e.stopPropagation();
               onDelete(task._id);
             }}
-            className="h-9 w-9 rounded-full flex items-center justify-center border-2 border-transparent text-muted-foreground hover:text-red-600 hover:bg-red-50 hover:border-red-200 dark:hover:bg-red-500/10 dark:hover:border-red-500/30 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
+            className="mt-0.5 h-6 w-6 sm:h-7 sm:w-7 rounded-full flex items-center justify-center text-muted-foreground hover:text-red-600 hover:bg-red-50 transition-all opacity-100 "
             aria-label="Delete task"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4 sm:h-4 sm:w-4" />
           </button>
         </div>
       </div>

@@ -1017,63 +1017,58 @@ const DecksPageContent = () => {
           />
         )}
 
-        <Dialog
-          open={isCreateChooserOpen}
-          onOpenChange={setIsCreateChooserOpen}
-        >
-          <DialogContent className="sm:max-w-md !rounded-[2rem] border-2 border-border p-0 overflow-hidden bg-card shadow-bento-lg">
-            <DialogHeader className="px-6 pt-6 pb-4 bg-blush/20 border-b-2 border-border flex flex-col items-center text-center">
-              <div className="flex size-14 items-center justify-center rounded-2xl bg-background border-2 border-border shadow-bento-sm mb-4">
-                <Plus className="h-6 w-6 text-foreground" />
-              </div>
-              <DialogTitle className="text-2xl font-editorial tracking-tight font-bold text-foreground">Create something new
-              </DialogTitle>
-              <DialogDescription className="text-muted-foreground mt-2 font-medium">
-                Pick what to add to your workspace.
-              </DialogDescription>
-            </DialogHeader>
+        <Dialog open={isCreateChooserOpen} onOpenChange={setIsCreateChooserOpen}>
+  <DialogContent className="sm:max-w-[500px] rounded-[2rem] p-0 border-2 border-border shadow-bento overflow-hidden bg-card">
+    <DialogHeader className="p-6 md:p-8 bg-muted/30 border-b-2 border-border text-center">
+      <DialogTitle className="text-2xl font-editorial tracking-tight">
+        Create something new
+      </DialogTitle>
+      <DialogDescription className="text-sm font-medium mt-1">
+        Pick what to add to your workspace.
+      </DialogDescription>
+    </DialogHeader>
 
-            <div className="p-8 space-y-6 bg-muted/10">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Button
-                  variant="default"
-                  className="h-auto p-5 flex-col items-start gap-4 rounded-2xl bg-citrus hover:bg-citrus/90 text-foreground border-2 border-border shadow-bento-sm hover:-translate-y-1 hover:shadow-bento transition-all duration-300"
-                  onClick={() => {
-                    setIsCreateChooserOpen(false);
-                    setIsAddDeckModalOpen(true);
-                  }}
-                >
-                  <div className="flex w-full justify-between items-center">
-                    <span className="font-bold text-lg font-editorial tracking-tight">New Deck</span>
-                    <Plus className="h-5 w-5 opacity-70" />
-                  </div>
-                  <span className="text-sm font-medium opacity-80 text-left">
-                    Create flashcards fast.
-                  </span>
-                </Button>
-                <Button
-                  variant="secondary"
-                  className="h-auto p-5 flex-col items-start gap-4 rounded-2xl bg-blush hover:bg-blush/90 text-foreground border-2 border-border shadow-bento-sm hover:-translate-y-1 hover:shadow-bento transition-all duration-300"
-                  onClick={() => {
-                    setIsCreateChooserOpen(false);
-                    setIsAddFolderModalOpen(true);
-                  }}
-                >
-                  <div className="flex w-full justify-between items-center">
-                    <span className="font-bold text-lg font-editorial tracking-tight">New Folder</span>
-                    <Plus className="h-5 w-5 opacity-70" />
-                  </div>
-                  <span className="text-sm font-medium opacity-80 text-left">
-                    Group decks by topic.
-                  </span>
-                </Button>
-              </div>
-              <p className="text-xs uppercase tracking-widest font-bold text-muted-foreground text-center pt-2">
-                You can always rearrange decks into folders later.
-              </p>
-            </div>
-          </DialogContent>
-        </Dialog>
+    <div className="p-6 md:p-8 flex flex-col gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <button
+          onClick={() => {
+            setIsCreateChooserOpen(false);
+            setIsAddDeckModalOpen(true);
+          }}
+          className="group flex flex-col items-center justify-center p-6 rounded-3xl border-2 border-border bg-citrus/20 hover:bg-citrus/40 transition-all hover:-translate-y-1 hover:shadow-bento-sm"
+        >
+          <div className="h-14 w-14 rounded-full bg-citrus border-2 border-border shadow-sm flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+            <Plus className="h-6 w-6 text-foreground" />
+          </div>
+          <span className="font-bold font-sans text-lg">New Deck</span>
+          <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground mt-1 text-center">
+            Create flashcards fast
+          </span>
+        </button>
+
+        <button
+          onClick={() => {
+            setIsCreateChooserOpen(false);
+            setIsAddFolderModalOpen(true);
+          }}
+          className="group flex flex-col items-center justify-center p-6 rounded-3xl border-2 border-border bg-blush/20 hover:bg-blush/40 transition-all hover:-translate-y-1 hover:shadow-bento-sm"
+        >
+          <div className="h-14 w-14 rounded-full bg-blush border-2 border-border shadow-sm flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+            <Plus className="h-6 w-6 text-foreground" />
+          </div>
+          <span className="font-bold font-sans text-lg">New Folder</span>
+          <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground mt-1 text-center">
+            Group decks by topic
+          </span>
+        </button>
+      </div>
+      
+      <p className="text-[10px] sm:text-xs uppercase tracking-widest font-bold text-muted-foreground text-center">
+        You can always rearrange decks into folders later.
+      </p>
+    </div>
+  </DialogContent>
+</Dialog>
       </div>
     </div>
   );
