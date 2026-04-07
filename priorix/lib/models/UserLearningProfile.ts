@@ -2,6 +2,15 @@ import mongoose, { Schema, Document, Model } from "mongoose";
 
 export type LearningSpeed = "slow" | "medium" | "fast";
 
+export interface INotificationPreferences {
+  dailyReviewReminder: boolean;
+  taskDueSoon: boolean;
+  taskOverdue: boolean;
+  deckStudyPeriodEnding: boolean;
+  dailyCardsDueSummary: boolean;
+  streakAtRisk: boolean;
+}
+
 export interface IUserLearningProfile extends Document {
   _id: string;
   userId: mongoose.Types.ObjectId;
@@ -16,6 +25,7 @@ export interface IUserLearningProfile extends Document {
   dailyReviewGoal: number; // cards per day
   difficultyPreference: "challenge" | "balanced" | "confidence";
   enableSmartNotifications: boolean;
+  notificationPreferences: INotificationPreferences;
   personalMultipliers: {
     again: number;
     hard: number;
@@ -99,6 +109,14 @@ const UserLearningProfileSchema = new Schema<IUserLearningProfile>(
       type: Boolean,
       default: true,
     },
+    notificationPreferences: {
+      dailyReviewReminder: { type: Boolean, default: true },
+      taskDueSoon: { type: Boolean, default: true },
+      taskOverdue: { type: Boolean, default: true },
+      deckStudyPeriodEnding: { type: Boolean, default: true },
+      dailyCardsDueSummary: { type: Boolean, default: true },
+      streakAtRisk: { type: Boolean, default: true },
+    },
     personalMultipliers: {
       again: {
         type: Number,
@@ -135,6 +153,9 @@ const UserLearningProfileSchema = new Schema<IUserLearningProfile>(
     timestamps: true,
   }
 );
+
+// Compound index for the hourly review-reminder cron query
+UserLearningProfileSchema.index({ enableSmartNotifications: 1, preferredStudyTimes: 1 });
 
 const UserLearningProfile: Model<IUserLearningProfile> =
   mongoose.models.UserLearningProfile ||

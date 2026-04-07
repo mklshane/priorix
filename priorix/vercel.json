@@ -1,0 +1,28 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/daily-review-reminder",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/task-due-soon",
+      "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/task-overdue",
+      "schedule": "0 1 * * *"
+    },
+    {
+      "path": "/api/cron/deck-study-period-ending",
+      "schedule": "0 23 * * *"
+    },
+    {
+      "path": "/api/cron/daily-cards-due-summary",
+      "schedule": "0 23 * * *"
+    },
+    {
+      "path": "/api/cron/streak-at-risk",
+      "schedule": "0 12 * * *"
+    }
+  ]
+}

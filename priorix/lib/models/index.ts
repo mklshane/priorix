@@ -5,6 +5,7 @@ import Folder from "./Folder";
 import UserStudySession from "./UserStudySession";
 import UserLearningProfile from "./UserLearningProfile";
 import UserCardProgress from "./UserCardProgress";
+import NotificationLog from "./NotificationLog";
 
 // Export all models to ensure they're registered
 export {
@@ -15,4 +16,5 @@ export {
   UserStudySession,
   UserLearningProfile,
   UserCardProgress,
+  NotificationLog,
 };
