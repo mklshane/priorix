@@ -48,7 +48,7 @@ const navigation = [
     hoverClass: "hover:bg-sky/30",
   },
   /* {
-    name: "Analytics",
+    name: "Analytics",ß
     href: "/analytics",
     icon: BarChart2,
     hoverClass: "hover:bg-sky/30",

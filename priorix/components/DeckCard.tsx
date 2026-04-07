@@ -110,7 +110,7 @@ const DeckCard: React.FC<DeckCardProps> = ({
   showMenu = true,
   queryClient,
   folders = [],
-  dueInfo,
+  dueInfo: _dueInfo,
 }) => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
@@ -361,20 +361,9 @@ const DeckCard: React.FC<DeckCardProps> = ({
           {/* Due + period badges */}
           {(() => {
             const periodStatus = getDeckPeriodStatus(deck.studyPeriodStart, deck.studyPeriodEnd);
-            const hasDue = dueInfo && (dueInfo.overdueCount > 0 || dueInfo.dueCount > 0);
-            if (!hasDue && !periodStatus) return null;
+            if (!periodStatus) return null;
             return (
               <div className="flex flex-wrap gap-1.5 mt-1 mb-2">
-                {hasDue && dueInfo!.overdueCount > 0 && (
-                  <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest bg-blush text-foreground border border-border/40 rounded-full px-2 py-0.5">
-                    {dueInfo!.overdueCount} overdue
-                  </span>
-                )}
-                {hasDue && dueInfo!.dueCount - dueInfo!.overdueCount > 0 && (
-                  <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest bg-citrus text-foreground border border-border/40 rounded-full px-2 py-0.5">
-                    {dueInfo!.dueCount - dueInfo!.overdueCount} due
-                  </span>
-                )}
                 {periodStatus && (
                   <span className={`inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest ${periodStatus.colorClass} text-foreground border border-border/40 rounded-full px-2 py-0.5`}>
                     {periodStatus.label}

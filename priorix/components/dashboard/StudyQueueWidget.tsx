@@ -6,9 +6,7 @@ import { useRouter } from "next/navigation";
 interface DeckDueInfo {
   deckId: string;
   title: string;
-  dueCount: number;
-  overdueCount: number;
-  urgencyScore: number;
+  nearestDueAt: string;
 }
 
 interface StudyQueueWidgetProps {
@@ -18,6 +16,30 @@ interface StudyQueueWidgetProps {
 
 export default function StudyQueueWidget({ decks, isLoading }: StudyQueueWidgetProps) {
   const router = useRouter();
+  const scheduledDecks = [...decks].sort(
+    (a, b) =>
+      new Date(a.nearestDueAt).getTime() - new Date(b.nearestDueAt).getTime(),
+  );
+
+  const formatDueTime = (nearestDueAt: string) => {
+    const dueMs = new Date(nearestDueAt).getTime();
+    const diffMs = dueMs - Date.now();
+    const absMs = Math.abs(diffMs);
+    const minute = 60 * 1000;
+    const hour = 60 * minute;
+    const day = 24 * hour;
+
+    if (absMs < minute) return "due now";
+    if (diffMs > 0) {
+      if (absMs < hour) return `due in ${Math.ceil(absMs / minute)}m`;
+      if (absMs < day) return `due in ${Math.ceil(absMs / hour)}h`;
+      return `due in ${Math.ceil(absMs / day)}d`;
+    }
+
+    if (absMs < hour) return `${Math.ceil(absMs / minute)}m ago`;
+    if (absMs < day) return `${Math.ceil(absMs / hour)}h ago`;
+    return `${Math.ceil(absMs / day)}d ago`;
+  };
 
   if (isLoading) {
     return (
@@ -30,17 +52,17 @@ export default function StudyQueueWidget({ decks, isLoading }: StudyQueueWidgetP
     );
   }
 
-  if (decks.length === 0) {
+  if (scheduledDecks.length === 0) {
     return (
       <div className="bento-card bg-mint border-2 border-border p-5 flex flex-col items-center justify-center text-center min-h-[140px]">
         <BookOpen className="w-6 h-6 text-foreground/60 mb-2" />
         <p className="text-sm font-bold text-foreground">All caught up!</p>
-        <p className="text-xs text-foreground/60 mt-1">No cards due right now.</p>
+        <p className="text-xs text-foreground/60 mt-1">No deck due dates set.</p>
       </div>
     );
   }
 
-  const topDecks = decks.slice(0, 3);
+  const topDecks = scheduledDecks.slice(0, 3);
 
   return (
     <div className="bento-card bg-card border-2 border-border p-5">
@@ -60,18 +82,9 @@ export default function StudyQueueWidget({ decks, isLoading }: StudyQueueWidgetP
           >
             <div className="flex-1 min-w-0">
               <p className="text-sm font-bold text-foreground truncate">{deck.title}</p>
-              <div className="flex gap-1.5 mt-0.5">
-                {deck.overdueCount > 0 && (
-                  <span className="text-[9px] font-bold uppercase tracking-widest text-foreground bg-blush px-1.5 py-0.5 rounded-full border border-border/30">
-                    {deck.overdueCount} overdue
-                  </span>
-                )}
-                {deck.dueCount - deck.overdueCount > 0 && (
-                  <span className="text-[9px] font-bold uppercase tracking-widest text-foreground bg-citrus px-1.5 py-0.5 rounded-full border border-border/30">
-                    {deck.dueCount - deck.overdueCount} due
-                  </span>
-                )}
-              </div>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-foreground/70 mt-0.5">
+                {formatDueTime(deck.nearestDueAt)}
+              </p>
             </div>
             <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors shrink-0" />
           </div>

@@ -71,7 +71,14 @@ export default function DashboardPage() {
       const res = await fetch(
         `/api/analytics/due-today?userId=${session?.user?.id}`,
       );
-      if (!res.ok) return { totalDue: 0, totalAtRisk: 0, decks: [], atRiskDecks: [] };
+      if (!res.ok)
+        return {
+          totalDue: 0,
+          totalAtRisk: 0,
+          decks: [],
+          atRiskDecks: [],
+          queueDecks: [],
+        };
       return res.json();
     },
     enabled: !!session?.user?.id,
@@ -419,7 +426,7 @@ export default function DashboardPage() {
               <DailyGoalWidget progress={userStats.dailyGoalProgress} />
             )}
             <div className="flex-1 [&>div]:h-full">
-              <StudyQueueWidget decks={dueTodayData?.decks ?? []} isLoading={isDueTodayLoading} />
+              <StudyQueueWidget decks={dueTodayData?.queueDecks ?? []} isLoading={isDueTodayLoading} />
             </div>
             {dueTodayData && dueTodayData.totalAtRisk > 0 && (
               <RetentionRiskWidget totalAtRisk={dueTodayData.totalAtRisk} atRiskDecks={dueTodayData.atRiskDecks ?? []} />

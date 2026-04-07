@@ -38,22 +38,41 @@ export async function GET(req: NextRequest) {
     // Group due cards by deckId
     const deckDueMap = new Map<
       string,
-      { dueCount: number; newCount: number; overdueCount: number }
+      {
+        dueCount: number;
+        newCount: number;
+        overdueCount: number;
+        dueWithDateCount: number;
+        nearestDueAtMs: number | null;
+      }
     >();
 
     for (const p of dueProgress) {
       if (!isValidId(p.deckId)) continue;
       const deckId = String(p.deckId);
       if (!deckDueMap.has(deckId)) {
-        deckDueMap.set(deckId, { dueCount: 0, newCount: 0, overdueCount: 0 });
+        deckDueMap.set(deckId, {
+          dueCount: 0,
+          newCount: 0,
+          overdueCount: 0,
+          dueWithDateCount: 0,
+          nearestDueAtMs: null,
+        });
       }
       const entry = deckDueMap.get(deckId)!;
       entry.dueCount++;
 
       if (!p.nextReviewAt) {
         entry.newCount++;
-      } else if (new Date(p.nextReviewAt).getTime() < oneDayAgo.getTime()) {
-        entry.overdueCount++;
+      } else {
+        const dueAtMs = new Date(p.nextReviewAt).getTime();
+        entry.dueWithDateCount++;
+        if (entry.nearestDueAtMs === null || dueAtMs < entry.nearestDueAtMs) {
+          entry.nearestDueAtMs = dueAtMs;
+        }
+        if (dueAtMs < oneDayAgo.getTime()) {
+          entry.overdueCount++;
+        }
       }
     }
 
@@ -68,7 +87,10 @@ export async function GET(req: NextRequest) {
     // Fetch deck titles for relevant decks
     // Filter out any falsy/empty deckIds before querying
     const allDeckIds = Array.from(
-      new Set([...deckDueMap.keys(), ...deckAtRiskMap.keys()])
+      new Set([
+        ...deckDueMap.keys(),
+        ...deckAtRiskMap.keys(),
+      ])
     ).filter(Boolean);
 
     const decks = await Deck.find({ _id: { $in: allDeckIds } })
@@ -90,13 +112,29 @@ export async function GET(req: NextRequest) {
           dueCount: counts.dueCount,
           newCount: counts.newCount,
           overdueCount: counts.overdueCount,
+          dueWithDateCount: counts.dueWithDateCount,
+          nearestDueAt:
+            counts.nearestDueAtMs !== null
+              ? new Date(counts.nearestDueAtMs).toISOString()
+              : null,
           urgencyScore: Math.round(urgencyScore),
         };
       }
     );
 
-    // Sort by urgency score descending
-    deckResults.sort((a, b) => b.urgencyScore - a.urgencyScore);
+    // Sort by nearest due date first (overdue naturally bubbles to the top).
+    // Decks with no due-date cards are placed last.
+    deckResults.sort((a, b) => {
+      if (a.nearestDueAt && b.nearestDueAt) {
+        return (
+          new Date(a.nearestDueAt).getTime() -
+          new Date(b.nearestDueAt).getTime()
+        );
+      }
+      if (a.nearestDueAt && !b.nearestDueAt) return -1;
+      if (!a.nearestDueAt && b.nearestDueAt) return 1;
+      return b.urgencyScore - a.urgencyScore;
+    });
 
     // Build at-risk deck results
     const atRiskDecks = Array.from(deckAtRiskMap.entries()).map(
@@ -108,11 +146,32 @@ export async function GET(req: NextRequest) {
     );
     atRiskDecks.sort((a, b) => b.atRiskCount - a.atRiskCount);
 
+    // Build queue decks from deck-level due dates set on creation/edit.
+    const queueDecks = (
+      await Deck.find({
+        $or: [{ user: userId }, { sharedWith: userId }],
+        studyPeriodEnd: { $exists: true, $gte: now },
+      })
+        .select("_id title studyPeriodEnd")
+        .lean()
+    )
+      .map((deck: any) => ({
+        deckId: String(deck._id),
+        title: deck.title as string,
+        nearestDueAt: new Date(deck.studyPeriodEnd).toISOString(),
+      }))
+      .sort(
+        (a, b) =>
+          new Date(a.nearestDueAt).getTime() -
+          new Date(b.nearestDueAt).getTime()
+      );
+
     return NextResponse.json({
       totalDue: dueProgress.length,
       totalAtRisk: atRiskProgress.length,
       decks: deckResults,
       atRiskDecks,
+      queueDecks,
     });
   } catch (err: any) {
     console.error("GET /api/analytics/due-today error:", err);
