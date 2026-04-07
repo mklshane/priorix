@@ -153,7 +153,7 @@ const QuizPage = () => {
       const quizTypes = [...new Set(answers.map((a) => a.type))];
       const quizType = quizTypes.length > 1 ? "mixed" : quizTypes[0];
 
-      await endSession(true, { quizScore, quizType });
+      await endSession(true, { quizScore, quizType, quizReview: { questions, answers } });
       setShowResults(true);
     } catch (error) {
       console.error("Error ending session:", error);

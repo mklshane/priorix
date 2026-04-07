@@ -13,6 +13,7 @@ import {
   InsightsPanel,
   StudyTimeHeatmap,
 } from "@/components/analytics";
+import QuizPerformance from "@/components/analytics/QuizPerformance";
 
 export default function AnalyticsPage() {
   const { data: session } = useSession();
@@ -154,6 +155,7 @@ export default function AnalyticsPage() {
                   distribution={userStats.masteryDistribution}
                 />
                 <HeatmapCalendar dailyStats={userStats.dailyStats} />
+                <QuizPerformance quizSessions={userStats.quizSessions ?? []} />
               </div>
             )}
 

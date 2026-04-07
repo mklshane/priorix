@@ -32,9 +32,9 @@ export default function OverviewStats({
     },
     {
       icon: <Target className="h-4 w-4" />,
-      label: "Avg Accuracy",
-      value: `${stats.averageAccuracy}%`,
-      subtext: "Overall retention rate",
+      label: "SRS Accuracy",
+      value: `${stats.srsAverageAccuracy ?? stats.averageAccuracy}%`,
+      subtext: "Spaced recall retention",
     },
     {
       icon: <Flame className="h-4 w-4" />,

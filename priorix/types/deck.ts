@@ -20,6 +20,8 @@ export interface Deck {
   folder?: string | Folder | null;
   flashcards: string[] | IFlashcard[];
   sharedWith?: string[];
+  studyPeriodStart?: string;
+  studyPeriodEnd?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -29,4 +31,6 @@ export interface CreateDeckRequest {
   description?: string;
   isPublic: boolean;
   folderId?: string | null;
+  studyPeriodStart?: string;
+  studyPeriodEnd?: string;
 }

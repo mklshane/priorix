@@ -388,7 +388,10 @@ export const reviewFlashcard = async (data: {
   }
 
   // Calculate context modifier from recent sessions
-  const recentSessions = await UserStudySession.find({ userId: data.userId })
+  const recentSessions = await UserStudySession.find({
+    userId: data.userId,
+    studyMode: { $ne: "quiz" },
+  })
     .sort({ sessionStart: -1 })
     .limit(3);
   

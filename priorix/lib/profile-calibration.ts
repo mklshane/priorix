@@ -33,7 +33,10 @@ export async function calibrateUserProfile(
   const cardProgress = await UserCardProgress.find({ userId });
   
   // Get study sessions
-  const sessions = await UserStudySession.find({ userId }).sort({
+  const sessions = await UserStudySession.find({
+    userId,
+    studyMode: { $ne: "quiz" },
+  }).sort({
     sessionStart: -1,
   }).limit(50);
 

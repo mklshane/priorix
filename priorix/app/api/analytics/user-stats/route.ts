@@ -110,11 +110,20 @@ export async function GET(req: NextRequest) {
       return sum + duration;
     }, 0);
 
-    const averageAccuracy =
-      sessions.length > 0
-        ? sessions.reduce((sum, s) => sum + s.averageAccuracy, 0) /
-          sessions.length
+    const srsSessions = sessions.filter((s) => s.studyMode !== "quiz");
+    const quizSessions = sessions.filter((s) => s.studyMode === "quiz");
+
+    const srsAverageAccuracy =
+      srsSessions.length > 0
+        ? srsSessions.reduce((sum, s) => sum + s.averageAccuracy, 0) / srsSessions.length
         : 0;
+
+    const quizAverageScore =
+      quizSessions.length > 0
+        ? quizSessions.reduce((sum, s) => sum + (s.quizScore ?? 0), 0) / quizSessions.length
+        : 0;
+
+    const averageAccuracy = srsAverageAccuracy; // backward-compat alias
 
     // Calculate retention rate from card progress
     const reviewedCards = cardProgress.filter((c) => c.reviewCount > 0);
@@ -172,10 +181,11 @@ export async function GET(req: NextRequest) {
           60000;
         return sum + duration;
       }, 0);
+      const daySrsSessions = daySessions.filter((s) => s.studyMode !== "quiz");
       const accuracy =
-        daySessions.length > 0
-          ? daySessions.reduce((sum, s) => sum + s.averageAccuracy, 0) /
-            daySessions.length
+        daySrsSessions.length > 0
+          ? daySrsSessions.reduce((sum, s) => sum + s.averageAccuracy, 0) /
+            daySrsSessions.length
           : 0;
 
       dailyStats.unshift({
@@ -240,6 +250,8 @@ export async function GET(req: NextRequest) {
         totalCardsStudied: todayCardsStudied,
         totalStudyTime: Math.round(todayStudyTimeMinutes),
         averageAccuracy: Math.round(averageAccuracy),
+        srsAverageAccuracy: Math.round(srsAverageAccuracy),
+        quizAverageScore: Math.round(quizAverageScore),
         averageRetention: Math.round(averageRetention),
         currentStreak: streak.current,
         longestStreak: streak.longest,
@@ -254,6 +266,13 @@ export async function GET(req: NextRequest) {
       },
       dailyStats,
       masteryDistribution,
+      quizSessions: quizSessions.map((s) => ({
+        quizScore: s.quizScore,
+        quizType: s.quizType,
+        cardsReviewed: s.cardsReviewed,
+        sessionStart: s.sessionStart,
+        quizReview: s.quizReview ?? null,
+      })),
       profile: {
         learningSpeed: profile.learningSpeed,
         optimalSessionLength: profile.optimalSessionLength,

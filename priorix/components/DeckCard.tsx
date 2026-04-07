@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { getDeckPeriodStatus } from "@/lib/utils/deckPeriod";
 import type { Deck, Folder } from "@/types/deck";
 import {
   DropdownMenu,
@@ -84,7 +85,9 @@ interface DeckCardProps {
     title: string,
     description: string,
     isPublic: boolean,
-    folderId: string | null
+    folderId: string | null,
+    studyPeriodStart?: string,
+    studyPeriodEnd?: string
   ) => void;
   index?: number;
   showMenu?: boolean;
@@ -355,21 +358,31 @@ const DeckCard: React.FC<DeckCardProps> = ({
             )}
           </div>
 
-          {/* Due badges */}
-          {dueInfo && (dueInfo.overdueCount > 0 || dueInfo.dueCount > 0) && (
-            <div className="flex gap-1.5 mt-1 mb-2">
-              {dueInfo.overdueCount > 0 && (
-                <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest bg-blush text-foreground border border-border/40 rounded-full px-2 py-0.5">
-                  {dueInfo.overdueCount} overdue
-                </span>
-              )}
-              {dueInfo.dueCount - dueInfo.overdueCount > 0 && (
-                <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest bg-citrus text-foreground border border-border/40 rounded-full px-2 py-0.5">
-                  {dueInfo.dueCount - dueInfo.overdueCount} due
-                </span>
-              )}
-            </div>
-          )}
+          {/* Due + period badges */}
+          {(() => {
+            const periodStatus = getDeckPeriodStatus(deck.studyPeriodStart, deck.studyPeriodEnd);
+            const hasDue = dueInfo && (dueInfo.overdueCount > 0 || dueInfo.dueCount > 0);
+            if (!hasDue && !periodStatus) return null;
+            return (
+              <div className="flex flex-wrap gap-1.5 mt-1 mb-2">
+                {hasDue && dueInfo!.overdueCount > 0 && (
+                  <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest bg-blush text-foreground border border-border/40 rounded-full px-2 py-0.5">
+                    {dueInfo!.overdueCount} overdue
+                  </span>
+                )}
+                {hasDue && dueInfo!.dueCount - dueInfo!.overdueCount > 0 && (
+                  <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest bg-citrus text-foreground border border-border/40 rounded-full px-2 py-0.5">
+                    {dueInfo!.dueCount - dueInfo!.overdueCount} due
+                  </span>
+                )}
+                {periodStatus && (
+                  <span className={`inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest ${periodStatus.colorClass} text-foreground border border-border/40 rounded-full px-2 py-0.5`}>
+                    {periodStatus.label}
+                  </span>
+                )}
+              </div>
+            );
+          })()}
           {/* Body */}<div className="flex-grow mb-4 mt-1">{deck.description ? (<p className="text-[11px] font-medium text-foreground/80 line-clamp-2">{deck.description}</p>) : (<p className="text-[11px] font-medium text-foreground/50 italic">No description</p>)}</div>
 
           {/* Footer */}<div className="mt-auto flex items-center justify-between text-[9px] font-bold uppercase tracking-widest text-foreground"><span className="bg-background/50 px-2 py-1.5 rounded-md border border-border/20 inline-flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-border opacity-70" />{deckLength} cards</span><span className="opacity-80 flex items-center gap-1">{getDisplayName()}{!isOwner && <span className="ml-1 opacity-60">• Shared</span>}</span></div>
@@ -457,7 +470,7 @@ const DeckCard: React.FC<DeckCardProps> = ({
         <EditDeckDialog
           open={editDialogOpen}
           onOpenChange={setEditDialogOpen}
-          onEditSubmit={async (title, description, isPublic, folderId) => {
+          onEditSubmit={async (title, description, isPublic, folderId, studyPeriodStart, studyPeriodEnd) => {
             if (deck._id) {
               await onEditClick?.(
                 deck._id,
@@ -465,6 +478,8 @@ const DeckCard: React.FC<DeckCardProps> = ({
                 description,
                 isPublic,
                 folderId,
+                studyPeriodStart,
+                studyPeriodEnd,
               );
             }
           }}
@@ -472,6 +487,8 @@ const DeckCard: React.FC<DeckCardProps> = ({
           initialDescription={editDescription}
           initialIsPublic={editIsPublic}
           initialFolderId={editFolderId || null}
+          initialStudyPeriodStart={deck.studyPeriodStart ? new Date(deck.studyPeriodStart).toISOString().split("T")[0] : undefined}
+          initialStudyPeriodEnd={deck.studyPeriodEnd ? new Date(deck.studyPeriodEnd).toISOString().split("T")[0] : undefined}
           folders={folders}
         />
       )}

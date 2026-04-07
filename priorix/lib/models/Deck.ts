@@ -12,6 +12,8 @@ export interface IDeck extends Document {
   flashcards: mongoose.Types.ObjectId[] | IFlashcard[];
   isPublic: boolean; // whether the deck is public
   sharedWith?: mongoose.Types.ObjectId[]; // users who can access the deck
+  studyPeriodStart?: Date;
+  studyPeriodEnd?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -28,6 +30,8 @@ const DeckSchema: Schema<IDeck> = new Schema(
     flashcards: [{ type: Schema.Types.ObjectId, ref: "Flashcard" }],
     isPublic: { type: Boolean, default: false },
     sharedWith: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    studyPeriodStart: { type: Date, default: undefined },
+    studyPeriodEnd: { type: Date, default: undefined },
   },
   { timestamps: true }
 );

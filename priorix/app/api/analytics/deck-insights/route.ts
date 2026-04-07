@@ -29,6 +29,14 @@ export async function GET(req: NextRequest) {
         deckId,
       }).sort({ sessionStart: -1 });
 
+      const srsSessions = sessions.filter((s) => s.studyMode !== "quiz");
+      const quizSessions = sessions.filter((s) => s.studyMode === "quiz");
+
+      const srsAverageAccuracy =
+        srsSessions.length > 0
+          ? srsSessions.reduce((sum, s) => sum + s.averageAccuracy, 0) / srsSessions.length
+          : 0;
+
       const cardProgress = await UserCardProgress.find({
         userId,
         deckId,
@@ -127,6 +135,15 @@ export async function GET(req: NextRequest) {
         averageDifficulty: Math.round(averageDifficulty * 10) / 10,
         totalStudyTime: Math.round(totalStudyTime),
         sessionsCompleted: sessions.length,
+        srsAverageAccuracy: Math.round(srsAverageAccuracy),
+        srsSessions: srsSessions.length,
+        quizSessions: quizSessions.map((s) => ({
+          quizScore: s.quizScore,
+          quizType: s.quizType,
+          cardsReviewed: s.cardsReviewed,
+          sessionStart: s.sessionStart,
+          quizReview: s.quizReview ?? null,
+        })),
         masteryDistribution,
         troubleCards,
         cardInsights: cardInsights

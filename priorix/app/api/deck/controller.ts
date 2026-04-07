@@ -74,9 +74,11 @@ export const createDeck = async (data: {
   isPublic?: boolean;
   userId: string;
   folderId?: string | null;
+  studyPeriodStart?: string;
+  studyPeriodEnd?: string;
 }) => {
   await ConnectDB();
-  const { title, description, isPublic, userId, folderId } = data;
+  const { title, description, isPublic, userId, folderId, studyPeriodStart, studyPeriodEnd } = data;
 
   let folder = null;
   if (folderId) {
@@ -92,6 +94,8 @@ export const createDeck = async (data: {
     isPublic,
     user: userId,
     folder: folder ? folder._id : null,
+    studyPeriodStart: studyPeriodStart || undefined,
+    studyPeriodEnd: studyPeriodEnd || undefined,
   });
   
   return deck.populate("user", "name");
@@ -104,9 +108,11 @@ export const updateDeck = async (data: {
   isPublic?: boolean;
   sharedWith?: string[];
   folderId?: string | null;
+  studyPeriodStart?: string;
+  studyPeriodEnd?: string;
 }) => {
   await ConnectDB();
-  const { deckId, title, description, isPublic, sharedWith, folderId } = data;
+  const { deckId, title, description, isPublic, sharedWith, folderId, studyPeriodStart, studyPeriodEnd } = data;
 
   let folderUpdate: mongoose.Types.ObjectId | null | undefined = undefined;
   if (folderId !== undefined) {
@@ -126,6 +132,8 @@ export const updateDeck = async (data: {
     description,
     isPublic,
     sharedWith,
+    studyPeriodStart: studyPeriodStart || undefined,
+    studyPeriodEnd: studyPeriodEnd || undefined,
   };
 
   if (folderUpdate !== undefined) {

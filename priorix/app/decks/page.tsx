@@ -268,17 +268,21 @@ const DecksPageContent = () => {
       description,
       isPublic,
       folderId,
+      studyPeriodStart,
+      studyPeriodEnd,
     }: {
       deckId: string;
       title: string;
       description: string;
       isPublic: boolean;
       folderId: string | null;
+      studyPeriodStart?: string;
+      studyPeriodEnd?: string;
     }) => {
       const res = await fetch(`/api/deck/${deckId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, description, isPublic, folderId }),
+        body: JSON.stringify({ title, description, isPublic, folderId, studyPeriodStart, studyPeriodEnd }),
       });
       if (!res.ok) throw new Error("Failed to update deck");
       return res.json();
@@ -354,6 +358,8 @@ const DecksPageContent = () => {
       description: string,
       isPublic: boolean,
       folderId: string | null,
+      studyPeriodStart?: string,
+      studyPeriodEnd?: string,
     ) => {
       editDeckMutation.mutate({
         deckId,
@@ -361,6 +367,8 @@ const DecksPageContent = () => {
         description,
         isPublic,
         folderId,
+        studyPeriodStart,
+        studyPeriodEnd,
       });
     },
     [editDeckMutation],

@@ -17,7 +17,8 @@ import NotFoundState from "@/components/DeckDetails/NotFoundState";
 import ImportModal from "@/components/DeckDetails/ImportModal";
 import StudyModeModal from "@/components/DeckDetails/StudyModeModal";
 import { useDeckContext } from "@/contexts/DeckContext";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
+import DeckLearningStats from "@/components/DeckDetails/DeckLearningStats";
 
 const DeckDetailPage = () => {
   const params = useParams();
@@ -45,6 +46,19 @@ const DeckDetailPage = () => {
     deleteFlashcard,
     addMultipleFlashcards,
   } = useFlashcards(deckId);
+
+  const { data: deckInsights } = useQuery({
+    queryKey: ["deck-insights", deckId, session?.user?.id],
+    queryFn: async () => {
+      const res = await fetch(
+        `/api/analytics/deck-insights?userId=${session!.user!.id}&deckId=${deckId}`
+      );
+      if (!res.ok) return null;
+      return res.json();
+    },
+    enabled: !!session?.user?.id && !!deckId,
+    staleTime: 0,
+  });
 
   const [editingFlashcard, setEditingFlashcard] = useState<IFlashcard | null>(
     null
@@ -243,7 +257,15 @@ const DeckDetailPage = () => {
         flashcards={flashcards}
         onStudyClick={handleStudyClick}
         onImportPDF={isOwner ? handleOpenImportModal : undefined}
+        srsAverageAccuracy={deckInsights?.srsAverageAccuracy}
+        srsSessions={deckInsights?.srsSessions}
       />
+
+      {deckInsights && (
+        <DeckLearningStats
+          quizSessions={deckInsights.quizSessions ?? []}
+        />
+      )}
 
       {isImporting && (
         <div className="mb-5 flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300 rounded-xl border border-blue-200 dark:border-blue-500/20 animate-in fade-in slide-in-from-top-2 duration-300">

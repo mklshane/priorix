@@ -24,6 +24,7 @@ export async function POST(req: NextRequest) {
       studyMode,
       quizScore,
       quizType,
+      quizReview,
     } = body;
 
     if (!userId) {
@@ -51,6 +52,7 @@ export async function POST(req: NextRequest) {
       studyMode: studyMode || "srs",
       quizScore,
       quizType,
+      quizReview,
     });
 
     // Update user learning profile

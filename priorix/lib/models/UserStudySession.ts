@@ -1,5 +1,24 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 
+export interface IQuizReview {
+  questions: {
+    cardId: string;
+    questionText: string;
+    options: string[];
+    correctAnswer: string;
+    type: string;
+    explanation?: string;
+  }[];
+  answers: {
+    cardId: string;
+    selectedAnswer: string;
+    correctAnswer: string;
+    isCorrect: boolean;
+    responseTime: number;
+    type: string;
+  }[];
+}
+
 export interface IUserStudySession extends Document {
   _id: string;
   userId: mongoose.Types.ObjectId;
@@ -19,6 +38,7 @@ export interface IUserStudySession extends Document {
   studyMode?: "flashcards" | "srs" | "quiz"; // Mode tracking
   quizScore?: number; // Quiz score percentage (0-100)
   quizType?: string; // "mcq", "true-false", "mixed"
+  quizReview?: IQuizReview;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -105,6 +125,10 @@ const UserStudySessionSchema = new Schema<IUserStudySession>(
     },
     quizType: {
       type: String,
+    },
+    quizReview: {
+      type: Schema.Types.Mixed,
+      default: undefined,
     },
   },
   {

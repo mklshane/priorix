@@ -2,14 +2,17 @@ import { Button } from "@/components/ui/button";
 import { Deck } from "@/types/deck";
 import { IFlashcard } from "@/types/flashcard";
 import DeckStats from "./DeckStats";
-import { User, Sparkles, BookOpen, Share2 } from "lucide-react";
+import { User, Sparkles, BookOpen, Share2, CalendarClock } from "lucide-react";
 import { useDeckContext } from "@/contexts/DeckContext";
+import { getDeckPeriodStatus } from "@/lib/utils/deckPeriod";
 
 interface DeckHeaderProps {
   deck: Deck;
   flashcards: IFlashcard[];
   onStudyClick: () => void;
   onImportPDF?: () => void;
+  srsAverageAccuracy?: number;
+  srsSessions?: number;
 }
 
 const DeckHeader = ({
@@ -17,8 +20,11 @@ const DeckHeader = ({
   flashcards,
   onStudyClick,
   onImportPDF,
+  srsAverageAccuracy,
+  srsSessions,
 }: DeckHeaderProps) => {
   const { isOwner } = useDeckContext();
+  const periodStatus = getDeckPeriodStatus(deck.studyPeriodStart, deck.studyPeriodEnd);
 
   const getDisplayName = () => {
     if (deck.user && typeof deck.user === "object" && deck.user.name) {
@@ -45,6 +51,13 @@ const DeckHeader = ({
               <User className="h-3.5 w-3.5" />
               <span>By {getDisplayName()}</span>
             </div>
+            {/* Study period */}
+            {periodStatus && (
+              <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border-2 border-border ${periodStatus.colorClass} text-[10px] font-bold uppercase tracking-widest text-foreground`}>
+                <CalendarClock className="h-3 w-3" />
+                {periodStatus.label}
+              </div>
+            )}
           </div>
 
           <h1 className="text-5xl md:text-7xl font-editorial tracking-tight mb-4 text-foreground break-words">
@@ -86,6 +99,8 @@ const DeckHeader = ({
         flashcardCount={flashcards.length}
         createdAt={deck.createdAt}
         isPublic={deck.isPublic}
+        srsAverageAccuracy={srsAverageAccuracy}
+        srsSessions={srsSessions}
       />
     </div>
   );

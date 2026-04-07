@@ -93,7 +93,7 @@ export function useStudySession({ deckId, enabled = true, studyMode = "srs" }: U
   );
 
   const endSession = useCallback(
-    async (wasCompleted: boolean = true, additionalData?: { quizScore?: number; quizType?: string }) => {
+    async (wasCompleted: boolean = true, additionalData?: { quizScore?: number; quizType?: string; quizReview?: { questions: any[]; answers: any[] } }) => {
       if (!isSessionActive || !session?.user?.id) {
         return { success: false, error: "No active session" };
       }
@@ -133,6 +133,7 @@ export function useStudySession({ deckId, enabled = true, studyMode = "srs" }: U
             studyMode,
             quizScore: additionalData?.quizScore,
             quizType: additionalData?.quizType,
+            quizReview: additionalData?.quizReview,
           }),
         });
 

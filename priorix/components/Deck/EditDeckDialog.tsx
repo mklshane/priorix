@@ -24,12 +24,16 @@ interface EditDeckDialogProps {
     title: string,
     description: string,
     isPublic: boolean,
-    folderId: string | null
+    folderId: string | null,
+    studyPeriodStart?: string,
+    studyPeriodEnd?: string
   ) => void;
   initialTitle: string;
   initialDescription: string;
   initialIsPublic: boolean;
   initialFolderId?: string | null;
+  initialStudyPeriodStart?: string;
+  initialStudyPeriodEnd?: string;
   folders?: Folder[];
 }
 
@@ -41,6 +45,8 @@ const EditDeckDialog: React.FC<EditDeckDialogProps> = ({
   initialDescription,
   initialIsPublic,
   initialFolderId = null,
+  initialStudyPeriodStart,
+  initialStudyPeriodEnd,
   folders = [],
 }) => {
   const [title, setTitle] = useState(initialTitle);
@@ -49,6 +55,8 @@ const EditDeckDialog: React.FC<EditDeckDialogProps> = ({
   const [selectedFolderId, setSelectedFolderId] = useState<string | "" | null>(
     initialFolderId ?? ""
   );
+  const [studyPeriodStart, setStudyPeriodStart] = useState(initialStudyPeriodStart ?? "");
+  const [studyPeriodEnd, setStudyPeriodEnd] = useState(initialStudyPeriodEnd ?? "");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -61,7 +69,9 @@ const EditDeckDialog: React.FC<EditDeckDialogProps> = ({
     setDescription(initialDescription);
     setIsPublic(initialIsPublic);
     setSelectedFolderId(initialFolderId ?? "");
-  }, [initialTitle, initialDescription, initialIsPublic, initialFolderId]);
+    setStudyPeriodStart(initialStudyPeriodStart ?? "");
+    setStudyPeriodEnd(initialStudyPeriodEnd ?? "");
+  }, [initialTitle, initialDescription, initialIsPublic, initialFolderId, initialStudyPeriodStart, initialStudyPeriodEnd]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,7 +90,9 @@ const EditDeckDialog: React.FC<EditDeckDialogProps> = ({
         isPublic,
         selectedFolderId === "" || selectedFolderId === undefined
           ? null
-          : selectedFolderId
+          : selectedFolderId,
+        studyPeriodStart || undefined,
+        studyPeriodEnd || undefined
       );
       onOpenChange(false);
     } catch (error) {
@@ -93,7 +105,7 @@ const EditDeckDialog: React.FC<EditDeckDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[480px] p-0 overflow-hidden border-2 border-border shadow-bento !rounded-[2rem] bg-card">
+      <DialogContent className="sm:max-w-[480px] p-0 overflow-hidden border-2 border-border shadow-bento !rounded-[2rem] bg-card max-h-[95dvh] flex flex-col">
         <DialogHeader className="flex flex-col items-center justify-center gap-3 border-b-2 border-border bg-tangerine px-6 py-8">
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-border bg-white shadow-bento-sm">
             <PencilLine className="h-8 w-8 text-foreground" />
@@ -106,7 +118,7 @@ const EditDeckDialog: React.FC<EditDeckDialogProps> = ({
           </div>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto flex-1">
           <div className="space-y-2">
             <Label htmlFor="edit-title" className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Title</Label>
             <Input
@@ -155,6 +167,32 @@ const EditDeckDialog: React.FC<EditDeckDialogProps> = ({
                   </option>
                 ))}
               </select>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Study Period (optional)</Label>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <span className="text-[10px] font-medium text-muted-foreground">From</span>
+                <input
+                  type="date"
+                  value={studyPeriodStart}
+                  onChange={(e) => setStudyPeriodStart(e.target.value)}
+                  disabled={isLoading}
+                  className={fieldStyles + " w-full"}
+                />
+              </div>
+              <div className="space-y-1">
+                <span className="text-[10px] font-medium text-muted-foreground">Due by</span>
+                <input
+                  type="date"
+                  value={studyPeriodEnd}
+                  onChange={(e) => setStudyPeriodEnd(e.target.value)}
+                  disabled={isLoading}
+                  className={fieldStyles + " w-full"}
+                />
+              </div>
             </div>
           </div>
 

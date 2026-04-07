@@ -3,7 +3,8 @@
     "allow": [
       "Bash(find \"C:\\\\Users\\\\acer\\\\Desktop\\\\CODE\\\\Personal Projects\\\\priorix\\\\priorix\" -type f \\\\\\( -name \"*.env*\" -o -name \".env*\" \\\\\\) 2>/dev/null | head -20)",
       "Bash(grep -l \"next-auth\\\\|useSession\\\\|signIn\\\\|signOut\" \"C:\\\\Users\\\\acer\\\\Desktop\\\\CODE\\\\Personal Projects\\\\priorix\\\\priorix\"/app/**/*.tsx 2>/dev/null | head -20)",
-      "Bash(cd \"C:/Users/acer/Desktop/CODE/Personal Projects/priorix/priorix\" && npm install nodemailer && npm install -D @types/nodemailer)"
+      "Bash(cd \"C:/Users/acer/Desktop/CODE/Personal Projects/priorix/priorix\" && npm install nodemailer && npm install -D @types/nodemailer)",
+      "Bash(grep -r \"combined\\\\|unified\\\\|overall.*score\" /Users/shane/Documents/Code/Programming/priorix/priorix --include=\"*.ts\" --include=\"*.tsx\" ! -path \"*/node_modules/*\")"
     ]
   }
 }

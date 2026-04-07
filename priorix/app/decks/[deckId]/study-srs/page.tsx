@@ -575,72 +575,63 @@ const StudySrsPage = () => {
   const pendingReviewCount = pendingCards.length - pendingNewCount;
 
   const renderPreRound = () => (
-    <div className="min-h-[100dvh] md:min-h-[calc(100dvh-5rem)] p-4 md:p-6 bg-gradient-to-b from-background via-background to-primary/5 flex items-center justify-center">
-      <div className="w-full max-w-3xl mx-auto flex-1 flex flex-col pb-4 h-full justify-center">
+    <div className="min-h-[100dvh] md:min-h-[calc(100dvh-5rem)] p-4 md:p-6 bg-gradient-to-b from-background via-background to-primary/5">
+      <div className="w-full max-w-3xl mx-auto py-6 pb-28 md:pb-8 space-y-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="space-y-2 max-w-3xl mx-auto w-full"
+          className="space-y-4"
         >
-          {/* Header Section */}
-          <div className="space-y-1">
-            
-            <div className="hidden md:block bg-citrus dark:bg-citrus rounded-md p-4 border-2 border-border shadow-0 text-foreground">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-md bg-background border-2 border-border flex items-center justify-center">
-                    <Zap className="h-5 w-5 text-foreground" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold uppercase tracking-wider text-black/70 dark:text-black/70">Ready to study</p>
-                    <p className="text-2xl font-editorial italic text-black dark:text-black">{pendingCards.length}</p>
-                    {pendingCards.length > 0 && (
-                      <p className="text-xs text-black/60 dark:text-black/60 font-medium">
-                        {pendingReviewCount} review{pendingReviewCount !== 1 ? "s" : ""}
-                        {pendingNewCount > 0 && (
-                          <> + {pendingNewCount} new</>
-                        )}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <button
-                  onClick={startRound}
-                  disabled={isReviewing || pendingCards.length === 0}
-                  className="btn-primary flex items-center gap-2 px-6 py-3"
-                >
-                  <Zap className="h-5 w-5" />
-                  STUDY NOW
-                </button>
+          {/* Header Banner — always visible */}
+          <div className="bg-citrus rounded-2xl border-2 border-border p-5 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4 min-w-0">
+              <div className="w-12 h-12 rounded-xl bg-background border-2 border-border flex items-center justify-center shrink-0">
+                <Zap className="h-6 w-6 text-foreground" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-black/60">Ready to study</p>
+                <p className="text-3xl font-editorial italic text-black leading-tight">
+                  {pendingCards.length} <span className="text-base font-sans not-italic font-bold">cards</span>
+                </p>
+                {pendingCards.length > 0 && (
+                  <p className="text-xs text-black/60 font-medium">
+                    {pendingReviewCount} review{pendingReviewCount !== 1 ? "s" : ""}
+                    {pendingNewCount > 0 && <> + {pendingNewCount} new</>}
+                  </p>
+                )}
               </div>
             </div>
+            <button
+              onClick={startRound}
+              disabled={isReviewing || pendingCards.length === 0}
+              className="hidden sm:flex btn-primary items-center gap-2 px-6 py-3 shrink-0"
+            >
+              <Zap className="h-5 w-5" />
+              STUDY NOW
+            </button>
           </div>
 
           {/* Main Content Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Left Column: Session Settings */}
-            <div className="md:col-span-2 space-y-3">
-              <Card className="border-2 border-border shadow-bento-sm bento-card">
-                <CardContent>
+            {/* Left Column: Session Settings + Progress */}
+            <div className="md:col-span-2 flex flex-col gap-4">
+              {/* Session Size */}
+              <Card className="border-2 border-border shadow-bento-sm bento-card flex-1 flex flex-col">
+                <CardContent className="flex-1 flex flex-col justify-center">
                   <div className="space-y-4">
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <h2 className="text-lg font-bold font-editorial flex items-center gap-2">
-                          <Target className="h-5 w-5 text-primary" />
-                          Session Size
-                        </h2>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <Clock className="h-4 w-4" />
-                          <span>Pick your goal</span>
-                        </div>
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-lg font-bold font-editorial flex items-center gap-2">
+                        <Target className="h-5 w-5 text-primary" />
+                        Session Size
+                      </h2>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Clock className="h-4 w-4" />
+                        <span>Pick your goal</span>
                       </div>
-                      <p className="text-xs text-muted-foreground">
-                        Choose how many cards you want to study in this session
-                      </p>
                     </div>
 
-                    <div className="grid grid-cols-4 sm:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-4 gap-3">
                       {srsSessionSizes.map((size) => (
                         <motion.div
                           key={size}
@@ -669,80 +660,41 @@ const StudySrsPage = () => {
                         </motion.div>
                       ))}
                     </div>
-
-                    
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Progress Stats */}
-              <Card className="border-2 border-border shadow-bento-sm bento-card">
-                <CardContent>
-                  <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
+              {/* Learning Progress */}
+              <Card className="border-2 border-border shadow-bento-sm bento-card flex-1 flex flex-col">
+                <CardContent className="flex-1 flex flex-col justify-center">
+                  <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
                     <BarChart3 className="h-5 w-5 text-primary" />
                     Learning Progress
                   </h2>
-
-                  <div className="space-y-4">
-                    {/* Progress Bar */}
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span className="font-medium">Overall Mastery</span>
-                        <span className="font-bold">
-                          {Math.round(
-                            ((deckCardsWithUpdates.length -
-                              preRoundSummary.notYet) /
-                              deckCardsWithUpdates.length) *
-                              100,
-                          )}
-                          %
-                        </span>
-                      </div>
-                      <div className="h-2 bg-muted rounded-full overflow-hidden border-2 border-border/20">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{
-                            width: `${((deckCardsWithUpdates.length - preRoundSummary.notYet) / deckCardsWithUpdates.length) * 100}%`,
-                          }}
-                          transition={{ duration: 0.8, ease: "easeOut" }}
-                          className="h-full bg-foreground rounded-full"
-                        />
-                      </div>
-                      <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>{preRoundSummary.notYet} not studied</span>
-                        <span>
-                          {deckCardsWithUpdates.length - preRoundSummary.notYet}{" "}
-                          in progress
-                        </span>
-                      </div>
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-sm">
+                      <span className="font-medium">Overall Mastery</span>
+                      <span className="font-bold">
+                        {Math.round(
+                          ((deckCardsWithUpdates.length - preRoundSummary.notYet) /
+                            deckCardsWithUpdates.length) *
+                            100,
+                        )}%
+                      </span>
                     </div>
-
-                    {/* Quick Stats */}
-                    <div className="grid grid-cols-3 gap-4 pt-1">
-                      <div className="bg-citrus rounded-md p-3 text-center border-2 border-border">
-                        <div className="text-2xl font-bold font-editorial text-foreground">
-                          {preRoundSummary.learning}
-                        </div>
-                        <div className="text-xs uppercase tracking-widest font-bold text-foreground/70 font-sans mt-0.5">
-                          Learning
-                        </div>
-                      </div>
-                      <div className="bg-mint rounded-md p-3 text-center border-2 border-border">
-                        <div className="text-2xl font-bold font-editorial text-foreground">
-                          {preRoundSummary.mastered}
-                        </div>
-                        <div className="text-xs uppercase tracking-widest font-bold text-foreground/70 font-sans mt-0.5">
-                          Mastered
-                        </div>
-                      </div>
-                      <div className="bg-blush rounded-md p-3 text-center border-2 border-border">
-                        <div className="text-2xl font-bold font-editorial text-foreground">
-                          {preRoundSummary.hard}
-                        </div>
-                        <div className="text-xs uppercase tracking-widest font-bold text-foreground/70 font-sans mt-0.5">
-                          Hard
-                        </div>
-                      </div>
+                    <div className="h-3 bg-muted rounded-full overflow-hidden border-2 border-border/20">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{
+                          width: `${((deckCardsWithUpdates.length - preRoundSummary.notYet) / deckCardsWithUpdates.length) * 100}%`,
+                        }}
+                        transition={{ duration: 0.8, ease: "easeOut" }}
+                        className="h-full bg-foreground rounded-full"
+                      />
+                    </div>
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>{preRoundSummary.notYet} not yet studied</span>
+                      <span>{deckCardsWithUpdates.length - preRoundSummary.notYet} in progress</span>
                     </div>
                   </div>
                 </CardContent>
@@ -750,107 +702,79 @@ const StudySrsPage = () => {
             </div>
 
             {/* Right Column: Status Overview */}
-            <div className="space-y-6 mb-15">
-              <Card className="bento-card p-0 py-2">
+            <div>
+              <Card className="bento-card border-2 border-border h-full">
                 <CardContent>
-                  <div className="space-y-2 flex flex-col">
-                    <div>
-                      <h2 className="text-xl font-bold font-editorial flex items-center gap-2">
-                        <Check className="h-5 w-5 text-foreground" />
-                        Status Overview
-                      </h2>
+                  <h2 className="text-xl font-bold font-editorial flex items-center gap-2 mb-3">
+                    <Check className="h-5 w-5 text-foreground" />
+                    Status
+                  </h2>
+
+                  <div className="space-y-2">
+                    {/* Not Yet */}
+                    <div className="flex items-center justify-between px-3 py-2.5 rounded-md bg-background border-2 border-border">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-md border-2 border-border bg-card flex items-center justify-center shrink-0">
+                          <Clock className="h-3.5 w-3.5 text-foreground/60" />
+                        </div>
+                        <p className="text-sm font-bold text-muted-foreground">Not Yet</p>
+                      </div>
+                      <div className="text-xl font-editorial font-bold">{preRoundSummary.notYet}</div>
                     </div>
 
-                    <div className="space-y-2 pt-2">
-                      {/* Not Yet Studied */}
-                      <div className="flex items-center justify-between p-3 rounded-md bg-background border-2 border-border">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-md border-2 border-border bg-card flex items-center justify-center">
-                            <Clock className="h-4 w-4 text-foreground/70" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Not Yet</p>
-                            <p className="text-xs text-muted-foreground">
-                              Never reviewed
-                            </p>
-                          </div>
+                    {/* Forgotten */}
+                    <div className="flex items-center justify-between px-3 py-2.5 rounded-md bg-blush border-2 border-border">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-md border-2 border-border bg-background flex items-center justify-center shrink-0">
+                          <RotateCcw className="h-3.5 w-3.5 text-foreground" />
                         </div>
-                        <div className="text-xl font-editorial font-bold">
-                          {preRoundSummary.notYet}
-                        </div>
+                        <p className="text-sm font-bold text-black/70">Forgotten</p>
                       </div>
+                      <div className="text-xl font-editorial font-bold">{preRoundSummary.forgotten}</div>
+                    </div>
 
-                      {/* Learning */}
-                      <div className="flex items-center justify-between p-3 rounded-md bg-citrus border-2 border-border">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-md bg-background border-2 border-border flex items-center justify-center">
-                            <RotateCcw className="h-4 w-4 text-foreground" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-bold uppercase tracking-wider text-black/70 dark:text-black/70">Learning</p>
-                            <p className="text-xs text-black/60 dark:text-black/60 font-medium">
-                              In learning steps
-                            </p>
-                          </div>
+                    {/* Learning */}
+                    <div className="flex items-center justify-between px-3 py-2.5 rounded-md bg-citrus border-2 border-border">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-md bg-background border-2 border-border flex items-center justify-center shrink-0">
+                          <RotateCcw className="h-3.5 w-3.5 text-foreground" />
                         </div>
-                        <div className="text-2xl font-bold font-editorial text-foreground">
-                          {preRoundSummary.learning}
-                        </div>
+                        <p className="text-sm font-bold text-black/70">Learning</p>
                       </div>
+                      <div className="text-xl font-editorial font-bold">{preRoundSummary.learning}</div>
+                    </div>
 
-                      {/* Hard */}
-                      <div className="flex items-center justify-between p-3 rounded-md bg-blush border-2 border-border">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-md bg-background border-2 border-border flex items-center justify-center">
-                            <Target className="h-4 w-4 text-foreground" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-bold uppercase tracking-wider text-black/70 dark:text-black/70">Hard</p>
-                            <p className="text-xs text-black/60 dark:text-black/60 font-medium">
-                              Unstable memory
-                            </p>
-                          </div>
+                    {/* Hard */}
+                    <div className="flex items-center justify-between px-3 py-2.5 rounded-md bg-tangerine border-2 border-border">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-md bg-background border-2 border-border flex items-center justify-center shrink-0">
+                          <Target className="h-3.5 w-3.5 text-foreground" />
                         </div>
-                        <div className="text-2xl font-bold font-editorial text-foreground">
-                          {preRoundSummary.hard}
-                        </div>
+                        <p className="text-sm font-bold text-black/70">Hard</p>
                       </div>
+                      <div className="text-xl font-editorial font-bold">{preRoundSummary.hard}</div>
+                    </div>
 
-                      {/* Good */}
-                      <div className="flex items-center justify-between p-3 rounded-md bg-sky border-2 border-border">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-md bg-background border-2 border-border flex items-center justify-center">
-                            <Check className="h-4 w-4 text-foreground" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-bold uppercase tracking-wider text-black/70 dark:text-black/70">Good</p>
-                            <p className="text-xs text-black/60 dark:text-black/60 font-medium">
-                              Progressing well
-                            </p>
-                          </div>
+                    {/* Good */}
+                    <div className="flex items-center justify-between px-3 py-2.5 rounded-md bg-sky border-2 border-border">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-md bg-background border-2 border-border flex items-center justify-center shrink-0">
+                          <Check className="h-3.5 w-3.5 text-foreground" />
                         </div>
-                        <div className="text-2xl font-bold font-editorial text-foreground">
-                          {preRoundSummary.good}
-                        </div>
+                        <p className="text-sm font-bold text-black/70">Good</p>
                       </div>
+                      <div className="text-xl font-editorial font-bold">{preRoundSummary.good}</div>
+                    </div>
 
-                      {/* Mastered */}
-                      <div className="flex items-center justify-between p-3 rounded-md bg-mint border-2 border-border">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-md bg-background border-2 border-border flex items-center justify-center">
-                            <Zap className="h-4 w-4 text-foreground" />
-                          </div>
-                          <div>
-                            <p className="text-sm font-bold uppercase tracking-wider text-black/70 dark:text-black/70">Mastered</p>
-                            <p className="text-xs text-black/60 dark:text-black/60 font-medium">
-                              Long-term retention
-                            </p>
-                          </div>
+                    {/* Mastered */}
+                    <div className="flex items-center justify-between px-3 py-2.5 rounded-md bg-mint border-2 border-border">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-md bg-background border-2 border-border flex items-center justify-center shrink-0">
+                          <Zap className="h-3.5 w-3.5 text-foreground" />
                         </div>
-                        <div className="text-2xl font-bold font-editorial text-foreground">
-                          {preRoundSummary.mastered}
-                        </div>
+                        <p className="text-sm font-bold text-black/70">Mastered</p>
                       </div>
+                      <div className="text-xl font-editorial font-bold">{preRoundSummary.mastered}</div>
                     </div>
                   </div>
                 </CardContent>
@@ -859,14 +783,12 @@ const StudySrsPage = () => {
           </div>
 
           {/* Mobile Action Footer */}
-          <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t-2 border-border p-4 sm:hidden">
+          <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t-2 border-border p-4 md:hidden">
             <div className="max-w-4xl mx-auto space-y-1">
               {pendingCards.length > 0 && (
                 <p className="text-[10px] font-bold uppercase tracking-widest text-center text-muted-foreground pb-1">
                   {pendingReviewCount} review{pendingReviewCount !== 1 ? "s" : ""}
-                  {pendingNewCount > 0 && (
-                    <> + {pendingNewCount} new</>
-                  )}
+                  {pendingNewCount > 0 && <> + {pendingNewCount} new</>}
                 </p>
               )}
               <button

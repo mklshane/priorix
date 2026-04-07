@@ -37,6 +37,8 @@ const AddDeckModal: React.FC<AddDeckModalProps> = ({
   const [selectedFolderId, setSelectedFolderId] = useState<string | "" | null>(
     defaultFolderId ?? ""
   );
+  const [studyPeriodStart, setStudyPeriodStart] = useState("");
+  const [studyPeriodEnd, setStudyPeriodEnd] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const { data: session } = useSession();
@@ -70,6 +72,8 @@ const AddDeckModal: React.FC<AddDeckModalProps> = ({
           selectedFolderId === "" || selectedFolderId === undefined
             ? null
             : selectedFolderId,
+        studyPeriodStart: studyPeriodStart || undefined,
+        studyPeriodEnd: studyPeriodEnd || undefined,
       });
 
       // Reset form and close modal
@@ -77,6 +81,8 @@ const AddDeckModal: React.FC<AddDeckModalProps> = ({
       setDescription("");
       setIsPublic(true);
       setSelectedFolderId(defaultFolderId ?? "");
+      setStudyPeriodStart("");
+      setStudyPeriodEnd("");
       onOpenChange(false);
     } catch (error) {
       console.error("Error creating deck:", error);
@@ -150,6 +156,32 @@ const AddDeckModal: React.FC<AddDeckModalProps> = ({
                   </option>
                 ))}
               </select>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Study Period (optional)</Label>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <span className="text-[10px] font-medium text-muted-foreground">From</span>
+                <input
+                  type="date"
+                  value={studyPeriodStart}
+                  onChange={(e) => setStudyPeriodStart(e.target.value)}
+                  disabled={isLoading}
+                  className={fieldStyles + " w-full"}
+                />
+              </div>
+              <div className="space-y-1">
+                <span className="text-[10px] font-medium text-muted-foreground">Due by</span>
+                <input
+                  type="date"
+                  value={studyPeriodEnd}
+                  onChange={(e) => setStudyPeriodEnd(e.target.value)}
+                  disabled={isLoading}
+                  className={fieldStyles + " w-full"}
+                />
+              </div>
             </div>
           </div>
 
