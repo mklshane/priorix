@@ -108,6 +108,8 @@ export async function GET(req: Request) {
           description: fav.deckId.description,
           isPublic: fav.deckId.isPublic,
           flashcards: fav.deckId.flashcards,
+          studyPeriodStart: fav.deckId.studyPeriodStart,
+          studyPeriodEnd: fav.deckId.studyPeriodEnd,
           createdAt: fav.deckId.createdAt,
           updatedAt: fav.deckId.updatedAt,
           user: fav.deckId.user
