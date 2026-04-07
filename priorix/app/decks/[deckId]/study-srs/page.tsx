@@ -1080,8 +1080,8 @@ const StudySrsPage = () => {
           {/* Session stats */}
           {seenCardIds.size > 0 && (() => {
             const totalReviewed = seenCardIds.size;
-            const accurate = stats.good + stats.easy;
-            const accuracy = totalReviewed > 0 ? Math.round((accurate / totalReviewed) * 100) : 0;
+            const successfulRecalls = stats.good + stats.easy;
+            const recallRate = totalReviewed > 0 ? Math.round((successfulRecalls / totalReviewed) * 100) : 0;
             const elapsedMs = sessionStartTime ? Date.now() - sessionStartTime : 0;
             const elapsedMin = Math.round(elapsedMs / 60000);
             const struggledCards = Object.entries(againCountByCard)
@@ -1099,8 +1099,8 @@ const StudySrsPage = () => {
                   <div className="text-[9px] font-bold uppercase tracking-widest text-foreground/70 mt-0.5">Reviewed</div>
                 </div>
                 <div className="bg-mint rounded-xl border-2 border-border p-3 text-center">
-                  <div className="text-xl font-editorial font-bold">{accuracy}%</div>
-                  <div className="text-[9px] font-bold uppercase tracking-widest text-foreground/70 mt-0.5">Accuracy</div>
+                  <div className="text-xl font-editorial font-bold">{recallRate}%</div>
+                  <div className="text-[9px] font-bold uppercase tracking-widest text-foreground/70 mt-0.5">Recall Rate</div>
                 </div>
                 <div className="bg-sky rounded-xl border-2 border-border p-3 text-center">
                   <div className="text-xl font-editorial font-bold">{elapsedMin}m</div>

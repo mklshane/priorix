@@ -17,19 +17,25 @@ interface PerformanceChartProps {
     date: string;
     cardsStudied: number;
     studyTime: number;
+    dailyRecallRate?: number;
     accuracy: number;
     sessions: number;
   }>;
 }
 
 export default function PerformanceChart({ dailyStats }: PerformanceChartProps) {
+  const chartData = dailyStats.map((day) => ({
+    ...day,
+    dailyRecallRate: day.dailyRecallRate ?? day.accuracy,
+  }));
+
   return (
     <Card className="bg-mint/20 dark:bg-card border-2 border-black dark:border-darkborder rounded-xl">
       <CardContent className="p-6">
         <h3 className="text-lg font-semibold mb-4 font-sora">Performance Over Time</h3>
         <div className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={dailyStats}>
+            <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
               <XAxis
                 dataKey="date"
@@ -65,10 +71,10 @@ export default function PerformanceChart({ dailyStats }: PerformanceChartProps) 
               <Line
                 yAxisId="right"
                 type="monotone"
-                dataKey="accuracy"
+                dataKey="dailyRecallRate"
                 stroke="#cae044"
                 strokeWidth={3}
-                name="Accuracy (%)"
+                name="Recall Rate (%)"
                 dot={false}
               />
             </LineChart>

@@ -106,9 +106,11 @@ export default function DashboardPage() {
       totalStudyTime,
       currentStreak,
       longestStreak,
+      averageRecallRate,
       averageAccuracy,
       totalCards,
     } = userStats.overview;
+    const srsRecallRate = averageRecallRate ?? averageAccuracy ?? 0;
     const mastered = userStats?.masteryDistribution?.mastered ?? 0;
     const trend = patterns?.performanceTrend;
     const optimalHours: number[] = patterns?.optimalStudyTimes ?? [];
@@ -144,8 +146,8 @@ export default function DashboardPage() {
       };
     if (trend?.trend === "improving" && trend.change > 0)
       return {
-        message: "Accuracy trending up! 📈",
-        subtext: `Your accuracy improved by ${Math.abs(trend.change)}% recently. Your brain is adapting!`,
+        message: "Recall rate trending up! 📈",
+        subtext: `Your recall rate improved by ${Math.abs(trend.change)}% recently. Your memory is adapting!`,
         icon: TrendingUp,
         bgColor: "bg-lilac",
       };
@@ -179,7 +181,7 @@ export default function DashboardPage() {
         icon: Zap,
         bgColor: "bg-citrus",
       };
-    if (averageAccuracy >= 95 && totalCardsStudied >= 5)
+    if (srsRecallRate >= 95 && totalCardsStudied >= 5)
       return {
         message: "Near-perfect recall! ⭐",
         subtext:
@@ -187,9 +189,9 @@ export default function DashboardPage() {
         icon: Award,
         bgColor: "bg-mint",
       };
-    if (averageAccuracy >= 85 && totalCardsStudied >= 5)
+    if (srsRecallRate >= 85 && totalCardsStudied >= 5)
       return {
-        message: `${Math.round(averageAccuracy)}% accuracy 🎯`,
+        message: `${Math.round(srsRecallRate)}% recall rate 🎯`,
         subtext:
           "Strong recall across your cards. Your study method is paying off.",
         icon: Target,
@@ -207,7 +209,7 @@ export default function DashboardPage() {
       return {
         message: "Time to refocus 🎯",
         subtext:
-          "Your accuracy dipped recently. A focused session today can turn it around!",
+          "Your recall rate dipped recently. A focused session today can turn it around!",
         icon: Target,
         bgColor: "bg-blush",
       };

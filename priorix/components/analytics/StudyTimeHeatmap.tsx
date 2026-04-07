@@ -6,18 +6,19 @@ interface StudyTimeHeatmapProps {
   timeOfDayStats: Array<{
     hour: number;
     sessions: number;
+    averageRecallRate?: number;
     averageAccuracy: number;
     averageCards: number;
   }>;
 }
 
 export default function StudyTimeHeatmap({ timeOfDayStats }: StudyTimeHeatmapProps) {
-  const getIntensityColor = (accuracy: number, sessions: number) => {
+  const getIntensityColor = (recallRate: number, sessions: number) => {
     if (sessions === 0) return "bg-muted dark:bg-gray-800";
-    if (accuracy >= 90) return "bg-mint dark:bg-mint/70";
-    if (accuracy >= 80) return "bg-sky dark:bg-sky/70";
-    if (accuracy >= 70) return "bg-citrus dark:bg-citrus/70";
-    if (accuracy >= 60) return "bg-lilac dark:bg-lilac/70";
+    if (recallRate >= 90) return "bg-mint dark:bg-mint/70";
+    if (recallRate >= 80) return "bg-sky dark:bg-sky/70";
+    if (recallRate >= 70) return "bg-citrus dark:bg-citrus/70";
+    if (recallRate >= 60) return "bg-lilac dark:bg-lilac/70";
     return "bg-blush dark:bg-blush/70";
   };
 
@@ -41,36 +42,40 @@ export default function StudyTimeHeatmap({ timeOfDayStats }: StudyTimeHeatmapPro
       <CardContent className="p-6">
         <h3 className="text-lg font-semibold mb-4 font-sora">Time-of-Day Performance</h3>
         <p className="text-sm text-muted-foreground mb-6">
-          Your accuracy by hour of day. Greener = better performance.
+          Your recall rate by hour of day. Greener = better performance.
         </p>
         <div className="space-y-6">
           {timeBlocks.map((block) => (
             <div key={block.label}>
               <h4 className="text-sm font-medium mb-2">{block.label}</h4>
               <div className="grid grid-cols-6 gap-2">
-                {block.hours.map((stat) => (
-                  <div key={stat.hour} className="text-center">
-                    <div
-                      className={`aspect-square rounded flex items-center justify-center text-xs font-semibold ${getIntensityColor(
-                        stat.averageAccuracy,
-                        stat.sessions
-                      )} relative group cursor-pointer`}
-                    >
-                      {stat.hour}
-                      {stat.sessions > 0 && (
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-black dark:bg-white text-white dark:text-black text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
-                          {formatHour(stat.hour)}
-                          <br />
-                          Accuracy: {stat.averageAccuracy}%
-                          <br />
-                          Sessions: {stat.sessions}
-                          <br />
-                          Avg Cards: {stat.averageCards}
-                        </div>
-                      )}
+                {block.hours.map((stat) => {
+                  const averageRecallRate = stat.averageRecallRate ?? stat.averageAccuracy;
+
+                  return (
+                    <div key={stat.hour} className="text-center">
+                      <div
+                        className={`aspect-square rounded flex items-center justify-center text-xs font-semibold ${getIntensityColor(
+                          averageRecallRate,
+                          stat.sessions
+                        )} relative group cursor-pointer`}
+                      >
+                        {stat.hour}
+                        {stat.sessions > 0 && (
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-black dark:bg-white text-white dark:text-black text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
+                            {formatHour(stat.hour)}
+                            <br />
+                            Recall Rate: {averageRecallRate}%
+                            <br />
+                            Sessions: {stat.sessions}
+                            <br />
+                            Avg Cards: {stat.averageCards}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           ))}

@@ -8,6 +8,7 @@ interface DailyStats {
   date: string;
   cardsStudied: number;
   studyTime: number;
+  dailyRecallRate?: number;
   accuracy: number;
   sessions: number;
 }
@@ -18,7 +19,7 @@ async function fetchDailyStats(userId: string): Promise<DailyStats[]> {
   );
   if (!res.ok) throw new Error("Failed to fetch daily stats");
   const data = await res.json();
-  return data.dailyBreakdown || [];
+  return data.dailyStats || [];
 }
 
 export default function StudyHeatmap() {

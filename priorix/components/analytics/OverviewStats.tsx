@@ -32,9 +32,9 @@ export default function OverviewStats({
     },
     {
       icon: <Target className="h-4 w-4" />,
-      label: "SRS Accuracy",
-      value: `${stats.srsAverageAccuracy ?? stats.averageAccuracy}%`,
-      subtext: "Spaced recall retention",
+      label: "Recall Rate",
+      value: `${stats.srsRecallRate ?? stats.srsAverageAccuracy ?? stats.averageRecallRate ?? stats.averageAccuracy}%`,
+      subtext: "Spaced recall performance",
     },
     {
       icon: <Flame className="h-4 w-4" />,

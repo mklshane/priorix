@@ -18,11 +18,13 @@ export async function GET(req: NextRequest) {
       sessionStart: 1,
     });
 
-    if (sessions.length < 5) {
+    const srsSessions = sessions.filter((s) => s.studyMode !== "quiz");
+
+    if (srsSessions.length < 5) {
       return NextResponse.json({
-        message: "Not enough data for pattern analysis",
+        message: "Not enough SRS session data for pattern analysis",
         requiresMoreSessions: true,
-        currentSessions: sessions.length,
+        currentSessions: srsSessions.length,
         minimumRequired: 5,
       });
     }
@@ -30,23 +32,27 @@ export async function GET(req: NextRequest) {
     // Time-of-day performance analysis
     const hourlyPerformance = new Array(24).fill(0).map(() => ({
       sessions: 0,
-      totalAccuracy: 0,
+      totalRecallRate: 0,
       totalCards: 0,
     }));
 
-    sessions.forEach((s) => {
+    srsSessions.forEach((s) => {
       const hour = s.timeOfDay;
       hourlyPerformance[hour].sessions++;
-      hourlyPerformance[hour].totalAccuracy += s.averageAccuracy;
+      hourlyPerformance[hour].totalRecallRate += s.averageAccuracy;
       hourlyPerformance[hour].totalCards += s.cardsReviewed;
     });
 
     const timeOfDayStats = hourlyPerformance.map((data, hour) => ({
       hour,
       sessions: data.sessions,
+      averageRecallRate:
+        data.sessions > 0
+          ? Math.round(data.totalRecallRate / data.sessions)
+          : 0,
       averageAccuracy:
         data.sessions > 0
-          ? Math.round(data.totalAccuracy / data.sessions)
+          ? Math.round(data.totalRecallRate / data.sessions)
           : 0,
       averageCards:
         data.sessions > 0
@@ -54,35 +60,35 @@ export async function GET(req: NextRequest) {
           : 0,
     }));
 
-    // Find optimal study times (top 3 hours with best accuracy and enough sessions)
+    // Find optimal study times (top 3 hours with best recall rate and enough sessions)
     const optimalTimes = timeOfDayStats
       .filter((t) => t.sessions >= 2)
-      .sort((a, b) => b.averageAccuracy - a.averageAccuracy)
+      .sort((a, b) => b.averageRecallRate - a.averageRecallRate)
       .slice(0, 3)
       .map((t) => t.hour);
 
     // Session length analysis
     const sessionLengthBuckets = {
-      short: { count: 0, totalAccuracy: 0, range: "1-10 cards" },
-      medium: { count: 0, totalAccuracy: 0, range: "11-25 cards" },
-      long: { count: 0, totalAccuracy: 0, range: "26-40 cards" },
-      veryLong: { count: 0, totalAccuracy: 0, range: "40+ cards" },
+      short: { count: 0, totalRecallRate: 0, range: "1-10 cards" },
+      medium: { count: 0, totalRecallRate: 0, range: "11-25 cards" },
+      long: { count: 0, totalRecallRate: 0, range: "26-40 cards" },
+      veryLong: { count: 0, totalRecallRate: 0, range: "40+ cards" },
     };
 
-    sessions.forEach((s) => {
+    srsSessions.forEach((s) => {
       const cards = s.cardsReviewed;
       if (cards <= 10) {
         sessionLengthBuckets.short.count++;
-        sessionLengthBuckets.short.totalAccuracy += s.averageAccuracy;
+        sessionLengthBuckets.short.totalRecallRate += s.averageAccuracy;
       } else if (cards <= 25) {
         sessionLengthBuckets.medium.count++;
-        sessionLengthBuckets.medium.totalAccuracy += s.averageAccuracy;
+        sessionLengthBuckets.medium.totalRecallRate += s.averageAccuracy;
       } else if (cards <= 40) {
         sessionLengthBuckets.long.count++;
-        sessionLengthBuckets.long.totalAccuracy += s.averageAccuracy;
+        sessionLengthBuckets.long.totalRecallRate += s.averageAccuracy;
       } else {
         sessionLengthBuckets.veryLong.count++;
-        sessionLengthBuckets.veryLong.totalAccuracy += s.averageAccuracy;
+        sessionLengthBuckets.veryLong.totalRecallRate += s.averageAccuracy;
       }
     });
 
@@ -91,9 +97,13 @@ export async function GET(req: NextRequest) {
         category: key,
         range: data.range,
         sessions: data.count,
+        averageRecallRate:
+          data.count > 0
+            ? Math.round(data.totalRecallRate / data.count)
+            : 0,
         averageAccuracy:
           data.count > 0
-            ? Math.round(data.totalAccuracy / data.count)
+            ? Math.round(data.totalRecallRate / data.count)
             : 0,
       })
     );
@@ -101,10 +111,10 @@ export async function GET(req: NextRequest) {
     // Find optimal session length
     const optimalLength = sessionLengthStats
       .filter((s) => s.sessions >= 2)
-      .sort((a, b) => b.averageAccuracy - a.averageAccuracy)[0];
+      .sort((a, b) => b.averageRecallRate - a.averageRecallRate)[0];
 
-    // Fatigue detection (accuracy drop-off within sessions)
-    const completedSessions = sessions.filter((s) => s.wasCompleted);
+    // Fatigue detection (recall-rate drop-off within sessions)
+    const completedSessions = srsSessions.filter((s) => s.wasCompleted);
     const averageSessionQuality =
       completedSessions.length > 0
         ? completedSessions.reduce((sum, s) => sum + s.sessionQuality, 0) /
@@ -112,39 +122,39 @@ export async function GET(req: NextRequest) {
         : 0;
 
     // Recent performance trend (last 10 sessions vs previous 10)
-    const recentSessions = sessions.slice(-10);
-    const previousSessions = sessions.slice(-20, -10);
+    const recentSessions = srsSessions.slice(-10);
+    const previousSessions = srsSessions.slice(-20, -10);
 
-    const recentAccuracy =
+    const recentRecallRate =
       recentSessions.length > 0
         ? recentSessions.reduce((sum, s) => sum + s.averageAccuracy, 0) /
           recentSessions.length
         : 0;
 
-    const previousAccuracy =
+    const previousRecallRate =
       previousSessions.length > 0
         ? previousSessions.reduce((sum, s) => sum + s.averageAccuracy, 0) /
           previousSessions.length
         : 0;
 
     const trend =
-      recentAccuracy > previousAccuracy + 5
+      recentRecallRate > previousRecallRate + 5
         ? "improving"
-        : recentAccuracy < previousAccuracy - 5
+        : recentRecallRate < previousRecallRate - 5
         ? "declining"
         : "stable";
 
     // Day of week analysis
     const dayOfWeekStats = new Array(7).fill(0).map(() => ({
       sessions: 0,
-      totalAccuracy: 0,
+      totalRecallRate: 0,
       totalCards: 0,
     }));
 
-    sessions.forEach((s) => {
+    srsSessions.forEach((s) => {
       const day = new Date(s.sessionStart).getDay();
       dayOfWeekStats[day].sessions++;
-      dayOfWeekStats[day].totalAccuracy += s.averageAccuracy;
+      dayOfWeekStats[day].totalRecallRate += s.averageAccuracy;
       dayOfWeekStats[day].totalCards += s.cardsReviewed;
     });
 
@@ -152,9 +162,13 @@ export async function GET(req: NextRequest) {
     const weekdayPerformance = dayOfWeekStats.map((data, index) => ({
       day: dayNames[index],
       sessions: data.sessions,
+      averageRecallRate:
+        data.sessions > 0
+          ? Math.round(data.totalRecallRate / data.sessions)
+          : 0,
       averageAccuracy:
         data.sessions > 0
-          ? Math.round(data.totalAccuracy / data.sessions)
+          ? Math.round(data.totalRecallRate / data.sessions)
           : 0,
       averageCards:
         data.sessions > 0
@@ -175,7 +189,7 @@ export async function GET(req: NextRequest) {
       insights.push({
         type: "optimal_time",
         title: "Peak Performance Times",
-        description: `Your accuracy is highest when studying around ${optimalTimes.map(formatHour).join(", ")}. Consider scheduling important decks during these times.`,
+        description: `Your recall rate is highest when studying around ${optimalTimes.map(formatHour).join(", ")}. Consider scheduling important decks during these times.`,
         priority: "high",
       });
     }
@@ -201,14 +215,14 @@ export async function GET(req: NextRequest) {
       insights.push({
         type: "performance_trend",
         title: "Great Progress!",
-        description: `Your average accuracy has improved by ${Math.round(recentAccuracy - previousAccuracy)}% over your last 10 sessions. Keep up the excellent work!`,
+        description: `Your average recall rate has improved by ${Math.round(recentRecallRate - previousRecallRate)}% over your last 10 sessions. Keep up the excellent work!`,
         priority: "high",
       });
     } else if (trend === "declining") {
       insights.push({
         type: "performance_trend",
         title: "Performance Dip Detected",
-        description: `Your accuracy has decreased by ${Math.round(previousAccuracy - recentAccuracy)}% recently. Consider taking a short break or reviewing fundamentals.`,
+        description: `Your recall rate has decreased by ${Math.round(previousRecallRate - recentRecallRate)}% recently. Consider taking a short break or reviewing fundamentals.`,
         priority: "high",
       });
     }
@@ -230,13 +244,15 @@ export async function GET(req: NextRequest) {
       weekdayPerformance,
       performanceTrend: {
         trend,
-        recentAccuracy: Math.round(recentAccuracy),
-        previousAccuracy: Math.round(previousAccuracy),
-        change: Math.round(recentAccuracy - previousAccuracy),
+        recentRecallRate: Math.round(recentRecallRate),
+        previousRecallRate: Math.round(previousRecallRate),
+        recentAccuracy: Math.round(recentRecallRate),
+        previousAccuracy: Math.round(previousRecallRate),
+        change: Math.round(recentRecallRate - previousRecallRate),
       },
       averageSessionQuality: Math.round(averageSessionQuality),
       insights,
-      totalSessionsAnalyzed: sessions.length,
+      totalSessionsAnalyzed: srsSessions.length,
     });
   } catch (error: any) {
     console.error("Error analyzing learning patterns:", error);

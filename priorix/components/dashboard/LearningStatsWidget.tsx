@@ -10,14 +10,21 @@ async function fetchLearningStats(userId: string) {
   );
   if (!res.ok) throw new Error("Failed to fetch");
   const data = await res.json();
-  const today = data.dailyBreakdown?.find(
+  const today = data.dailyStats?.find(
     (d: any) => new Date(d.date).toDateString() === new Date().toDateString(),
   );
+  const overview = data.overview || {};
+  const overallRecallRate =
+    overview.averageRecallRate ??
+    overview.srsRecallRate ??
+    overview.averageAccuracy ??
+    0;
+
   return {
     cardsStudiedToday: today?.cardsStudied || 0,
-    currentStreak: data.currentStreak || 0,
-    overallAccuracy: data.averageAccuracy || 0,
-    totalReviews: data.totalReviews || 0,
+    currentStreak: overview.currentStreak || 0,
+    overallRecallRate,
+    totalReviews: overview.sessionsCompleted || 0,
   };
 }
 
@@ -54,8 +61,8 @@ export default function LearningStatsWidget() {
       bgColor: "bg-mint",
     },
     {
-      label: "Accuracy",
-      value: `${stats.overallAccuracy.toFixed(1)}%`,
+      label: "Recall Rate",
+      value: `${stats.overallRecallRate.toFixed(1)}%`,
       icon: BarChart,
       bgColor: "bg-lilac",
     },

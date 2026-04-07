@@ -11,6 +11,7 @@ interface DeckHeaderProps {
   flashcards: IFlashcard[];
   onStudyClick: () => void;
   onImportPDF?: () => void;
+  srsRecallRate?: number;
   srsAverageAccuracy?: number;
   srsSessions?: number;
 }
@@ -20,6 +21,7 @@ const DeckHeader = ({
   flashcards,
   onStudyClick,
   onImportPDF,
+  srsRecallRate,
   srsAverageAccuracy,
   srsSessions,
 }: DeckHeaderProps) => {
@@ -99,6 +101,7 @@ const DeckHeader = ({
         flashcardCount={flashcards.length}
         createdAt={deck.createdAt}
         isPublic={deck.isPublic}
+        srsRecallRate={srsRecallRate}
         srsAverageAccuracy={srsAverageAccuracy}
         srsSessions={srsSessions}
       />

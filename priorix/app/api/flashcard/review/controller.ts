@@ -397,9 +397,9 @@ export const reviewFlashcard = async (data: {
   
   let contextModifier = 1.0;
   if (recentSessions.length > 0) {
-    const recentAccuracy = 
+    const recentRecallRate = 
       recentSessions.reduce((sum, s) => sum + s.averageAccuracy, 0) / recentSessions.length;
-    contextModifier = getContextModifier(recentAccuracy, profile.averageRetention || 75);
+    contextModifier = getContextModifier(recentRecallRate, profile.averageRetention || 75);
   }
 
   // Process review with adaptive algorithm

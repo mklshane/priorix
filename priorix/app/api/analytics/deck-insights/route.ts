@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
       const srsSessions = sessions.filter((s) => s.studyMode !== "quiz");
       const quizSessions = sessions.filter((s) => s.studyMode === "quiz");
 
-      const srsAverageAccuracy =
+      const srsRecallRate =
         srsSessions.length > 0
           ? srsSessions.reduce((sum, s) => sum + s.averageAccuracy, 0) / srsSessions.length
           : 0;
@@ -135,7 +135,8 @@ export async function GET(req: NextRequest) {
         averageDifficulty: Math.round(averageDifficulty * 10) / 10,
         totalStudyTime: Math.round(totalStudyTime),
         sessionsCompleted: sessions.length,
-        srsAverageAccuracy: Math.round(srsAverageAccuracy),
+        srsRecallRate: Math.round(srsRecallRate),
+        srsAverageAccuracy: Math.round(srsRecallRate),
         srsSessions: srsSessions.length,
         quizSessions: quizSessions.map((s) => ({
           quizScore: s.quizScore,

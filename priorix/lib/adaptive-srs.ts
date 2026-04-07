@@ -133,12 +133,12 @@ function getDifficultyModifier(perceivedDifficulty: number): number {
  * If user is struggling recently, reduce intervals
  */
 export function getContextModifier(
-  recentAccuracy: number,
-  averageAccuracy: number
+  recentRecallRate: number,
+  baselineRecallRate: number
 ): number {
-  if (averageAccuracy === 0) return 1.0;
+  if (baselineRecallRate === 0) return 1.0;
 
-  const performanceRatio = recentAccuracy / averageAccuracy;
+  const performanceRatio = recentRecallRate / baselineRecallRate;
 
   if (performanceRatio < 0.7) {
     // Struggling: reduce intervals by 20%

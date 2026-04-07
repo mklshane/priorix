@@ -196,7 +196,7 @@ export default function AnalyticsPage() {
                           <div>
                             <p className="text-sm text-muted-foreground">Recent</p>
                             <p className="text-2xl font-bold">
-                              {patterns.performanceTrend.recentAccuracy}%
+                              {(patterns.performanceTrend.recentRecallRate ?? patterns.performanceTrend.recentAccuracy)}%
                             </p>
                           </div>
                           <div className="text-2xl">→</div>
@@ -260,7 +260,7 @@ export default function AnalyticsPage() {
                               </p>
                               <div className="bg-primary/10 p-3 rounded">
                                 <p className="text-sm font-semibold">
-                                  {day.averageAccuracy}%
+                                  {(day.averageRecallRate ?? day.averageAccuracy)}%
                                 </p>
                                 <p className="text-xs text-muted-foreground">
                                   {day.sessions} sessions

@@ -113,7 +113,7 @@ export async function GET(req: NextRequest) {
     const srsSessions = sessions.filter((s) => s.studyMode !== "quiz");
     const quizSessions = sessions.filter((s) => s.studyMode === "quiz");
 
-    const srsAverageAccuracy =
+    const srsRecallRate =
       srsSessions.length > 0
         ? srsSessions.reduce((sum, s) => sum + s.averageAccuracy, 0) / srsSessions.length
         : 0;
@@ -123,7 +123,8 @@ export async function GET(req: NextRequest) {
         ? quizSessions.reduce((sum, s) => sum + (s.quizScore ?? 0), 0) / quizSessions.length
         : 0;
 
-    const averageAccuracy = srsAverageAccuracy; // backward-compat alias
+    const averageRecallRate = srsRecallRate;
+    const averageAccuracy = srsRecallRate; // backward-compat alias
 
     // Calculate retention rate from card progress
     const reviewedCards = cardProgress.filter((c) => c.reviewCount > 0);
@@ -182,17 +183,20 @@ export async function GET(req: NextRequest) {
         return sum + duration;
       }, 0);
       const daySrsSessions = daySessions.filter((s) => s.studyMode !== "quiz");
-      const accuracy =
+      const dailyRecallRate =
         daySrsSessions.length > 0
           ? daySrsSessions.reduce((sum, s) => sum + s.averageAccuracy, 0) /
             daySrsSessions.length
           : 0;
 
+      const roundedDailyRecallRate = Math.round(dailyRecallRate);
+
       dailyStats.unshift({
         date: date.toISOString().split("T")[0],
         cardsStudied,
         studyTime: Math.round(studyTime),
-        accuracy: Math.round(accuracy),
+        dailyRecallRate: roundedDailyRecallRate,
+        accuracy: roundedDailyRecallRate,
         sessions: daySessions.length,
       });
     }
@@ -249,8 +253,10 @@ export async function GET(req: NextRequest) {
       overview: {
         totalCardsStudied: todayCardsStudied,
         totalStudyTime: Math.round(todayStudyTimeMinutes),
+        averageRecallRate: Math.round(averageRecallRate),
+        srsRecallRate: Math.round(srsRecallRate),
         averageAccuracy: Math.round(averageAccuracy),
-        srsAverageAccuracy: Math.round(srsAverageAccuracy),
+        srsAverageAccuracy: Math.round(srsRecallRate),
         quizAverageScore: Math.round(quizAverageScore),
         averageRetention: Math.round(averageRetention),
         currentStreak: streak.current,

@@ -30,7 +30,7 @@ export interface IUserStudySession extends Document {
   cardsHard: number;
   cardsGood: number;
   cardsEasy: number;
-  averageAccuracy: number;
+  averageAccuracy: number; // Legacy field name for session recall rate
   averageResponseTime: number;
   timeOfDay: number; // 0-23 hour
   sessionQuality: number; // 0-100 score

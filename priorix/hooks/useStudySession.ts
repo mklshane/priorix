@@ -100,7 +100,7 @@ export function useStudySession({ deckId, enabled = true, studyMode = "srs" }: U
 
       const sessionEnd = new Date();
       const timeOfDay = sessionEnd.getHours();
-      const averageAccuracy =
+      const sessionRecallRate =
         sessionMetrics.cardsReviewed > 0
           ? ((sessionMetrics.cardsGood + sessionMetrics.cardsEasy) /
               sessionMetrics.cardsReviewed) *
@@ -125,7 +125,8 @@ export function useStudySession({ deckId, enabled = true, studyMode = "srs" }: U
             cardsHard: sessionMetrics.cardsHard,
             cardsGood: sessionMetrics.cardsGood,
             cardsEasy: sessionMetrics.cardsEasy,
-            averageAccuracy,
+            sessionRecallRate,
+            averageAccuracy: sessionRecallRate,
             averageResponseTime,
             timeOfDay,
             sessionQuality,
@@ -173,6 +174,10 @@ export function useStudySession({ deckId, enabled = true, studyMode = "srs" }: U
           cardsHard: sessionMetrics.cardsHard,
           cardsGood: sessionMetrics.cardsGood,
           cardsEasy: sessionMetrics.cardsEasy,
+          sessionRecallRate:
+            ((sessionMetrics.cardsGood + sessionMetrics.cardsEasy) /
+              sessionMetrics.cardsReviewed) *
+            100,
           averageAccuracy:
             ((sessionMetrics.cardsGood + sessionMetrics.cardsEasy) /
               sessionMetrics.cardsReviewed) *
@@ -196,7 +201,7 @@ export function useStudySession({ deckId, enabled = true, studyMode = "srs" }: U
   }, [isSessionActive, sessionMetrics, session, deckId, sessionQuality]);
 
   const getSessionSummary = useCallback(() => {
-    const accuracy =
+    const recallRate =
       sessionMetrics.cardsReviewed > 0
         ? ((sessionMetrics.cardsGood + sessionMetrics.cardsEasy) /
             sessionMetrics.cardsReviewed) *
@@ -205,7 +210,8 @@ export function useStudySession({ deckId, enabled = true, studyMode = "srs" }: U
 
     return {
       cardsReviewed: sessionMetrics.cardsReviewed,
-      accuracy: Math.round(accuracy),
+      recallRate: Math.round(recallRate),
+      accuracy: Math.round(recallRate),
       sessionQuality,
       duration: Math.floor(
         (new Date().getTime() - sessionMetrics.sessionStart.getTime()) / 60000

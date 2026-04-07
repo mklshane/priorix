@@ -82,7 +82,7 @@ export default function Features() {
             <h3 className="text-3xl font-editorial mb-3">Deep Analytics</h3>
             <p className="text-muted-foreground font-medium leading-relaxed">
               Visualize your mastery. Heatmaps show your daily consistency,
-              while accuracy charts pinpoint exactly which topics need more
+              while recall-rate trends pinpoint exactly which topics need more
               attention before the exam.
             </p>
           </div>

@@ -55,14 +55,14 @@ export async function calibrateUserProfile(
     };
   }
 
-  // Calculate overall accuracy
+  // Calculate overall SRS recall rate
   const reviewedCards = cardProgress.filter((c) => c.reviewCount > 0);
   const totalReviews = reviewedCards.reduce((sum, c) => c.reviewCount, 0);
   const successfulReviews = reviewedCards.reduce(
     (sum, c) => c.goodCount + c.easyCount,
     0
   );
-  const overallAccuracy = (successfulReviews / totalReviews) * 100;
+  const overallRecallRate = (successfulReviews / totalReviews) * 100;
 
   // Calculate average response time
   const avgResponseTime = reviewedCards.reduce(
@@ -74,13 +74,13 @@ export async function calibrateUserProfile(
   let learningSpeed: LearningSpeed;
   let confidenceLevel: number;
 
-  if (overallAccuracy >= 85 && avgResponseTime < 7000) {
+  if (overallRecallRate >= 85 && avgResponseTime < 7000) {
     learningSpeed = "fast";
     confidenceLevel = 0.9;
-  } else if (overallAccuracy >= 75 && avgResponseTime < 10000) {
+  } else if (overallRecallRate >= 75 && avgResponseTime < 10000) {
     learningSpeed = "medium";
     confidenceLevel = 0.85;
-  } else if (overallAccuracy >= 70) {
+  } else if (overallRecallRate >= 70) {
     learningSpeed = "medium";
     confidenceLevel = 0.7;
   } else {
@@ -89,7 +89,7 @@ export async function calibrateUserProfile(
   }
 
   // Calculate optimal session length from session data
-  const sessionLengthPerformance = new Map<string, { count: number; avgAccuracy: number }>();
+  const sessionLengthPerformance = new Map<string, { count: number; avgRecallRate: number }>();
   
   sessions.forEach((s) => {
     let category: string;
@@ -100,24 +100,24 @@ export async function calibrateUserProfile(
 
     const current = sessionLengthPerformance.get(category) || {
       count: 0,
-      avgAccuracy: 0,
+      avgRecallRate: 0,
     };
     
     sessionLengthPerformance.set(category, {
       count: current.count + 1,
-      avgAccuracy: current.avgAccuracy + s.averageAccuracy,
+      avgRecallRate: current.avgRecallRate + s.averageAccuracy,
     });
   });
 
   // Find best performing session length
   let optimalSessionLength = 20;
-  let bestAccuracy = 0;
+  let bestRecallRate = 0;
 
   for (const [category, data] of sessionLengthPerformance.entries()) {
     if (data.count >= 3) {
-      const avgAccuracy = data.avgAccuracy / data.count;
-      if (avgAccuracy > bestAccuracy) {
-        bestAccuracy = avgAccuracy;
+      const avgRecallRate = data.avgRecallRate / data.count;
+      if (avgRecallRate > bestRecallRate) {
+        bestRecallRate = avgRecallRate;
         if (category === "short") optimalSessionLength = 10;
         else if (category === "medium") optimalSessionLength = 20;
         else if (category === "long") optimalSessionLength = 30;

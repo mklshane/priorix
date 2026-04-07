@@ -257,6 +257,7 @@ const DeckDetailPage = () => {
         flashcards={flashcards}
         onStudyClick={handleStudyClick}
         onImportPDF={isOwner ? handleOpenImportModal : undefined}
+        srsRecallRate={deckInsights?.srsRecallRate}
         srsAverageAccuracy={deckInsights?.srsAverageAccuracy}
         srsSessions={deckInsights?.srsSessions}
       />

@@ -4,11 +4,12 @@ interface DeckStatsProps {
   flashcardCount: number;
   createdAt: string;
   isPublic: boolean;
+  srsRecallRate?: number;
   srsAverageAccuracy?: number;
   srsSessions?: number;
 }
 
-const DeckStats = ({ flashcardCount, createdAt, isPublic, srsAverageAccuracy, srsSessions }: DeckStatsProps) => {
+const DeckStats = ({ flashcardCount, createdAt, isPublic, srsRecallRate, srsAverageAccuracy, srsSessions }: DeckStatsProps) => {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -76,11 +77,11 @@ const DeckStats = ({ flashcardCount, createdAt, isPublic, srsAverageAccuracy, sr
               <Target className="h-4 w-4" />
             </div>
             <span className="text-[10px] font-bold uppercase tracking-widest text-foreground">
-              SRS Accuracy
+              SRS Recall Rate
             </span>
           </div>
           <div className="text-4xl font-editorial text-foreground">
-            {srsAverageAccuracy}%
+            {srsRecallRate ?? srsAverageAccuracy}%
           </div>
           <div className="text-xs text-foreground/60 mt-1">
             {srsSessions} session{srsSessions !== 1 ? "s" : ""}
