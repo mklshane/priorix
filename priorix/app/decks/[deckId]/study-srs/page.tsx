@@ -704,7 +704,7 @@ const StudySrsPage = () => {
             {/* Right Column: Status Overview */}
             <div>
               <Card className="bento-card border-2 border-border h-full">
-                <CardContent>
+                <CardContent className="px-0">
                   <h2 className="text-xl font-bold font-editorial flex items-center gap-2 mb-3">
                     <Check className="h-5 w-5 text-foreground" />
                     Status
