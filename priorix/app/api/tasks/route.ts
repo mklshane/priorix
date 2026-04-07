@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { ConnectDB } from "@/lib/config/db";
 import Task from "@/lib/models/Task";
 import "@/lib/models/Note";
-import "@/lib/models/Deck";
+import Deck from "@/lib/models/Deck";
 
 export async function GET(request: NextRequest) {
   try {
@@ -122,6 +122,22 @@ export async function POST(request: NextRequest) {
       recurring: recurring || undefined,
       createdBy: userId,
     });
+
+    if (task.linkedDeck && task.dueDate) {
+      await Deck.findOneAndUpdate(
+        {
+          _id: task.linkedDeck,
+          user: userId,
+          $or: [
+            { studyPeriodEnd: { $exists: false } },
+            { studyPeriodEnd: null },
+          ],
+        },
+        {
+          $set: { studyPeriodEnd: task.dueDate },
+        }
+      );
+    }
 
     const populatedTask = await Task.findById(task._id)
       .populate("linkedDeck", "title _id")

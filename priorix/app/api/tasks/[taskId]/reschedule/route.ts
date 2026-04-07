@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ConnectDB } from "@/lib/config/db";
 import Task from "@/lib/models/Task";
+import Deck from "@/lib/models/Deck";
 
 export async function PATCH(
   request: NextRequest,
@@ -51,6 +52,28 @@ export async function PATCH(
 
     if (!task) {
       return NextResponse.json({ error: "Task not found" }, { status: 404 });
+    }
+
+    const linkedDeckValue: any = task.linkedDeck;
+    const linkedDeckId =
+      linkedDeckValue && typeof linkedDeckValue === "object"
+        ? linkedDeckValue._id?.toString()
+        : linkedDeckValue?.toString();
+
+    if (linkedDeckId && task.dueDate) {
+      await Deck.findOneAndUpdate(
+        {
+          _id: linkedDeckId,
+          user: userId,
+          $or: [
+            { studyPeriodEnd: { $exists: false } },
+            { studyPeriodEnd: null },
+          ],
+        },
+        {
+          $set: { studyPeriodEnd: task.dueDate },
+        }
+      );
     }
 
     return NextResponse.json(task);
