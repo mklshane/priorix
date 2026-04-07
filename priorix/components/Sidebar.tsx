@@ -47,12 +47,12 @@ const navigation = [
     icon: FileText,
     hoverClass: "hover:bg-sky/30",
   },
-  {
+  /* {
     name: "Analytics",
     href: "/analytics",
     icon: BarChart2,
     hoverClass: "hover:bg-sky/30",
-  },
+  }, */
 ];
 
 export default function Sidebar() {
