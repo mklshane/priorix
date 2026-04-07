@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "postinstall": "copyfiles -f node_modules/pdfjs-dist/build/pdf.worker.min.mjs public",
-    "migrate:cleanup-orphaned-deck-data": "ts-node --project scripts/tsconfig.json scripts/cleanup-orphaned-deck-data.ts"
+    "migrate:cleanup-orphaned-deck-data": "ts-node --project scripts/tsconfig.json scripts/cleanup-orphaned-deck-data.ts",
+    "migrate:disable-notifications-existing-users": "ts-node --project scripts/tsconfig.json scripts/disable-notifications-existing-users.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

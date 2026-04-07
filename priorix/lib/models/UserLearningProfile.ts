@@ -107,7 +107,7 @@ const UserLearningProfileSchema = new Schema<IUserLearningProfile>(
     },
     enableSmartNotifications: {
       type: Boolean,
-      default: true,
+      default: false,
     },
     notificationPreferences: {
       dailyReviewReminder: { type: Boolean, default: true },
