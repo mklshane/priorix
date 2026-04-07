@@ -30,6 +30,7 @@ import Image from "next/image";
 import DailyGoalWidget from "@/components/dashboard/DailyGoalWidget";
 import StudyQueueWidget from "@/components/dashboard/StudyQueueWidget";
 import RetentionRiskWidget from "@/components/dashboard/RetentionRiskWidget";
+// import RecentDeckPerformanceInsight from "@/components/dashboard/RecentDeckPerformanceInsight";
 
 export default function DashboardPage() {
   const { data: session } = useSession();
@@ -367,23 +368,38 @@ export default function DashboardPage() {
             ) : patterns ? (
               <>
                 {patterns.requiresMoreSessions ? (
-                  <div className="bento-card bg-muted/30 border-dashed text-center p-8 flex flex-col justify-center items-center min-h-[300px]">
-                    <div className="max-w-md mx-auto space-y-4">
-                      <h3 className="text-2xl font-editorial">Unlock Insights</h3>
-                      <p className="text-muted-foreground font-medium">
-                        Complete at least {patterns.minimumRequired} study sessions to get personalized learning insights.
-                      </p>
-                      <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-card border-2 border-border shadow-bento-sm font-bold text-sm">
-                        <span>{patterns.currentSessions} / {patterns.minimumRequired}</span>
-                        <span className="text-muted-foreground">sessions</span>
+                  <div className="space-y-4">
+                    <div className="bento-card bg-muted/30 border-dashed text-center p-8 flex flex-col justify-center items-center min-h-[300px]">
+                      <div className="max-w-md mx-auto space-y-4">
+                        <h3 className="text-2xl font-editorial">Unlock Insights</h3>
+                        <p className="text-muted-foreground font-medium">
+                          Complete at least {patterns.minimumRequired} study sessions to get personalized learning insights.
+                        </p>
+                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-card border-2 border-border shadow-bento-sm font-bold text-sm">
+                          <span>{patterns.currentSessions} / {patterns.minimumRequired}</span>
+                          <span className="text-muted-foreground">sessions</span>
+                        </div>
                       </div>
                     </div>
+                    {/* <RecentDeckPerformanceInsight
+                      performance={userStats?.recentDeckPerformance ?? null}
+                    /> */}
                   </div>
                 ) : patterns.insights ? (
-                  <InsightsPanel insights={patterns.insights} />
+                  <div className="space-y-4">
+                    <InsightsPanel insights={patterns.insights} />
+                    {/* <RecentDeckPerformanceInsight
+                      performance={userStats?.recentDeckPerformance ?? null}
+                    /> */}
+                  </div>
                 ) : (
-                  <div className="bento-card bg-muted/30 border-dashed text-center p-8 flex flex-col justify-center items-center min-h-[300px]">
-                    <p className="font-editorial text-2xl text-muted-foreground">Start studying to unlock insights</p>
+                  <div className="space-y-4">
+                    <div className="bento-card bg-muted/30 border-dashed text-center p-8 flex flex-col justify-center items-center min-h-[300px]">
+                      <p className="font-editorial text-2xl text-muted-foreground">Start studying to unlock insights</p>
+                    </div>
+                    {/* <RecentDeckPerformanceInsight
+                      performance={userStats?.recentDeckPerformance ?? null}
+                    /> */}
                   </div>
                 )}
               </>

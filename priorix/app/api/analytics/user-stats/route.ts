@@ -3,6 +3,7 @@ import { ConnectDB } from "@/lib/config/db";
 import UserStudySession from "@/lib/models/UserStudySession";
 import UserCardProgress from "@/lib/models/UserCardProgress";
 import UserLearningProfile from "@/lib/models/UserLearningProfile";
+import Deck from "@/lib/models/Deck";
 
 // Calculate study streak from sessions
 function calculateStreak(sessions: any[]): { current: number; longest: number } {
@@ -156,6 +157,80 @@ export async function GET(req: NextRequest) {
     });
     const streak = calculateStreak(allSessions);
 
+    // Most recently studied deck performance (last 30 days, by deck)
+    let recentDeckPerformance: any = null;
+    const latestSession = allSessions[0];
+
+    if (latestSession?.deckId) {
+      const latestDeckId = latestSession.deckId;
+      const deckThirtyDayStart = new Date();
+      deckThirtyDayStart.setDate(deckThirtyDayStart.getDate() - 30);
+
+      const recentDeckSessions = await UserStudySession.find({
+        userId,
+        deckId: latestDeckId,
+        sessionStart: { $gte: deckThirtyDayStart },
+      }).sort({ sessionStart: -1 });
+
+      const recentDeckSrsSessions = recentDeckSessions.filter(
+        (s) => s.studyMode !== "quiz"
+      );
+      const recentDeckQuizSessions = recentDeckSessions.filter(
+        (s) => s.studyMode === "quiz"
+      );
+
+      const deck = await Deck.findById(latestDeckId).select("title");
+
+      const srsRecallRate =
+        recentDeckSrsSessions.length > 0
+          ? recentDeckSrsSessions.reduce((sum, s) => sum + s.averageAccuracy, 0) /
+            recentDeckSrsSessions.length
+          : 0;
+
+      const srsCardsReviewed = recentDeckSrsSessions.reduce(
+        (sum, s) => sum + s.cardsReviewed,
+        0
+      );
+
+      const quizAverageScore =
+        recentDeckQuizSessions.length > 0
+          ? recentDeckQuizSessions.reduce(
+              (sum, s) => sum + (s.quizScore ?? 0),
+              0
+            ) / recentDeckQuizSessions.length
+          : 0;
+
+      const latestQuiz = recentDeckQuizSessions[0];
+
+      recentDeckPerformance = {
+        deckId: latestDeckId.toString(),
+        deckTitle: deck?.title ?? "Untitled Deck",
+        lastStudiedAt: latestSession.sessionStart,
+        windowDays: 30,
+        hasSrs: recentDeckSrsSessions.length > 0,
+        hasQuiz: recentDeckQuizSessions.length > 0,
+        srs:
+          recentDeckSrsSessions.length > 0
+            ? {
+                sessions: recentDeckSrsSessions.length,
+                recallRate: Math.round(srsRecallRate),
+                cardsReviewed: srsCardsReviewed,
+              }
+            : null,
+        quiz:
+          recentDeckQuizSessions.length > 0
+            ? {
+                sessions: recentDeckQuizSessions.length,
+                averageScore: Math.round(quizAverageScore),
+                latestScore:
+                  latestQuiz?.quizScore !== undefined && latestQuiz?.quizScore !== null
+                    ? Math.round(latestQuiz.quizScore)
+                    : null,
+              }
+            : null,
+      };
+    }
+
     // Daily breakdown for last 30 days
     const dailyStats = [];
     for (let i = 0; i < 30; i++) {
@@ -286,6 +361,7 @@ export async function GET(req: NextRequest) {
         difficultyPreference: profile.difficultyPreference,
         totalStudyTime: profile.totalStudyTime,
       },
+      recentDeckPerformance,
     };
 
     return NextResponse.json(stats);
